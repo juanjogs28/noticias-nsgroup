@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ExternalLink, Mail, Clock, TrendingUp, AlertCircle, Calendar, Globe, Users, Filter } from "lucide-react";
 import { useNews } from "@/hooks/useNews";
 import { formatPublishedDate } from "@/services/newsService";
+import { subscribeToNewsletter } from "@/services/subscriptionService";
 
 const Index = () => {
   const [email, setEmail] = useState('');
@@ -42,15 +43,24 @@ const Index = () => {
 
     setIsSubscribing(true);
     
-    // Simular llamada a API/Brevo
-    setTimeout(() => {
+    try {
+      const response = await subscribeToNewsletter(email);
+      
       toast({
-        title: "¡Suscripción exitosa!",
-        description: "Recibirás nuestro resumen diario en tu email",
+        title: "¡Suscripción exitosa! 🎉",
+        description: response.message,
       });
+      
       setEmail('');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Error al procesar la suscripción",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubscribing(false);
-    }, 1500);
+    }
   };
 
   const getCategoryFromSource = (sourceName: string) => {
