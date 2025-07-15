@@ -66,7 +66,10 @@ const Index = () => {
   const getCategoryFromSource = (sourceName: string) => {
     const lowerSource = sourceName.toLowerCase();
     
-    if (lowerSource.includes('tech') || lowerSource.includes('verge') || lowerSource.includes('wired')) {
+    // Para datos de redes sociales, usar categorías más apropiadas
+    if (lowerSource.includes('twitter') || lowerSource.includes('social')) {
+      return 'redes-sociales';
+    } else if (lowerSource.includes('tech') || lowerSource.includes('verge') || lowerSource.includes('wired')) {
       return 'tecnologia';
     } else if (lowerSource.includes('business') || lowerSource.includes('financial') || lowerSource.includes('bloomberg')) {
       return 'finanzas';
@@ -85,6 +88,8 @@ const Index = () => {
     const category = getCategoryFromSource(sourceName);
     
     switch (category) {
+      case 'redes-sociales':
+        return 'bg-pink-100 text-pink-800 hover:bg-pink-200';
       case 'tecnologia':
         return 'bg-green-100 text-green-800 hover:bg-green-200';
       case 'finanzas':
@@ -102,6 +107,7 @@ const Index = () => {
 
   const getCategoryLabel = (category: string) => {
     const labels = {
+      'redes-sociales': 'Redes Sociales',
       'tecnologia': 'Tecnología',
       'finanzas': 'Finanzas',
       'medicina': 'Medicina',
@@ -113,7 +119,15 @@ const Index = () => {
   };
 
   const handleReadMore = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
+    if (url && url !== '#') {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      toast({
+        title: "Información",
+        description: "Este contenido no tiene enlace externo disponible",
+        variant: "default",
+      });
+    }
   };
 
   // Filter articles by category
@@ -128,13 +142,13 @@ const Index = () => {
 
   // Resumen del día hardcodeado
   const todaySummary = {
-    date: "7 de Enero, 2025",
-    totalNews: 8,
-    categories: ["Tecnología", "Medicina", "Finanzas", "Ciencia"],
+    date: "15 de Enero, 2025",
+    totalNews: newsData?.articles?.length || 5,
+    categories: availableCategories.map(cat => getCategoryLabel(cat)),
     highlights: [
-      "Avances significativos en IA aplicada a medicina",
-      "Volatilidad en mercados tras datos económicos",
-      "Descubrimiento de nueva especie marina en el Pacífico"
+      "Tendencias virales en redes sociales",
+      "Contenido destacado de portadas mundiales",
+      "Engagement alto en posts de actualidad"
     ]
   };
 
@@ -166,11 +180,11 @@ const Index = () => {
           {/* Main Hero Content */}
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight">
-              Las noticias más importantes,
-              <span className="text-blue-600"> resumidas para ti</span>
+              El contenido más viral,
+              <span className="text-blue-600"> resumido para ti</span>
             </h2>
             <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
-              Mantente informado sin perder tiempo. Recibe un resumen diario de las noticias más relevantes directamente en tu email.
+              Mantente al día con las tendencias más importantes de redes sociales. Recibe un resumen diario del contenido más relevante directamente en tu email.
             </p>
           </div>
 
@@ -274,7 +288,7 @@ const Index = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-2">Noticias de Hoy</h3>
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">Contenido Viral de Hoy</h3>
               <div className="flex items-center gap-2 text-slate-600">
                 <Clock className="w-4 h-4" />
                 <span className="text-sm">
@@ -329,13 +343,13 @@ const Index = () => {
           {filteredArticles.length > 0 && (
             <>
               <div className="mb-4 text-sm text-slate-600">
-                Mostrando {filteredArticles.length} noticia{filteredArticles.length !== 1 ? 's' : ''}
+                Mostrando {filteredArticles.length} contenido{filteredArticles.length !== 1 ? 's' : ''}
                 {selectedCategory !== 'all' && ` de ${getCategoryLabel(selectedCategory)}`}
               </div>
               
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredArticles
-                  .filter(article => article.title && article.description && article.title !== '[Removed]')
+                  .filter(article => article.title && article.title !== '[Removed]' && article.title !== 'Sin título')
                   .map((article, index) => (
                   <Card key={`${article.url}-${index}`} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/70 backdrop-blur-sm hover:-translate-y-1">
                     <div className="relative">
@@ -372,7 +386,7 @@ const Index = () => {
                     
                     <CardContent className="pt-0">
                       <CardDescription className="text-slate-700 text-sm leading-relaxed mb-4 line-clamp-3">
-                        {article.description}
+                        {article.description || 'Contenido de redes sociales'}
                       </CardDescription>
                       <Button 
                         variant="ghost" 
