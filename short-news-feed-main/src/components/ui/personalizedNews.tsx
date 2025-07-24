@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { fetchNewsByCountry, fetchNewsByCategory } from "@/api/meltwater"
-
+import NewsList from "@/components/ui/newsList"
 
 export interface Article {
   source: {
@@ -16,31 +16,6 @@ export interface Article {
   content: string | null
 }
 
-function NewsList({ articles }: { articles: Article[] }) {
-  if (articles.length === 0) return <p>No hay noticias disponibles.</p>
-
-  return (
-    <ul>
-      {articles.map((article, idx) => (
-        <li key={idx} className="mb-4">
-          <a
-            href={article.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-blue-600"
-          >
-            {article.title}
-          </a>
-          {article.description && <p>{article.description}</p>}
-          <small>
-            {article.source.name} - {new Date(article.publishedAt).toLocaleDateString()}
-          </small>
-        </li>
-      ))}
-    </ul>
-  )
-}
-
 export default function PersonalizedNews() {
   const [countryNews, setCountryNews] = useState<Article[]>([])
   const [categoryNews, setCategoryNews] = useState<Article[]>([])
@@ -49,6 +24,8 @@ export default function PersonalizedNews() {
     const country = localStorage.getItem("userCountry") || "us"
     const category = localStorage.getItem("userSector") || "technology"
 
+    console.log("Fetching noticias para:", { country, category })
+
     fetchNewsByCountry(country)
       .then(setCountryNews)
       .catch(console.error)
@@ -56,23 +33,23 @@ export default function PersonalizedNews() {
     fetchNewsByCategory(category)
       .then(setCategoryNews)
       .catch(console.error)
-    
-    
   }, [])
 
   return (
-    <div>
+    <div className="space-y-12">
       <section>
-        <h2>Noticias de {localStorage.getItem("userCountry") || "US"}</h2>
-        <NewsList articles={countryNews} />
+        <h2 className="text-2xl font-bold text-slate-800 mb-4">
+          Noticias de {localStorage.getItem("userCountry")?.toUpperCase() || "US"}
+        </h2>
+        <NewsList articles={countryNews} title="tu país" />
       </section>
 
       <section>
-        <h2>Noticias sobre {localStorage.getItem("userSector") || "Tecnología"}</h2>
-        <NewsList articles={categoryNews} />
+        <h2 className="text-2xl font-bold text-slate-800 mb-4">
+          Noticias sobre {localStorage.getItem("userSector") || "Tecnología"}
+        </h2>
+        <NewsList articles={categoryNews} title="tu sector" />
       </section>
     </div>
-    
   )
-  
 }
