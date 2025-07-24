@@ -10,11 +10,15 @@ import { ExternalLink, Mail, Clock, TrendingUp, AlertCircle, Calendar, Globe, Us
 import { useNews } from "@/hooks/useNews";
 import { formatPublishedDate } from "@/services/newsService";
 import { subscribeToNewsletter } from "@/services/subscriptionService";
+import SubscribeForm from "@/components/ui/suscribeForm";
+import PersonalizedNews from "@/components/ui/personalizedNews"
+
 
 const Index = () => {
   const [email, setEmail] = useState('');
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [visibleCount, setVisibleCount] = useState(15);
   
   // Fetch real news data
   const { data: newsData, isLoading, error } = useNews('us', 8);
@@ -131,26 +135,28 @@ const Index = () => {
   };
 
   // Filter articles by category
-  const filteredArticles = newsData?.articles?.filter(article => {
-    if (selectedCategory === 'all') return true;
-    return getCategoryFromSource(article.source.name) === selectedCategory;
-  }) || [];
+const MAX_ARTICLES = 15;  // Definición de la cantidad máxima a mostrar
 
+const filteredArticles = (newsData?.articles?.filter(article => {
+  if (selectedCategory === 'all') return true;
+  return getCategoryFromSource(article.source.name) === selectedCategory;
+}) || []).slice(0, MAX_ARTICLES);
+const visibleArticles = filteredArticles.slice(0, visibleCount);
   // Get unique categories from articles
   const availableCategories = newsData?.articles ? 
     [...new Set(newsData.articles.map(article => getCategoryFromSource(article.source.name)))] : [];
 
   // Resumen del día hardcodeado
-  const todaySummary = {
-    date: "15 de Enero, 2025",
-    totalNews: newsData?.articles?.length || 5,
-    categories: availableCategories.map(cat => getCategoryLabel(cat)),
-    highlights: [
-      "Tendencias virales en redes sociales",
-      "Contenido destacado de portadas mundiales",
-      "Engagement alto en posts de actualidad"
-    ]
-  };
+  //const todaySummary = {
+    //date: "15 de Enero, 2025",
+    //totalNews: newsData?.articles?.length || 5,
+    //categories: availableCategories.map(cat => getCategoryLabel(cat)),
+    //highlights: [
+      //"Tendencias virales en redes sociales",
+      //"Contenido destacado de portadas mundiales",
+      //"Engagement alto en posts de actualidad"
+    //]
+  //};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -188,7 +194,7 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Today's Summary Card */}
+          {/* Today's Summary Card 
           <div className="mb-12">
             <Card className="mx-auto max-w-4xl bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 shadow-lg">
               <CardHeader className="text-center pb-4">
@@ -247,8 +253,8 @@ const Index = () => {
               </CardContent>
             </Card>
           </div>
-          
-          {/* Subscription Form */}
+          */}
+        {/* Subscription Form
           <div className="text-center">
             <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto mb-4">
               <Input
@@ -279,8 +285,9 @@ const Index = () => {
             <p className="text-sm text-slate-500">
               📧 Resumen diario • 📱 Sin spam • ✨ Cancela cuando quieras
             </p>
-          </div>
+          </div> */}
         </div>
+        
       </section>
 
       {/* News Section */}
@@ -339,69 +346,102 @@ const Index = () => {
             </div>
           )}
 
-          {/* News Grid */}
-          {filteredArticles.length > 0 && (
-            <>
-              <div className="mb-4 text-sm text-slate-600">
-                Mostrando {filteredArticles.length} contenido{filteredArticles.length !== 1 ? 's' : ''}
-                {selectedCategory !== 'all' && ` de ${getCategoryLabel(selectedCategory)}`}
+ {/* News Grid */}
+  {visibleArticles.length > 0 ? (
+  <>
+    <div className="mb-4 text-sm text-slate-600">
+      Mostrando {visibleArticles.length} contenido{visibleArticles.length !== 1 ? 's' : ''}
+      {selectedCategory !== 'all' && ` de ${getCategoryLabel(selectedCategory)}`}
+    </div>
+
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {visibleArticles
+        .filter(article => article.title && article.title !== '[Removed]' && article.title !== 'Sin título')
+        .map((article, index) => (
+          <Card
+            key={`${article.url}-${index}`}
+            className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/70 backdrop-blur-sm hover:-translate-y-1"
+          >
+            <div className="relative">
+              {article.urlToImage && (
+                <div className="aspect-video w-full overflow-hidden rounded-t-lg">
+                  <img
+                    src={article.urlToImage}
+                    alt={article.title}
+                    className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
+                    onClick={() => handleReadMore(article.url)}
+                  />
+                </div>
+              )}
+              <div className="absolute top-3 left-3">
+                <Badge className={getCategoryColor(article.source.name)}>
+                  {getCategoryLabel(getCategoryFromSource(article.source.name))}
+                </Badge>
               </div>
-              
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredArticles
-                  .filter(article => article.title && article.title !== '[Removed]' && article.title !== 'Sin título')
-                  .map((article, index) => (
-                  <Card key={`${article.url}-${index}`} className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white/70 backdrop-blur-sm hover:-translate-y-1">
-                    <div className="relative">
-                      {article.urlToImage && (
-                        <div className="aspect-video w-full overflow-hidden rounded-t-lg">
-                          <img 
-                            src={article.urlToImage} 
-                            alt={article.title}
-                            className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
-                            onClick={() => handleReadMore(article.url)}
-                          />
-                        </div>
-                      )}
-                      <div className="absolute top-3 left-3">
-                        <Badge className={getCategoryColor(article.source.name)}>
-                          {getCategoryLabel(getCategoryFromSource(article.source.name))}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center gap-2 mb-2 text-sm text-slate-500">
-                        <span>{article.source.name}</span>
-                        <span>•</span>
-                        <span>{formatPublishedDate(article.publishedAt)}</span>
-                        <span>•</span>
-                        <span>3 min</span>
-                      </div>
-                      <CardTitle className="text-lg leading-tight group-hover:text-blue-700 transition-colors cursor-pointer line-clamp-2"
-                                 onClick={() => handleReadMore(article.url)}>
-                        {article.title}
-                      </CardTitle>
-                    </CardHeader>
-                    
-                    <CardContent className="pt-0">
-                      <CardDescription className="text-slate-700 text-sm leading-relaxed mb-4 line-clamp-3">
-                        {article.description || 'Contenido de redes sociales'}
-                      </CardDescription>
-                      <Button 
-                        variant="ghost" 
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-0 h-auto font-semibold w-full justify-start"
-                        onClick={() => handleReadMore(article.url)}
-                      >
-                        <span>Leer más</span>
-                        <ExternalLink className="w-4 h-4 ml-2" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
+            </div>
+
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2 mb-2 text-sm text-slate-500">
+                <span>{article.source.name}</span>
+                <span>•</span>
+                <span>{formatPublishedDate(article.publishedAt)}</span>
+                <span>•</span>
+                <span>3 min</span>
               </div>
-            </>
-          )}
+              <CardTitle
+                className="text-lg leading-tight group-hover:text-blue-700 transition-colors cursor-pointer line-clamp-2"
+                onClick={() => handleReadMore(article.url)}
+              >
+                {article.title}
+              </CardTitle>
+            </CardHeader>
+
+            <CardContent className="pt-0">
+              <CardDescription className="text-slate-700 text-sm leading-relaxed mb-4 line-clamp-3">
+                {article.description || 'Contenido de redes sociales'}
+              </CardDescription>
+              <Button
+                variant="ghost"
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-0 h-auto font-semibold w-full justify-start"
+                onClick={() => handleReadMore(article.url)}
+              >
+                <span>Leer más</span>
+                <ExternalLink className="w-4 h-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+    </div>
+
+    {/* Botón para cargar más si hay más noticias disponibles */}
+    {filteredArticles.length > visibleCount && (
+      <div className="text-center mt-8">
+        <Button onClick={() => setVisibleCount(prev => prev + 10)}>
+          Ver más noticias
+        </Button>
+      </div>
+    )}
+  </>
+) : (
+  // Mensaje si no hay noticias para la categoría
+  <div className="text-center py-12">
+    <div className="text-slate-400 mb-4">
+      <Filter className="w-12 h-12 mx-auto mb-2" />
+    </div>
+    <h4 className="text-lg font-semibold text-slate-900 mb-2">No se encontraron noticias</h4>
+    <p className="text-slate-600">
+      No hay noticias disponibles para la categoría seleccionada.
+    </p>
+    <Button
+      variant="outline"
+      className="mt-4"
+      onClick={() => setSelectedCategory('all')}
+    >
+      Ver todas las noticias
+    </Button>
+  </div>
+)}
+
 
           {/* No results message */}
           {filteredArticles.length === 0 && newsData?.articles && (
@@ -434,22 +474,14 @@ const Index = () => {
           <p className="text-blue-100 text-lg mb-8">
             Suscríbete ahora y recibe todos los días un resumen personalizado con las noticias más relevantes.
           </p>
-          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <Input
-              type="email"
-              placeholder="tu.email@ejemplo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 h-12 px-4 text-lg bg-white"
-            />
-            <Button 
-              type="submit" 
-              disabled={isSubscribing}
-              className="h-12 px-8 bg-white text-blue-600 hover:bg-blue-50 font-semibold"
-            >
-              {isSubscribing ? 'Suscribiendo...' : 'Suscribirse'}
-            </Button>
-          </form>
+          <div className="text-center">
+  <div className="max-w-md mx-auto mb-4">
+    <SubscribeForm />
+  </div>
+  <p className="text-sm text-slate-500">
+    📧 Resumen diario • 📱 Sin spam • ✨ Cancela cuando quieras
+  </p>
+</div>
         </div>
       </section>
 
