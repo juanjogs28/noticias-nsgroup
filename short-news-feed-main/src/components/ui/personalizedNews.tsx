@@ -22,6 +22,8 @@ export default function PersonalizedNews() {
     const country = localStorage.getItem("userCountry") || "uruguay"
     const sector = localStorage.getItem("userSector") || "tecnología"
 
+      console.log("🌍 Enviando datos a backend:", { country, sector }) // <- este log
+
     fetchPersonalizedNews(country, sector)
       .then(setArticles)
       .catch(err => {

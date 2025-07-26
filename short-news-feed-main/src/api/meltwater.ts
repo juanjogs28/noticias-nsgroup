@@ -10,5 +10,5 @@ export async function fetchPersonalizedNews(country: string, sector: string) {
   if (!res.ok) throw new Error("Error al obtener noticias");
 
   const data = await res.json();
-  return data.data?.articles || []; // Ajustá según cómo devuelva el backend
+  return data.data.documents || [];
 }
