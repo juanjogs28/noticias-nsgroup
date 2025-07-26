@@ -1,9 +1,17 @@
+require('dotenv').config();
+const path = require('path');
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
 const app = express();
 const PORT = 3001;
+const fetch = require('node-fetch') // Si no está instalado: npm i node-fetch@2
+
+const MELTWATER_API_URL = 'https://api.meltwater.com'; // o el base correcto
+const MELTWATER_TOKEN = process.env.MELTWATER_API_TOKEN;
+
 
 // Middlewares
 app.use(cors({
@@ -11,6 +19,8 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+
 
 // Conectar a MongoDB
 mongoose.connect('mongodb://localhost:27017/ns-news')
@@ -55,7 +65,6 @@ app.get('/api/health', (req, res) => {
 app.post('/api/subscribe', async (req, res) => {
   try {
     const { email } = req.body;
-    
     // Validar que el email existe
     if (!email) {
       return res.status(400).json({ 
@@ -146,6 +155,96 @@ app.get('/api/subscribers', async (req, res) => {
     });
   }
 });
+
+
+
+
+// Función para crear una búsqueda dinámica en Meltwater
+// async function createSearch(country, sector) {
+//   const body = {
+//     name: `Noticias para ${country} - ${sector}`,
+//     query: {
+//       operator: "AND",
+//       operands: [
+//         { type: "keyword", value: sector },
+//         { type: "location", value: country }
+//       ]
+//     },
+//     language: "es"
+//   };
+
+//   const res = await fetch(`${MELTWATER_API_URL}/v3/explore_plus/assets/searches`, {
+//     method: 'POST',
+//     headers: {
+//   'apikey': MELTWATER_TOKEN,
+//   'Content-Type': 'application/json',
+// }
+// ,
+//     body: JSON.stringify(body),
+//   });
+
+//   if (!res.ok) {
+//     const errorText = await res.text();
+//     throw new Error(`Error creando búsqueda Meltwater: ${res.status} - ${errorText}`);
+//   }
+
+//   return res.json(); // devuelve datos con search_id, etc.
+// }
+
+// Función para buscar resultados en Meltwater dado un search_id
+async function getSearchResults(searchId) {
+  const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
+   headers: {
+  'apikey': MELTWATER_TOKEN,
+  'Content-Type': 'application/json',
+}
+
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`Error buscando resultados Meltwater: ${res.status} - ${errorText}`);
+  }
+
+  return res.json(); // resultados de noticias
+}
+
+
+// Mapa de búsquedas guardadas en Meltwater
+const SEARCH_ID_MAP = {
+  'uy:technology': 'abc123', // ejemplo
+  'uy:sports': 'def456',
+  'mx:health': 'ghi789',
+  // agregá más combinaciones según lo que hayas creado en Meltwater
+};
+
+
+
+// Ruta para obtener noticias personalizadas con país y sector
+app.post('/api/news', async (req, res) => {
+  try {
+    const { country, sector } = req.body;
+    console.log("📩 Recibido /api/news con:", { country, sector });
+
+    const key = `${country}:${sector}`;
+    const searchId = SEARCH_ID_MAP[key];
+
+    if (!searchId) {
+      return res.status(404).json({ success: false, message: 'No hay búsqueda predefinida para esta combinación.' });
+    }
+
+    const results = await getSearchResults(searchId);
+    console.log("📄 Resultados obtenidos:", results);
+
+    res.json({ success: true, data: results });
+
+  } catch (error) {
+    console.error("❌ Error en /api/news:", error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
 
 // Iniciar servidor
 app.listen(PORT, () => {
