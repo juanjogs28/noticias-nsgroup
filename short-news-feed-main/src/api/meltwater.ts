@@ -1,14 +1,16 @@
 // src/api/meltwater.ts (nuevo propósito: proxy al backend)
-
-export async function fetchPersonalizedNews(country: string, sector: string) {
-  const res = await fetch("http://localhost:3001/api/news", {
+export async function fetchPersonalizedNews(country: string, sector: string): Promise<Article[]> {
+  const response = await fetch("http://localhost:3001/api/news", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ country, sector }),
   });
 
-  if (!res.ok) throw new Error("Error al obtener noticias");
+  const result = await response.json();
 
-  const data = await res.json();
-  return data.data.documents || [];
+  if (!result.success) {
+    throw new Error(result.message || "Error desconocido");
+  }
+
+  return result.data; // aquí retornás solo el arreglo de artículos
 }

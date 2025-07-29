@@ -1,4 +1,4 @@
-import { Article } from "@/components/ui/personalizedNews"
+import { Article } from "./types"
 
 export default function NewsList({ articles, title }: { articles: Article[]; title: string }) {
   if (articles.length === 0) {
@@ -10,7 +10,11 @@ export default function NewsList({ articles, title }: { articles: Article[]; tit
       {articles.map((article, idx) => (
         <div key={idx} className="bg-white rounded-lg shadow-md overflow-hidden">
           {article.urlToImage && (
-            <img src={article.urlToImage} alt={article.title} className="w-full h-48 object-cover" />
+            <img
+              src={article.urlToImage}
+              alt={article.title}
+              className="w-full h-48 object-cover"
+            />
           )}
           <div className="p-4 space-y-2">
             <a
