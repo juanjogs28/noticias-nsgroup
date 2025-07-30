@@ -8,12 +8,15 @@ export default function NewsList({ articles, title }: { articles: Article[]; tit
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {articles.map((article, idx) => (
-        <div key={idx} className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div
+          key={idx}
+          className="bg-white rounded-xl shadow-md hover:shadow-lg transition-transform transform hover:-translate-y-1 border border-slate-200"
+        >
           {article.urlToImage && (
             <img
               src={article.urlToImage}
               alt={article.title}
-              className="w-full h-48 object-cover"
+              className="w-full h-48 object-cover rounded-t-xl"
             />
           )}
           <div className="p-4 space-y-2">
@@ -21,13 +24,16 @@ export default function NewsList({ articles, title }: { articles: Article[]; tit
               href={article.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-lg font-semibold text-blue-600 hover:underline"
+              className="text-lg font-semibold text-blue-700 hover:underline"
             >
               {article.title}
             </a>
-            {article.description && (
+
+            {/* Descripción opcional */}
+            {/* {article.description && (
               <p className="text-sm text-slate-600">{article.description}</p>
-            )}
+            )} */}
+
             <div className="text-xs text-slate-500">
               {article.source.name} • {new Date(article.publishedAt).toLocaleDateString()}
             </div>

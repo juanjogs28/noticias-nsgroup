@@ -4,35 +4,56 @@ import { Article, RawMeltwaterDocument } from "./types"
 import NewsList from "./newsList"
 
 export default function PersonalizedNews() {
-  const [articles, setArticles] = useState<Article[]>([])
+  const [countryArticles, setCountryArticles] = useState<Article[]>([])
+  const [sectorArticles, setSectorArticles] = useState<Article[]>([])
   const [error, setError] = useState(false)
 
+function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
+  return raw.map((doc) => {
+    let title = "Sin título";
+    
+    if (typeof doc.content === "object" && doc.content !== null) {
+      title = doc.content.title ?? title;
+    }
+
+    let description = "";
+    if (typeof doc.content === "string") {
+      description = doc.content;
+    } else if (typeof doc.content === "object" && doc.content !== null) {
+      description = doc.content.summary || "";
+    }
+
+    return {
+      title,
+      url: doc.url,
+      urlToImage:
+        typeof doc.content === "object" && doc.content !== null
+          ? doc.content.image ?? ""
+          : "",
+      description,
+      publishedAt: doc.published_date,
+      source: { name: doc.source?.name || "Fuente desconocida" },
+    };
+  });
+}
+
+
+
   useEffect(() => {
-    const country = localStorage.getItem("userCountry") || "uy"
-    const sector = localStorage.getItem("userSector") || "technology"
+    const country = localStorage.getItem("userCountry") || "uruguay"
+    const sector = localStorage.getItem("userSector") || "tecnología"
+
+    fetchPersonalizedNews(country, "general")
+      .then(res => setCountryArticles(adaptResults(res.data)))
+      .catch(err => {
+        console.error("Error cargando noticias del país:", err)
+        setError(true)
+      })
 
     fetchPersonalizedNews(country, sector)
-      .then((documents: RawMeltwaterDocument[]) => {
-        const adapted: Article[] = documents.map((doc) => ({
-          title: doc.title ?? "Sin título",
-          url: doc.url,
-          urlToImage:
-            typeof doc.content === "object" && doc.content?.image
-              ? doc.content.image
-              : "",
-          description:
-            typeof doc.content === "string"
-              ? doc.content
-              : doc.content?.summary || "",
-          publishedAt: doc.published_date,
-          source: {
-            name: doc.source?.name || "Fuente desconocida",
-          },
-        }))
-        setArticles(adapted)
-      })
-      .catch((err) => {
-        console.error("Error cargando noticias:", err)
+      .then(res => setSectorArticles(adaptResults(res.data)))
+      .catch(err => {
+        console.error("Error cargando noticias del sector:", err)
         setError(true)
       })
   }, [])
@@ -41,14 +62,21 @@ export default function PersonalizedNews() {
     return <p className="text-red-500 text-center">❌ Error al cargar noticias</p>
   }
 
-  if (articles.length === 0) {
+  if (countryArticles.length === 0 && sectorArticles.length === 0) {
     return <p className="text-slate-500 text-center">No hay noticias disponibles</p>
   }
 
   return (
-    <section className="py-12 px-4">
-      <h2 className="text-2xl font-semibold mb-6 text-center">Noticias para vos</h2>
-      <NewsList articles={articles} title="seleccionadas" />
+    <section className="py-12 px-4 space-y-12">
+      <div>
+        <h2 className="text-2xl font-semibold mb-4 text-center">🗺 Noticias de tu país</h2>
+        <NewsList articles={countryArticles} title="noticias nacionales" />
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-semibold mb-4 text-center">📌 Noticias de tu sector</h2>
+        <NewsList articles={sectorArticles} title="noticias sectoriales" />
+      </div>
     </section>
   )
 }

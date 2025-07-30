@@ -259,7 +259,10 @@ export default function SubscribeForm() {
           <option value="ar">Argentina</option>
           <option value="cl">Chile</option>
           <option value="mx">México</option>
-          <option value="us">Estados Unidos</option>
+          <option value="py">Paraguay</option>
+          <option value="ec">Ecuador</option>
+          <option value="pa">Panamá</option>
+          <option value="pe">Perú</option>
         </select>
       </FormControl>
       <FormDescription>Tu país de residencia.</FormDescription>
@@ -280,12 +283,11 @@ export default function SubscribeForm() {
       <FormControl>
         <select {...field} className="w-full border rounded px-3 py-2">
           <option value="">Seleccioná un sector</option>
-          <option value="technology">Tecnología</option>
           <option value="health">Salud</option>
           <option value="sports">Deportes</option>
-          <option value="business">Negocios</option>
-          <option value="science">Ciencia</option>
-          <option value="entertainment">Entretenimiento</option>
+          <option value="economy">Economía</option>
+          <option value="politics">Política</option>
+          <option value="general">General</option>
         </select>
       </FormControl>
       <FormDescription>¿Qué tipo de noticias te interesa?</FormDescription>

@@ -15,25 +15,17 @@ export interface Article {
 export interface RawMeltwaterDocument {
   title: string | null
   url: string
-  content:
-    | string
-    | {
-        image?: string
-        summary?: string
-      }
+  content?: {
+     title?: string;       // <-- agregalo acá
+    opening_text?: string; // si quieres
+    image?: string
+    summary?: string
+  } | string | null
   published_date: string
   source?: {
     name?: string
   }
 }
 
-export interface Article {
-  title: string
-  url: string
-  urlToImage?: string
-  description?: string
-  publishedAt: string
-  source: {
-    name: string
-  }
-}
+
+
