@@ -22,7 +22,6 @@ const sectorNames: Record<string, string> = {
   sports: "Deportes",
   economy: "Economía",
   politics: "Política",
-  // otros...
 };
 
 

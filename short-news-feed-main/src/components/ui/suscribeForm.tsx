@@ -13,10 +13,8 @@ import {
   useForm,
 } from "react-hook-form"
 
-import { cn } from "@/lib/utils" // asegurate de tener esta función o reemplazala por una clase fija
-import { Label } from "@/components/ui/label" // o directamente usá <label> si no lo usás
-
-// -------------------------- COMPONENTES DE FORMULARIO --------------------------
+import { cn } from "@/lib/utils"
+import { Label } from "@/components/ui/label"
 
 const Form = FormProvider
 
@@ -177,7 +175,11 @@ type FormData = {
   sector: string
 }
 
-export default function SubscribeForm() {
+interface SubscribeFormProps {
+  onSuccess?: (email: string, country: string, sector: string) => void
+}
+
+export default function SubscribeForm({ onSuccess }: SubscribeFormProps) {
   const form = useForm<FormData>({
     defaultValues: {
       email: "",
@@ -197,8 +199,16 @@ export default function SubscribeForm() {
       const result = await response.json()
 
       if (result.success) {
-          localStorage.setItem("userCountry", data.country)
-          localStorage.setItem("userSector", data.sector)
+        // Guardar preferencias y email en localStorage
+        localStorage.setItem("userEmail", data.email)
+        localStorage.setItem("userCountry", data.country)
+        localStorage.setItem("userSector", data.sector)
+
+        // Llamar callback si viene
+        if (onSuccess) {
+          onSuccess(data.email, data.country, data.sector)
+        }
+
         alert("✅ Suscripción exitosa")
         form.reset()
       } else {
@@ -210,12 +220,12 @@ export default function SubscribeForm() {
     }
   }
 
-  
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 max-w-md mx-auto">
-
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6 max-w-md mx-auto"
+      >
         {/* Email */}
         <FormField
           control={form.control}
@@ -246,55 +256,60 @@ export default function SubscribeForm() {
 
         {/* País */}
         <FormField
-  control={form.control}
-  name="country"
-  rules={{ required: "El país es obligatorio" }}
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>País</FormLabel>
-      <FormControl>
-        <select {...field} className="w-full border rounded px-3 py-2">
-          <option value="">Seleccioná un país</option>
-          <option value="uy">Uruguay</option>
-          <option value="ar">Argentina</option>
-          <option value="cl">Chile</option>
-          <option value="mx">México</option>
-          <option value="py">Paraguay</option>
-          <option value="ec">Ecuador</option>
-          <option value="pa">Panamá</option>
-          <option value="pe">Perú</option>
-        </select>
-      </FormControl>
-      <FormDescription>Tu país de residencia.</FormDescription>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
-
+          control={form.control}
+          name="country"
+          rules={{ required: "El país es obligatorio" }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>País</FormLabel>
+              <FormControl>
+                <select
+                  {...field}
+                  className="w-full border rounded px-3 py-2"
+                >
+                  <option value="">Seleccioná un país</option>
+                  <option value="uy">Uruguay</option>
+                  <option value="ar">Argentina</option>
+                  <option value="cl">Chile</option>
+                  <option value="mx">México</option>
+                  <option value="py">Paraguay</option>
+                  <option value="ec">Ecuador</option>
+                  <option value="pa">Panamá</option>
+                  <option value="pe">Perú</option>
+                </select>
+              </FormControl>
+              <FormDescription>Tu país de residencia.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Sector de noticias */}
-<FormField
-  control={form.control}
-  name="sector"
-  rules={{ required: "Seleccioná un sector" }}
-  render={({ field }) => (
-    <FormItem>
-      <FormLabel>Sector de Noticias</FormLabel>
-      <FormControl>
-        <select {...field} className="w-full border rounded px-3 py-2">
-          <option value="">Seleccioná un sector</option>
-          <option value="health">Salud</option>
-          <option value="sports">Deportes</option>
-          <option value="economy">Economía</option>
-          <option value="politics">Política</option>
-          <option value="general">General</option>
-        </select>
-      </FormControl>
-      <FormDescription>¿Qué tipo de noticias te interesa?</FormDescription>
-      <FormMessage />
-    </FormItem>
-  )}
-/>
+        <FormField
+          control={form.control}
+          name="sector"
+          rules={{ required: "Seleccioná un sector" }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Sector de Noticias</FormLabel>
+              <FormControl>
+                <select
+                  {...field}
+                  className="w-full border rounded px-3 py-2"
+                >
+                  <option value="">Seleccioná un sector</option>
+                  <option value="health">Salud</option>
+                  <option value="sports">Deportes</option>
+                  <option value="economy">Economía</option>
+                  <option value="politics">Política</option>
+                  <option value="general">General</option>
+                </select>
+              </FormControl>
+              <FormDescription>¿Qué tipo de noticias te interesa?</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <button
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
