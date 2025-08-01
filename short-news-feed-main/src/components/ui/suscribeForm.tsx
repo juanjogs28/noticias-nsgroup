@@ -1,173 +1,6 @@
-"use client"
-
-import * as React from "react"
-import * as LabelPrimitive from "@radix-ui/react-label"
-import { Slot } from "@radix-ui/react-slot"
-import {
-  Controller,
-  ControllerProps,
-  FieldPath,
-  FieldValues,
-  FormProvider,
-  useFormContext,
-  useForm,
-} from "react-hook-form"
-
-import { cn } from "@/lib/utils"
-import { Label } from "@/components/ui/label"
-
-const Form = FormProvider
-
-type FormFieldContextValue<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
-> = {
-  name: TName
-}
-
-const FormFieldContext = React.createContext<FormFieldContextValue>(
-  {} as FormFieldContextValue
-)
-
-const FormField = <
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
->({
-  ...props
-}: ControllerProps<TFieldValues, TName>) => {
-  return (
-    <FormFieldContext.Provider value={{ name: props.name }}>
-      <Controller {...props} />
-    </FormFieldContext.Provider>
-  )
-}
-
-const useFormField = () => {
-  const fieldContext = React.useContext(FormFieldContext)
-  const itemContext = React.useContext(FormItemContext)
-  const { getFieldState, formState } = useFormContext()
-
-  const fieldState = getFieldState(fieldContext.name, formState)
-
-  if (!fieldContext) {
-    throw new Error("useFormField should be used within <FormField>")
-  }
-
-  const { id } = itemContext
-
-  return {
-    id,
-    name: fieldContext.name,
-    formItemId: `${id}-form-item`,
-    formDescriptionId: `${id}-form-item-description`,
-    formMessageId: `${id}-form-item-message`,
-    ...fieldState,
-  }
-}
-
-type FormItemContextValue = {
-  id: string
-}
-
-const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue
-)
-
-const FormItem = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
-  const id = React.useId()
-
-  return (
-    <FormItemContext.Provider value={{ id }}>
-      <div ref={ref} className={cn("space-y-2", className)} {...props} />
-    </FormItemContext.Provider>
-  )
-})
-FormItem.displayName = "FormItem"
-
-const FormLabel = React.forwardRef<
-  React.ElementRef<typeof LabelPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
->(({ className, ...props }, ref) => {
-  const { error, formItemId } = useFormField()
-
-  return (
-    <Label
-      ref={ref}
-      className={cn(error && "text-destructive", className)}
-      htmlFor={formItemId}
-      {...props}
-    />
-  )
-})
-FormLabel.displayName = "FormLabel"
-
-const FormControl = React.forwardRef<
-  React.ElementRef<typeof Slot>,
-  React.ComponentPropsWithoutRef<typeof Slot>
->(({ ...props }, ref) => {
-  const { error, formItemId, formDescriptionId, formMessageId } = useFormField()
-
-  return (
-    <Slot
-      ref={ref}
-      id={formItemId}
-      aria-describedby={
-        !error
-          ? `${formDescriptionId}`
-          : `${formDescriptionId} ${formMessageId}`
-      }
-      aria-invalid={!!error}
-      {...props}
-    />
-  )
-})
-FormControl.displayName = "FormControl"
-
-const FormDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => {
-  const { formDescriptionId } = useFormField()
-
-  return (
-    <p
-      ref={ref}
-      id={formDescriptionId}
-      className={cn("text-sm text-muted-foreground", className)}
-      {...props}
-    />
-  )
-})
-FormDescription.displayName = "FormDescription"
-
-const FormMessage = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, children, ...props }, ref) => {
-  const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message) : children
-
-  if (!body) {
-    return null
-  }
-
-  return (
-    <p
-      ref={ref}
-      id={formMessageId}
-      className={cn("text-sm font-medium text-destructive", className)}
-      {...props}
-    >
-      {body}
-    </p>
-  )
-})
-FormMessage.displayName = "FormMessage"
-
-// -------------------------- FORMULARIO DE SUSCRIPCIÓN --------------------------
+import React, { useEffect, useState } from "react"
+import { useForm, Controller } from "react-hook-form"
+import { toast } from "sonner"
 
 type FormData = {
   email: string
@@ -188,10 +21,51 @@ export default function SubscribeForm({ onSuccess }: SubscribeFormProps) {
     },
   })
 
+  const [loadingPrefs, setLoadingPrefs] = useState(false)
+  const [isSubscribed, setIsSubscribed] = useState(false)
+
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("userEmail")
+    if (storedEmail) {
+      setLoadingPrefs(true)
+      fetch(`http://localhost:3001/api/preferences/${storedEmail}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            form.reset({
+              email: storedEmail,
+              country: data.country,
+              sector: data.sector,
+            })
+            setIsSubscribed(true)
+          } else {
+            localStorage.removeItem("userEmail")
+            localStorage.removeItem("userCountry")
+            localStorage.removeItem("userSector")
+            setIsSubscribed(false)
+          }
+        })
+        .catch(() => {
+          setIsSubscribed(false)
+        })
+        .finally(() => setLoadingPrefs(false))
+    }
+  }, [form])
+
   const onSubmit = async (data: FormData) => {
     try {
-      const response = await fetch("http://localhost:3001/api/subscribe", {
-        method: "POST",
+      let url = "http://localhost:3001/api/subscribe"
+      let method: "POST" | "PUT" = "POST"
+
+      const storedEmail = localStorage.getItem("userEmail")
+
+      if (storedEmail && storedEmail === data.email) {
+        url = "http://localhost:3001/api/preferences"
+        method = "PUT"
+      }
+
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
@@ -199,124 +73,203 @@ export default function SubscribeForm({ onSuccess }: SubscribeFormProps) {
       const result = await response.json()
 
       if (result.success) {
-        // Guardar preferencias y email en localStorage
         localStorage.setItem("userEmail", data.email)
         localStorage.setItem("userCountry", data.country)
         localStorage.setItem("userSector", data.sector)
 
-        // Llamar callback si viene
+        setIsSubscribed(true)
+
         if (onSuccess) {
           onSuccess(data.email, data.country, data.sector)
         }
 
-        alert("✅ Suscripción exitosa")
-        form.reset()
+        toast.success(
+          method === "POST"
+            ? "✅ Suscripción exitosa"
+            : "✅ Preferencias actualizadas"
+        )
       } else {
-        alert("⚠️ " + result.message)
+        toast.error("⚠️ " + result.message)
       }
     } catch (error) {
       console.error("❌ Error:", error)
-      alert("❌ Error al enviar el formulario")
+      toast.error("❌ Error al enviar el formulario")
+    }
+  }
+
+  if (loadingPrefs) {
+    return <p>Cargando preferencias...</p>
+  }
+
+  return (
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="space-y-6 max-w-md mx-auto"
+    >
+      {/* Email */}
+      <Controller
+        name="email"
+        control={form.control}
+        rules={{
+          required: "Email es requerido",
+          pattern: {
+            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: "Formato de email inválido",
+          },
+        }}
+        render={({ field, fieldState }) => (
+          <div className="space-y-2">
+            <label className="block font-medium" htmlFor="email">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              placeholder="tu@email.com"
+              {...field}
+              className={`w-full border rounded px-3 py-2 ${
+                fieldState.error ? "border-red-500" : ""
+              }`}
+              disabled={isSubscribed}
+            />
+            {fieldState.error && (
+              <p className="text-sm text-red-600">
+                {fieldState.error.message}
+              </p>
+            )}
+          </div>
+        )}
+      />
+
+      {/* País */}
+      <Controller
+        name="country"
+        control={form.control}
+        rules={{ required: "El país es obligatorio" }}
+        render={({ field, fieldState }) => (
+          <div className="space-y-2">
+            <label className="block font-medium" htmlFor="country">
+              País
+            </label>
+            <select
+              id="country"
+              {...field}
+              className={`w-full border rounded px-3 py-2 ${
+                fieldState.error ? "border-red-500" : ""
+              }`}
+            >
+              <option value="">Seleccioná un país</option>
+              <option value="uy">Uruguay</option>
+              <option value="ar">Argentina</option>
+              <option value="cl">Chile</option>
+              <option value="mx">México</option>
+              <option value="py">Paraguay</option>
+              <option value="ec">Ecuador</option>
+              <option value="pa">Panamá</option>
+              <option value="pe">Perú</option>
+            </select>
+            {fieldState.error && (
+              <p className="text-sm text-red-600">
+                {fieldState.error.message}
+              </p>
+            )}
+          </div>
+        )}
+      />
+
+      {/* Sector */}
+      <Controller
+        name="sector"
+        control={form.control}
+        rules={{ required: "Seleccioná un sector" }}
+        render={({ field, fieldState }) => (
+          <div className="space-y-2">
+            <label className="block font-medium" htmlFor="sector">
+              Sector de Noticias
+            </label>
+            <select
+              id="sector"
+              {...field}
+              className={`w-full border rounded px-3 py-2 ${
+                fieldState.error ? "border-red-500" : ""
+              }`}
+            >
+              <option value="">Seleccioná un sector</option>
+              <option value="health">Salud</option>
+              <option value="sports">Deportes</option>
+              <option value="economy">Economía</option>
+              <option value="politics">Política</option>
+              <option value="general">General</option>
+            </select>
+            {fieldState.error && (
+              <p className="text-sm text-red-600">
+                {fieldState.error.message}
+              </p>
+            )}
+          </div>
+        )}
+      />
+
+      <button
+        type="submit"
+        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+      >
+        {isSubscribed ? "Actualizar preferencias" : "Suscribirse"}
+      </button>
+
+      {isSubscribed && <UnsubscribeButton />}
+    </form>
+  )
+}
+
+// Botón para darse de baja
+function UnsubscribeButton() {
+  const email = localStorage.getItem("userEmail")
+
+  const handleUnsubscribe = async () => {
+    if (!email) {
+      toast.error("⚠️ No hay usuario suscripto")
+      return
+    }
+
+    const confirmed = window.confirm("¿Seguro quieres darte de baja?")
+    if (!confirmed) return
+
+    try {
+      const response = await fetch("http://localhost:3001/api/unsubscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        localStorage.removeItem("userEmail")
+        localStorage.removeItem("userCountry")
+        localStorage.removeItem("userSector")
+
+        toast("🛑 Te diste de baja", {
+          description: "Podés volver cuando quieras ❤️",
+        })
+
+        window.location.reload()
+      } else {
+        toast.error("⚠️ " + result.message)
+      }
+    } catch (error) {
+      console.error("❌ Error al darse de baja:", error)
+      toast.error("❌ Error al darse de baja")
     }
   }
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-6 max-w-md mx-auto"
-      >
-        {/* Email */}
-        <FormField
-          control={form.control}
-          name="email"
-          rules={{
-            required: "Email es requerido",
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: "Formato de email inválido",
-            },
-          }}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <input
-                  type="email"
-                  placeholder="tu@email.com"
-                  {...field}
-                  className="w-full border rounded px-3 py-2"
-                />
-              </FormControl>
-              <FormDescription>Ingresá tu correo electrónico.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* País */}
-        <FormField
-          control={form.control}
-          name="country"
-          rules={{ required: "El país es obligatorio" }}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>País</FormLabel>
-              <FormControl>
-                <select
-                  {...field}
-                  className="w-full border rounded px-3 py-2"
-                >
-                  <option value="">Seleccioná un país</option>
-                  <option value="uy">Uruguay</option>
-                  <option value="ar">Argentina</option>
-                  <option value="cl">Chile</option>
-                  <option value="mx">México</option>
-                  <option value="py">Paraguay</option>
-                  <option value="ec">Ecuador</option>
-                  <option value="pa">Panamá</option>
-                  <option value="pe">Perú</option>
-                </select>
-              </FormControl>
-              <FormDescription>Tu país de residencia.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Sector de noticias */}
-        <FormField
-          control={form.control}
-          name="sector"
-          rules={{ required: "Seleccioná un sector" }}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Sector de Noticias</FormLabel>
-              <FormControl>
-                <select
-                  {...field}
-                  className="w-full border rounded px-3 py-2"
-                >
-                  <option value="">Seleccioná un sector</option>
-                  <option value="health">Salud</option>
-                  <option value="sports">Deportes</option>
-                  <option value="economy">Economía</option>
-                  <option value="politics">Política</option>
-                  <option value="general">General</option>
-                </select>
-              </FormControl>
-              <FormDescription>¿Qué tipo de noticias te interesa?</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-        >
-          Suscribirse
-        </button>
-      </form>
-    </Form>
+    <button
+      type="button"
+      onClick={handleUnsubscribe}
+      className="mt-4 ml-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+    >
+      Darse de baja
+    </button>
   )
 }

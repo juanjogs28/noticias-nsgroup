@@ -25,6 +25,7 @@ const sectorNames: Record<string, string> = {
 };
 
 
+
 export default function PersonalizedNews() {
   const [userCountry, setUserCountry] = useState("uruguay");
   const [userSector, setUserSector] = useState("deportes");
