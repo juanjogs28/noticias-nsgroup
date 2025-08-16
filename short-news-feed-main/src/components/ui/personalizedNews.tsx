@@ -1,61 +1,42 @@
-import { useEffect, useState } from "react"
-import { fetchPersonalizedNews } from "@/api/meltwater"
-import { Article, RawMeltwaterDocument } from "./types"
-import NewsList from "./newsList"
-import { Pyramid } from "lucide-react";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import NewsList from "./newsList";
 
+interface RawMeltwaterDocument {
+  content: string | { title?: string; summary?: string; image?: string };
+  url: string;
+  published_date: string;
+  source?: { name?: string };
+}
 
-const countryNames: Record<string, string> = {
-  uy: "Uruguay",
-  ar: "Argentina",
-  py: "Paraguay",
-  ec: "Ecuador",
-  cl: "Chile",
-  pa: "Panamá",
-  mx: "México",
-  pe: "Perú",
-};
+interface Article {
+  title: string;
+  description: string;
+  url: string;
+  urlToImage: string;
+  publishedAt: string;
+  source: { name: string };
+}
 
-const sectorNames: Record<string, string> = {
-  health: "Salud",
-  general: "Actualidad",
-  sports: "Deportes",
-  economy: "Economía",
-  politics: "Política",
-};
-
-
-
-export default function PersonalizedNews() {
-  const [userCountry, setUserCountry] = useState("uruguay");
-  const [userSector, setUserSector] = useState("deportes");
-  const [countryArticles, setCountryArticles] = useState<Article[]>([])
-  const [sectorArticles, setSectorArticles] = useState<Article[]>([])
-  const [error, setError] = useState(false)
-  
+interface PersonalizedNewsResponse {
+  success: boolean;
+  pais: RawMeltwaterDocument[];
+  sector: RawMeltwaterDocument[];
+}
 
 function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
   return raw.map((doc) => {
     let title = "Sin título";
-    
-    if (typeof doc.content === "object" && doc.content !== null) {
-      title = doc.content.title ?? title;
-    }
+    if (typeof doc.content === "object" && doc.content) title = doc.content.title ?? title;
 
     let description = "";
-    if (typeof doc.content === "string") {
-      description = doc.content;
-    } else if (typeof doc.content === "object" && doc.content !== null) {
-      description = doc.content.summary || "";
-    }
+    if (typeof doc.content === "string") description = doc.content;
+    else if (typeof doc.content === "object" && doc.content) description = doc.content.summary || "";
 
     return {
       title,
       url: doc.url,
-      urlToImage:
-        typeof doc.content === "object" && doc.content !== null
-          ? doc.content.image ?? ""
-          : "",
+      urlToImage: typeof doc.content === "object" && doc.content?.image ? doc.content.image : "",
       description,
       publishedAt: doc.published_date,
       source: { name: doc.source?.name || "Fuente desconocida" },
@@ -63,49 +44,50 @@ function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
   });
 }
 
+export default function PersonalizedNews() {
+  const [paisArticles, setPaisArticles] = useState<Article[]>([]);
+  const [sectorArticles, setSectorArticles] = useState<Article[]>([]);
+  const [error, setError] = useState(false);
 
-useEffect(() => {
-  const country = localStorage.getItem("userCountry") || "uruguay";
-  const sector = localStorage.getItem("userSector") || "tecnología";
+  useEffect(() => {
+    const email = localStorage.getItem("userEmail");
+    if (!email) return;
 
-  setUserCountry(country);
-  setUserSector(sector);
+    const fetchNews = async () => {
+      try {
+        const res = await axios.post<PersonalizedNewsResponse>(
+          "http://localhost:3001/api/news/personalized",
+          { email }
+        );
 
-  fetchPersonalizedNews(country, "general")
-    .then(res => setCountryArticles(adaptResults(res.data)))
-    .catch(err => {
-      console.error("Error cargando noticias del país:", err);
-      setError(true);
-    });
+        setPaisArticles(adaptResults(res.data.pais));
+        setSectorArticles(adaptResults(res.data.sector));
+      } catch (err) {
+        console.error("Error cargando noticias:", err);
+        setError(true);
+      }
+    };
 
-  fetchPersonalizedNews(country, sector)
-    .then(res => setSectorArticles(adaptResults(res.data)))
-    .catch(err => {
-      console.error("Error cargando noticias del sector:", err);
-      setError(true);
-    });
-}, []);
+    fetchNews();
+  }, []);
 
+  if (error)
+    return <p className="text-red-500 text-center py-10">❌ Error al cargar noticias</p>;
 
-  if (error) {
-    return <p className="text-red-500 text-center">❌ Error al cargar noticias</p>
-  }
-
-  if (countryArticles.length === 0 && sectorArticles.length === 0) {
-    return <p className="text-slate-500 text-center">No hay noticias disponibles</p>
-  }
+  if (!paisArticles.length && !sectorArticles.length)
+    return <p className="text-slate-500 text-center py-10">No hay noticias disponibles</p>;
 
   return (
     <section className="py-12 px-4 space-y-12">
       <div>
-        <h2 className="text-2xl font-semibold mb-4 text-center">🗺 Noticias de {countryNames[userCountry]??userCountry}</h2>
-        <NewsList articles={countryArticles} title="noticias nacionales" />
+        <h2 className="text-2xl font-semibold mb-4 text-center">🗺 Noticias País</h2>
+        <NewsList articles={paisArticles} title="Noticias Nacionales" />
       </div>
 
       <div>
-        <h2 className="text-2xl font-semibold mb-4 text-center">📌 Noticias de {sectorNames[userSector]??userSector} </h2>
-        <NewsList articles={sectorArticles} title="noticias sectoriales" />
+        <h2 className="text-2xl font-semibold mb-4 text-center">📌 Noticias Sector</h2>
+        <NewsList articles={sectorArticles} title="Noticias Sectoriales" />
       </div>
     </section>
-  )
+  );
 }
