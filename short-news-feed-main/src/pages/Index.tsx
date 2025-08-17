@@ -2,92 +2,123 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import NewsList from "../components/ui/newsList";
 
-interface RawMeltwaterDocument {
-  content: string | { title?: string; summary?: string; image?: string };
-  url: string;
-  published_date: string;
-  source?: { name?: string };
-}
-
-interface Article {
+interface MeltwaterArticle {
   title: string;
-  description: string;
   url: string;
   urlToImage: string;
+  description: string;
   publishedAt: string;
   source: { name: string };
+  engagementScore?: number;
+  socialEchoScore?: number;
 }
 
-interface PersonalizedNewsResponse {
+interface NewsResponse {
   success: boolean;
-  pais: RawMeltwaterDocument[];
-  sector: RawMeltwaterDocument[];
+  pais: any[];
+  sector: any[];
 }
 
-function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
-  return raw.map((doc) => {
-    let title = "Sin título";
-    if (typeof doc.content === "object" && doc.content) title = doc.content.title ?? title;
-
-    let description = "";
-    if (typeof doc.content === "string") description = doc.content;
-    else if (typeof doc.content === "object" && doc.content) description = doc.content.summary || "";
-
-    return {
-      title,
-      url: doc.url,
-      urlToImage: typeof doc.content === "object" && doc.content?.image ? doc.content.image : "",
-      description,
-      publishedAt: doc.published_date,
-      source: { name: doc.source?.name || "Fuente desconocida" },
-    };
-  });
+function adaptResults(raw: any[]): MeltwaterArticle[] {
+  return raw.map((doc) => ({
+    title: doc.content?.title || "Sin título",
+    url: doc.url,
+    urlToImage: doc.content?.image || "/fallback-image.png",
+    description: doc.content?.opening_text || "",
+    publishedAt: doc.published_date,
+    source: { name: doc.source?.name || "Fuente desconocida" },
+    engagementScore: doc.metrics?.engagement?.total ?? 0,
+    socialEchoScore: doc.metrics?.social_echo?.total ?? 0,
+  }));
 }
 
 export default function Index() {
-  const [paisArticles, setPaisArticles] = useState<Article[]>([]);
-  const [sectorArticles, setSectorArticles] = useState<Article[]>([]);
+  const [paisArticles, setPaisArticles] = useState<MeltwaterArticle[]>([]);
+  const [sectorArticles, setSectorArticles] = useState<MeltwaterArticle[]>([]);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    const email = localStorage.getItem("userEmail");
-    if (!email) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const emailParam = urlParams.get("email");
 
-    const fetchNews = async () => {
-      try {
-        const res = await axios.post<PersonalizedNewsResponse>(
-          "http://localhost:3001/api/news/personalized",
-          { email }
-        );
+    if (emailParam) localStorage.setItem("userEmail", emailParam);
 
-        setPaisArticles(adaptResults(res.data.pais));
-        setSectorArticles(adaptResults(res.data.sector));
-      } catch (err) {
-        console.error("Error cargando noticias:", err);
+    const email = emailParam || localStorage.getItem("userEmail");
+    if (!email) {
+      setError(true);
+      return;
+    }
+
+    axios
+      .post<NewsResponse>("http://localhost:3001/api/news/personalized", { email })
+      .then((res) => {
+        if (res.data.success) {
+          setSectorArticles(adaptResults(res.data.sector));
+          setPaisArticles(adaptResults(res.data.pais));
+        } else setError(true);
+      })
+      .catch((err) => {
+        console.error(err);
         setError(true);
-      }
-    };
-
-    fetchNews();
+      });
   }, []);
 
   if (error)
-    return <p className="text-red-500 text-center py-10">❌ Error cargando noticias</p>;
-
+    return (
+      <p className="text-red-500 text-center py-10">❌ Error cargando noticias</p>
+    );
   if (!paisArticles.length && !sectorArticles.length)
-    return <p className="text-slate-500 text-center py-10">No hay noticias disponibles</p>;
+    return (
+      <p className="text-slate-500 text-center py-10">
+        No hay noticias disponibles
+      </p>
+    );
+
+  const paisEngagement = paisArticles.filter((a) => a.engagementScore !== undefined);
+  const paisEcoSocial = paisArticles.filter((a) => a.socialEchoScore !== undefined);
 
   return (
-    <section className="py-12 px-4 space-y-12">
-      <div>
-        <h2 className="text-2xl font-semibold mb-4 text-center">🗺 Noticias País</h2>
-        <NewsList articles={paisArticles} title="Noticias Nacionales" />
-      </div>
+    <div
+      className="min-h-screen bg-gray-100"
+      style={{
+        backgroundImage: "url('/textures/texture-light.png')",
+        backgroundRepeat: "repeat",
+      }}
+    >
+      {/* Header */}
+      <header className="bg-indigo-600 text-white py-6 shadow-md">
+        <h1 className="text-3xl font-bold text-center">Noticias Personalizadas</h1>
+        <p className="text-center mt-1 text-indigo-200">Tus noticias de sector y país</p>
+      </header>
 
-      <div>
-        <h2 className="text-2xl font-semibold mb-4 text-center">📌 Noticias Sector</h2>
-        <NewsList articles={sectorArticles} title="Noticias Sectoriales" />
-      </div>
-    </section>
+      <main className="py-12 px-4 space-y-12 max-w-6xl mx-auto">
+        {/* Sector */}
+        <section>
+          <h2 className="text-2xl font-semibold mb-6 text-center">📌 Noticias Sector</h2>
+          <NewsList articles={sectorArticles} title="Noticias Sectoriales" />
+        </section>
+
+        {/* País */}
+        <section>
+          <h2 className="text-2xl font-semibold mb-6 text-center">🗺 Noticias País</h2>
+
+          {/* Engagement */}
+          {paisEngagement.length > 0 && (
+            <div className="mb-10">
+              <h3 className="text-xl font-medium mb-4">🔥 Engagement</h3>
+              <NewsList articles={paisEngagement} title="Engagement" />
+            </div>
+          )}
+
+          {/* EcoSocial */}
+          {paisEcoSocial.length > 0 && (
+            <div>
+              <h3 className="text-xl font-medium mb-4">🌱 EcoSocial</h3>
+              <NewsList articles={paisEcoSocial} title="EcoSocial" />
+            </div>
+          )}
+        </section>
+      </main>
+    </div>
   );
 }

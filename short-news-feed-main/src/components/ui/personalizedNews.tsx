@@ -7,6 +7,9 @@ interface RawMeltwaterDocument {
   url: string;
   published_date: string;
   source?: { name?: string };
+  metrics?: {
+    engagement?: { total?: number | null };
+  };
 }
 
 interface Article {
@@ -24,6 +27,7 @@ interface PersonalizedNewsResponse {
   sector: RawMeltwaterDocument[];
 }
 
+// Convierte los documentos raw a objetos Article
 function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
   return raw.map((doc) => {
     let title = "Sin título";
@@ -45,7 +49,8 @@ function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
 }
 
 export default function PersonalizedNews() {
-  const [paisArticles, setPaisArticles] = useState<Article[]>([]);
+  const [ecosocialArticles, setEcosocialArticles] = useState<Article[]>([]);
+  const [engagementArticles, setEngagementArticles] = useState<Article[]>([]);
   const [sectorArticles, setSectorArticles] = useState<Article[]>([]);
   const [error, setError] = useState(false);
 
@@ -60,8 +65,26 @@ export default function PersonalizedNews() {
           { email }
         );
 
-        setPaisArticles(adaptResults(res.data.pais));
-        setSectorArticles(adaptResults(res.data.sector));
+        // Separar país en ecosocial y engagement
+        const paisRaw = res.data.pais || [];
+        const paisArticles = adaptResults(paisRaw);
+
+        const ecosocial: Article[] = [];
+        const engagement: Article[] = [];
+
+        paisRaw.forEach((doc, idx) => {
+          if (doc.metrics?.engagement?.total && doc.metrics.engagement.total > 0) {
+            engagement.push(paisArticles[idx]);
+          } else {
+            ecosocial.push(paisArticles[idx]);
+          }
+        });
+
+        setEcosocialArticles(ecosocial);
+        setEngagementArticles(engagement);
+
+        // Sector
+        setSectorArticles(adaptResults(res.data.sector || []));
       } catch (err) {
         console.error("Error cargando noticias:", err);
         setError(true);
@@ -74,20 +97,31 @@ export default function PersonalizedNews() {
   if (error)
     return <p className="text-red-500 text-center py-10">❌ Error al cargar noticias</p>;
 
-  if (!paisArticles.length && !sectorArticles.length)
+  if (!ecosocialArticles.length && !engagementArticles.length && !sectorArticles.length)
     return <p className="text-slate-500 text-center py-10">No hay noticias disponibles</p>;
 
   return (
     <section className="py-12 px-4 space-y-12">
-      <div>
-        <h2 className="text-2xl font-semibold mb-4 text-center">🗺 Noticias País</h2>
-        <NewsList articles={paisArticles} title="Noticias Nacionales" />
-      </div>
+      {ecosocialArticles.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-semibold mb-4 text-center">🌱 Noticias País - Ecosocial</h2>
+          <NewsList articles={ecosocialArticles} title="Ecosocial" />
+        </div>
+      )}
 
-      <div>
-        <h2 className="text-2xl font-semibold mb-4 text-center">📌 Noticias Sector</h2>
-        <NewsList articles={sectorArticles} title="Noticias Sectoriales" />
-      </div>
+      {engagementArticles.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-semibold mb-4 text-center">🔥 Noticias País - Engagement</h2>
+          <NewsList articles={engagementArticles} title="Engagement" />
+        </div>
+      )}
+
+      {sectorArticles.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-semibold mb-4 text-center">📌 Noticias Sector</h2>
+          <NewsList articles={sectorArticles} title="Noticias Sectoriales" />
+        </div>
+      )}
     </section>
   );
 }

@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Subscriber = require("../models/subscribers.js");
 
-// GET todos
+// GET todos los suscriptores
 router.get("/", async (req, res) => {
   try {
     const subs = await Subscriber.find().sort({ subscribedAt: -1 });
@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST crear
+// POST crear suscriptor
 router.post("/", async (req, res) => {
   try {
     const { email, countrySearchId, sectorSearchId } = req.body;
@@ -22,7 +22,11 @@ router.post("/", async (req, res) => {
     const existing = await Subscriber.findOne({ email: email.toLowerCase() });
     if (existing) return res.status(400).json({ message: "El suscriptor ya existe" });
 
-    const subscriber = new Subscriber({ email: email.toLowerCase(), countrySearchId, sectorSearchId });
+    const subscriber = new Subscriber({
+      email: email.toLowerCase(),
+      countrySearchId,
+      sectorSearchId,
+    });
     const saved = await subscriber.save();
     res.json({ success: true, subscriber: saved });
   } catch (err) {
@@ -31,7 +35,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// DELETE
+// DELETE suscriptor
 router.delete("/:id", async (req, res) => {
   try {
     await Subscriber.findByIdAndDelete(req.params.id);
