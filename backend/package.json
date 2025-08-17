@@ -2,19 +2,19 @@
   "name": "ns-group-backend",
   "version": "1.0.0",
   "description": "Backend para el sistema de newsletter",
-  "main": "server.js",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
     "test": "node test.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "mongoose": "^8.0.0",
-    "dotenv": "^16.3.0"
+    "dotenv": "^16.3.0",
+    "express": "^4.18.2",
+    "mongoose": "^8.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.0"
+    "nodemon": "^3.1.10"
   }
 } 

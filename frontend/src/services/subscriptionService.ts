@@ -1,18 +1,24 @@
 const API_BASE_URL = 'http://localhost:3001';
 
+export interface SubscriptionData {
+  email: string;
+  category: string;
+  region: string;
+}
+
 export interface SubscriptionResponse {
   success: boolean;
   message: string;
 }
 
-export const subscribeToNewsletter = async (email: string): Promise<SubscriptionResponse> => {
+export const subscribeToNewsletter = async (subscriptionData: SubscriptionData): Promise<SubscriptionResponse> => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/subscribe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify(subscriptionData),
     });
 
     const data = await response.json();

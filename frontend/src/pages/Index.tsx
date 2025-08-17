@@ -13,8 +13,9 @@ import { subscribeToNewsletter } from "@/services/subscriptionService";
 
 const Index = () => {
   const [email, setEmail] = useState('');
-  const [isSubscribing, setIsSubscribing] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedRegion, setSelectedRegion] = useState('us');
+  const [isSubscribing, setIsSubscribing] = useState(false);
   
   // Fetch real news data
   const { data: newsData, isLoading, error } = useNews('us', 8);
@@ -44,7 +45,11 @@ const Index = () => {
     setIsSubscribing(true);
     
     try {
-      const response = await subscribeToNewsletter(email);
+      const response = await subscribeToNewsletter({
+        email,
+        category: selectedCategory,
+        region: selectedRegion
+      });
       
       toast({
         title: "¡Suscripción exitosa! 🎉",
@@ -139,6 +144,22 @@ const Index = () => {
   // Get unique categories from articles
   const availableCategories = newsData?.articles ? 
     [...new Set(newsData.articles.map(article => getCategoryFromSource(article.source.name)))] : [];
+
+  // Get region labels
+  const getRegionLabel = (region: string) => {
+    const labels = {
+      'us': 'Estados Unidos',
+      'mx': 'México',
+      'es': 'España',
+      'ar': 'Argentina',
+      'co': 'Colombia',
+      'pe': 'Perú',
+      'cl': 'Chile',
+      'br': 'Brasil',
+      'global': 'Global'
+    };
+    return labels[region] || 'Estados Unidos';
+  };
 
   // Resumen del día hardcodeado
   const todaySummary = {
@@ -250,31 +271,68 @@ const Index = () => {
           
           {/* Subscription Form */}
           <div className="text-center">
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto mb-4">
-              <Input
-                type="email"
-                placeholder="tu.email@ejemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 h-12 px-4 text-lg"
-              />
-              <Button 
-                type="submit" 
-                disabled={isSubscribing}
-                className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-              >
-                {isSubscribing ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Suscribiendo...
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-5 h-5" />
-                    Suscribirse
-                  </div>
-                )}
-              </Button>
+            <form onSubmit={handleSubscribe} className="space-y-4 max-w-lg mx-auto mb-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Input
+                  type="email"
+                  placeholder="tu.email@ejemplo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-1 h-12 px-4 text-lg"
+                />
+                <Button 
+                  type="submit" 
+                  disabled={isSubscribing}
+                  className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                >
+                  {isSubscribing ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Suscribiendo...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-5 h-5" />
+                      Suscribirse
+                    </div>
+                  )}
+                </Button>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Selecciona categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas las categorías</SelectItem>
+                    <SelectItem value="redes-sociales">Redes Sociales</SelectItem>
+                    <SelectItem value="tecnologia">Tecnología</SelectItem>
+                    <SelectItem value="finanzas">Finanzas</SelectItem>
+                    <SelectItem value="medicina">Medicina</SelectItem>
+                    <SelectItem value="ciencia">Ciencia</SelectItem>
+                    <SelectItem value="medio-ambiente">Medio Ambiente</SelectItem>
+                    <SelectItem value="general">General</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                  <SelectTrigger className="h-12">
+                    <SelectValue placeholder="Selecciona región" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="us">Estados Unidos</SelectItem>
+                    <SelectItem value="mx">México</SelectItem>
+                    <SelectItem value="es">España</SelectItem>
+                    <SelectItem value="ar">Argentina</SelectItem>
+                    <SelectItem value="co">Colombia</SelectItem>
+                    <SelectItem value="pe">Perú</SelectItem>
+                    <SelectItem value="cl">Chile</SelectItem>
+                    <SelectItem value="br">Brasil</SelectItem>
+                    <SelectItem value="global">Global</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </form>
             <p className="text-sm text-slate-500">
               📧 Resumen diario • 📱 Sin spam • ✨ Cancela cuando quieras
@@ -434,14 +492,50 @@ const Index = () => {
           <p className="text-blue-100 text-lg mb-8">
             Suscríbete ahora y recibe todos los días un resumen personalizado con las noticias más relevantes.
           </p>
-          <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          <form onSubmit={handleSubscribe} className="flex flex-col gap-4 max-w-md mx-auto">
             <Input
               type="email"
               placeholder="tu.email@ejemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 h-12 px-4 text-lg bg-white"
+              className="h-12 px-4 text-lg bg-white"
             />
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="Categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las categorías</SelectItem>
+                  <SelectItem value="redes-sociales">Redes Sociales</SelectItem>
+                  <SelectItem value="tecnologia">Tecnología</SelectItem>
+                  <SelectItem value="finanzas">Finanzas</SelectItem>
+                  <SelectItem value="medicina">Medicina</SelectItem>
+                  <SelectItem value="ciencia">Ciencia</SelectItem>
+                  <SelectItem value="medio-ambiente">Medio Ambiente</SelectItem>
+                  <SelectItem value="general">General</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="Región" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="us">Estados Unidos</SelectItem>
+                  <SelectItem value="mx">México</SelectItem>
+                  <SelectItem value="es">España</SelectItem>
+                  <SelectItem value="ar">Argentina</SelectItem>
+                  <SelectItem value="co">Colombia</SelectItem>
+                  <SelectItem value="pe">Perú</SelectItem>
+                  <SelectItem value="cl">Chile</SelectItem>
+                  <SelectItem value="br">Brasil</SelectItem>
+                  <SelectItem value="global">Global</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
             <Button 
               type="submit" 
               disabled={isSubscribing}
@@ -465,9 +559,18 @@ const Index = () => {
           <p className="text-slate-400 mb-4">
             Mantente informado con los resúmenes de noticias más relevantes del día.
           </p>
-          <p className="text-sm text-slate-500">
-            © 2024 NS Group. Todos los derechos reservados.
-          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4">
+            <p className="text-sm text-slate-500">
+              © 2024 NS Group. Todos los derechos reservados.
+            </p>
+            <a 
+              href="/admin" 
+              className="text-xs text-slate-600 hover:text-slate-400 transition-colors"
+              title="Panel de administración"
+            >
+              Admin
+            </a>
+          </div>
         </div>
       </footer>
     </div>
