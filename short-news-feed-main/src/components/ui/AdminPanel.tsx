@@ -31,7 +31,6 @@ export default function AdminPanel() {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
@@ -208,8 +207,9 @@ export default function AdminPanel() {
       if (res.data.success) {
         setError(""); // Limpiar errores previos
         // Mostrar mensaje de éxito temporal
-        setSuccessMessage("✅ Configuración por defecto actualizada");
-        setTimeout(() => setSuccessMessage(""), 3000);
+        const successMsg = "✅ Configuración por defecto actualizada";
+        setError(successMsg);
+        setTimeout(() => setError(""), 3000);
       }
     } catch (err: any) {
       console.error("Error actualizando configuración por defecto:", err);
@@ -246,8 +246,9 @@ export default function AdminPanel() {
         setNewScheduleDescription("");
         fetchScheduleTimes();
         setError(""); // Limpiar errores previos
-        setSuccessMessage("✅ Horario agregado exitosamente");
-        setTimeout(() => setSuccessMessage(""), 3000);
+        const successMsg = "✅ Horario agregado exitosamente";
+        setError(successMsg);
+        setTimeout(() => setError(""), 3000);
       }
     } catch (err: any) {
       console.error("Error agregando horario:", err);
@@ -271,8 +272,6 @@ export default function AdminPanel() {
       
       if (res.data.success) {
         fetchScheduleTimes();
-        setSuccessMessage(`✅ Horario ${isActive ? 'activado' : 'desactivado'} exitosamente`);
-        setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (err) {
       console.error("Error actualizando horario:", err);
@@ -291,8 +290,6 @@ export default function AdminPanel() {
         }
       );
       fetchScheduleTimes();
-      setSuccessMessage("✅ Horario eliminado exitosamente");
-      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error("Error eliminando horario:", err);
       setError("Error eliminando horario");
@@ -326,8 +323,6 @@ export default function AdminPanel() {
       setIsDefaultCountry(false);
       setIsDefaultSector(false);
       fetchSubscribers();
-      setSuccessMessage("✅ Suscriptor creado exitosamente");
-      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err: any) {
       console.error("Error creando suscriptor:", err);
       setError(err.response?.data?.message || "Error creando suscriptor");
@@ -344,8 +339,6 @@ export default function AdminPanel() {
         }
       });
       fetchSubscribers();
-      setSuccessMessage("✅ Suscriptor eliminado exitosamente");
-      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error("Error borrando suscriptor:", err);
       setError("Error borrando suscriptor");
@@ -379,31 +372,10 @@ export default function AdminPanel() {
       setEditingSubscriber(null);
       
       // Mostrar mensaje de éxito
-      setSuccessMessage("✅ Suscriptor actualizado exitosamente");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      setError("✅ Suscriptor actualizado exitosamente");
+      setTimeout(() => setError(""), 3000);
     } catch (err: any) {
       throw new Error(err.response?.data?.message || "Error actualizando suscriptor");
-    }
-  };
-
-  const updateDefaultFlags = async (id: string, field: 'country' | 'sector', value: boolean) => {
-    try {
-      const updateData: any = {};
-      if (field === 'country') {
-        updateData.isDefaultCountry = value;
-      } else {
-        updateData.isDefaultSector = value;
-      }
-
-      await axios.patch(`http://localhost:3001/api/admin/subscribers/${id}`, updateData, {
-        headers: {
-          'Authorization': `Bearer ${password}`
-        }
-      });
-      fetchSubscribers();
-    } catch (err) {
-      console.error("Error actualizando suscriptor:", err);
-      setError("Error actualizando suscriptor");
     }
   };
 
@@ -467,8 +439,7 @@ export default function AdminPanel() {
         </button>
       </div>
 
-              {error && <p className="text-red-500 mb-4">{error}</p>}
-        {successMessage && <p className="text-green-600 font-bold mb-4">{successMessage}</p>}
+      {error && <p className="text-red-500 mb-4">{error}</p>}
 
       {/* Configuración por defecto */}
       <div className="bg-blue-50 p-4 rounded-lg mb-6">
@@ -571,8 +542,7 @@ export default function AdminPanel() {
                   onClick={() => toggleScheduleTime(schedule._id, !schedule.isActive)}
                   className={`px-3 py-1 rounded text-sm ${
                     schedule.isActive 
-                      ? 'bg-red-100 text-red-700 hover:bg-red-200' 
-                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                      ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'
                   }`}
                 >
                   {schedule.isActive ? 'Desactivar' : 'Activar'}
