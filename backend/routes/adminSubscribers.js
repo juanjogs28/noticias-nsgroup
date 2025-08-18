@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const Subscriber = require("../models/subscribers.js");
+const { requireAuth } = require("../middleware/auth.js");
+
+// Aplicar autenticación a todas las rutas de admin
+router.use(requireAuth);
 
 // GET todos los suscriptores
 router.get("/", async (req, res) => {

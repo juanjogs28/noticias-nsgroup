@@ -36,37 +36,92 @@ export default function Index() {
   const [paisArticles, setPaisArticles] = useState<MeltwaterArticle[]>([]);
   const [sectorArticles, setSectorArticles] = useState<MeltwaterArticle[]>([]);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const emailParam = urlParams.get("email");
+    const loadNews = async () => {
+      try {
+        setLoading(true);
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailParam = urlParams.get("email");
+        const countryId = urlParams.get("countryId");
+        const sectorId = urlParams.get("sectorId");
 
-    if (emailParam) localStorage.setItem("userEmail", emailParam);
+        // Si hay parámetros de URL, usarlos directamente
+        if (countryId || sectorId) {
+          const response = await axios.post<NewsResponse>("http://localhost:3001/api/news/personalized", {
+            countryId,
+            sectorId
+          });
+          
+          if (response.data.success) {
+            setSectorArticles(adaptResults(response.data.sector));
+            setPaisArticles(adaptResults(response.data.pais));
+          } else {
+            setError(true);
+          }
+          return;
+        }
 
-    const email = emailParam || localStorage.getItem("userEmail");
-    if (!email) {
-      setError(true);
-      return;
-    }
+        // Si hay email en URL o localStorage, usarlo
+        if (emailParam) localStorage.setItem("userEmail", emailParam);
+        const email = emailParam || localStorage.getItem("userEmail");
+        
+        if (email) {
+          const response = await axios.post<NewsResponse>("http://localhost:3001/api/news/personalized", { email });
+          if (response.data.success) {
+            setSectorArticles(adaptResults(response.data.sector));
+            setPaisArticles(adaptResults(response.data.pais));
+          } else {
+            setError(true);
+          }
+          return;
+        }
 
-    axios
-      .post<NewsResponse>("http://localhost:3001/api/news/personalized", { email })
-      .then((res) => {
-        if (res.data.success) {
-          setSectorArticles(adaptResults(res.data.sector));
-          setPaisArticles(adaptResults(res.data.pais));
-        } else setError(true);
-      })
-      .catch((err) => {
-        console.error(err);
+        // Si no hay nada, cargar noticias por defecto
+        const response = await axios.post<NewsResponse>("http://localhost:3001/api/news/personalized", { 
+          email: "default" 
+        });
+        
+        if (response.data.success) {
+          setSectorArticles(adaptResults(response.data.sector));
+          setPaisArticles(adaptResults(response.data.pais));
+        } else {
+          setError(true);
+        }
+      } catch (err) {
+        console.error("Error cargando noticias:", err);
         setError(true);
-      });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadNews();
   }, []);
 
-  if (error)
+  if (loading) {
     return (
-      <p className="text-red-500 text-center py-10">❌ Error cargando noticias</p>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando noticias...</p>
+        </div>
+      </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 text-xl mb-4">❌ Error cargando noticias</p>
+          <p className="text-gray-600">Intenta recargar la página o verifica tu conexión</p>
+        </div>
+      </div>
+    );
+  }
+    
   if (!paisArticles.length && !sectorArticles.length)
     return (
       <p className="text-slate-500 text-center py-10">
