@@ -13,7 +13,23 @@ mongoose
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Función para generar el HTML del email
-function generateEmailHTML(subscriber, frontendUrl) {
+function generateEmailHTML(subscriber, personalizedUrl) {
+  // Construir URL personalizada con los parámetros del suscriptor
+  const baseUrl = process.env.FRONTEND_URL || "http://localhost:8080";
+  
+  // Agregar información de personalización si está disponible
+  let personalizationInfo = "";
+  if (subscriber.countrySearchId || subscriber.sectorSearchId) {
+    personalizationInfo = `
+      <div class="personalization-info">
+        <strong>🔍 Configuración personalizada:</strong><br>
+        ${subscriber.countrySearchId ? `🌍 País ID: ${subscriber.countrySearchId}` : ''}
+        ${subscriber.countrySearchId && subscriber.sectorSearchId ? '<br>' : ''}
+        ${subscriber.sectorSearchId ? `🏢 Sector ID: ${subscriber.sectorSearchId}` : ''}
+      </div>
+    `;
+  }
+
   return `
     <!DOCTYPE html>
     <html>
@@ -104,6 +120,18 @@ function generateEmailHTML(subscriber, frontendUrl) {
         .tip strong {
           color: #92400e;
         }
+        .personalization-info {
+          background: #e0f2fe;
+          border-left: 4px solid #0288d1;
+          padding: 16px 20px;
+          border-radius: 0 8px 8px 0;
+          margin: 20px 0;
+          font-size: 14px;
+          line-height: 1.5;
+        }
+        .personalization-info strong {
+          color: #0277bd;
+        }
         .footer { 
           text-align: center; 
           margin-top: 30px; 
@@ -148,8 +176,10 @@ function generateEmailHTML(subscriber, frontendUrl) {
           <p>Aquí tienes tu enlace diario para las noticias personalizadas:</p>
           
           <div class="button-container">
-            <a href="${frontendUrl}" class="button">📰 Ver Noticias Personalizadas</a>
+            <a href="${personalizedUrl}" class="button">📰 Ver Noticias Personalizadas</a>
           </div>
+          
+          ${personalizationInfo}
           
           <div class="tip">
             <strong>💡 Tip:</strong> Guarda este enlace en favoritos para acceso rápido diario.
@@ -167,13 +197,32 @@ function generateEmailHTML(subscriber, frontendUrl) {
 }
 
 // Función para enviar email a un suscriptor
-async function sendNewsletterToSubscriber(subscriber, frontendUrl) {
+async function sendNewsletterToSubscriber(subscriber) {
   try {
+    // Construir URL personalizada para este suscriptor
+    const baseUrl = process.env.FRONTEND_URL || "http://localhost:8080";
+    let personalizedUrl = baseUrl;
+    
+    // Agregar parámetros de personalización si están disponibles
+    const params = new URLSearchParams();
+    if (subscriber.countrySearchId) {
+      params.append('countryId', subscriber.countrySearchId);
+    }
+    if (subscriber.sectorSearchId) {
+      params.append('sectorId', subscriber.sectorSearchId);
+    }
+    
+    if (params.toString()) {
+      personalizedUrl += `?${params.toString()}`;
+    }
+    
+    console.log(`🔗 URL personalizada para ${subscriber.email}: ${personalizedUrl}`);
+    
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
       to: [subscriber.email],
       subject: `📰 Noticias Personalizadas - ${new Date().toLocaleDateString('es-ES')}`,
-      html: generateEmailHTML(subscriber, frontendUrl),
+      html: generateEmailHTML(subscriber, personalizedUrl),
     });
 
     if (error) {
@@ -203,13 +252,12 @@ async function sendDailyNewsletter() {
       return;
     }
     
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
     let successCount = 0;
     let errorCount = 0;
     
     // Enviar emails a todos los suscriptores
     for (const subscriber of subscribers) {
-      const success = await sendNewsletterToSubscriber(subscriber, frontendUrl);
+      const success = await sendNewsletterToSubscriber(subscriber);
       if (success) {
         successCount++;
       } else {
