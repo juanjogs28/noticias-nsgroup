@@ -21,13 +21,114 @@ function generateEmailHTML(subscriber, frontendUrl) {
       <meta charset="utf-8">
       <title>Noticias Personalizadas - ${new Date().toLocaleDateString('es-ES')}</title>
       <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #4f46e5; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-        .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
-        .button { display: inline-block; padding: 15px 30px; background: #4f46e5; color: white; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: bold; }
-        .button:hover { background: #3730a3; }
-        .footer { text-align: center; margin-top: 30px; color: #6b7280; font-size: 14px; }
+        body { 
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; 
+          line-height: 1.6; 
+          color: #1f2937; 
+          background-color: #f3f4f6;
+          margin: 0;
+          padding: 0;
+        }
+        .container { 
+          max-width: 600px; 
+          margin: 20px auto; 
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          overflow: hidden;
+        }
+        .header { 
+          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+          color: white; 
+          padding: 40px 30px; 
+          text-align: center; 
+        }
+        .header h1 {
+          margin: 0 0 10px 0;
+          font-size: 28px;
+          font-weight: 700;
+        }
+        .header p {
+          margin: 0;
+          font-size: 16px;
+          opacity: 0.9;
+        }
+        .content { 
+          background: white; 
+          padding: 40px 30px; 
+          color: #1f2937;
+        }
+        .content h2 {
+          color: #059669;
+          margin-top: 0;
+          font-size: 24px;
+          font-weight: 600;
+        }
+        .content p {
+          font-size: 16px;
+          margin-bottom: 20px;
+        }
+        .button-container {
+          text-align: center; 
+          margin: 40px 0;
+          padding: 20px;
+          background: #f8fafc;
+          border-radius: 8px;
+        }
+        .button { 
+          display: inline-block; 
+          padding: 18px 36px; 
+          background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+          color: white !important; 
+          text-decoration: none; 
+          border-radius: 10px; 
+          font-size: 18px; 
+          font-weight: 700;
+          box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+          transition: all 0.3s ease;
+          border: none;
+          cursor: pointer;
+        }
+        .button:hover { 
+          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 15px -3px rgba(220, 38, 38, 0.4);
+        }
+        .tip {
+          background: #fef3c7;
+          border-left: 4px solid #f59e0b;
+          padding: 16px 20px;
+          border-radius: 0 8px 8px 0;
+          margin: 20px 0;
+        }
+        .tip strong {
+          color: #92400e;
+        }
+        .footer { 
+          text-align: center; 
+          margin-top: 30px; 
+          padding: 30px;
+          background: #f8fafc;
+          color: #6b7280; 
+          font-size: 14px;
+          border-top: 1px solid #e5e7eb;
+        }
+        .footer p {
+          margin: 8px 0;
+        }
+        @media (max-width: 600px) {
+          .container {
+            margin: 10px;
+            border-radius: 8px;
+          }
+          .header, .content {
+            padding: 25px 20px;
+          }
+          .button {
+            padding: 16px 28px;
+            font-size: 16px;
+          }
+        }
       </style>
     </head>
     <body>
@@ -46,11 +147,13 @@ function generateEmailHTML(subscriber, frontendUrl) {
           <h2>¡Hola!</h2>
           <p>Aquí tienes tu enlace diario para las noticias personalizadas:</p>
           
-          <div style="text-align: center; margin: 30px 0;">
+          <div class="button-container">
             <a href="${frontendUrl}" class="button">📰 Ver Noticias Personalizadas</a>
           </div>
           
-          <p><strong>💡 Tip:</strong> Guarda este enlace en favoritos para acceso rápido diario.</p>
+          <div class="tip">
+            <strong>💡 Tip:</strong> Guarda este enlace en favoritos para acceso rápido diario.
+          </div>
         </div>
         
         <div class="footer">
