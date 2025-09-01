@@ -360,8 +360,8 @@ export default function AdminPanel() {
         `http://localhost:3001/api/admin/subscribers/${editingSubscriber._id}`,
         updatedData,
         {
-          headers: {
-            'Authorization': `Bearer ${password}`
+        headers: {
+          'Authorization': `Bearer ${password}`
           }
         }
       );
@@ -566,34 +566,34 @@ export default function AdminPanel() {
       <div className="bg-gray-50 p-4 rounded-lg mb-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">👥 Gestión de Suscriptores</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="border rounded px-3 py-2"
-          />
-          <input
-            type="text"
-            placeholder="ID búsqueda país"
-            value={countrySearchId}
-            onChange={(e) => setCountrySearchId(e.target.value)}
-            className="border rounded px-3 py-2"
-          />
-          <input
-            type="text"
-            placeholder="ID búsqueda sector"
-            value={sectorSearchId}
-            onChange={(e) => setSectorSearchId(e.target.value)}
-            className="border rounded px-3 py-2"
-          />
-          <button
-            onClick={createSubscriber}
-            disabled={loading}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-          >
-            {loading ? "Guardando..." : "Agregar"}
-          </button>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="border rounded px-3 py-2"
+        />
+        <input
+          type="text"
+          placeholder="ID búsqueda país"
+          value={countrySearchId}
+          onChange={(e) => setCountrySearchId(e.target.value)}
+          className="border rounded px-3 py-2"
+        />
+        <input
+          type="text"
+          placeholder="ID búsqueda sector"
+          value={sectorSearchId}
+          onChange={(e) => setSectorSearchId(e.target.value)}
+          className="border rounded px-3 py-2"
+        />
+        <button
+          onClick={createSubscriber}
+          disabled={loading}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+        >
+          {loading ? "Guardando..." : "Agregar"}
+        </button>
         </div>
       </div>
 
@@ -630,12 +630,12 @@ export default function AdminPanel() {
               >
                 ✏️ Editar
               </button>
-              <button
-                onClick={() => deleteSubscriber(s._id)}
+            <button
+              onClick={() => deleteSubscriber(s._id)}
                 className="text-red-600 hover:text-red-800 px-2 py-1"
-              >
-                ❌
-              </button>
+            >
+              ❌
+            </button>
             </div>
           </li>
         ))}
