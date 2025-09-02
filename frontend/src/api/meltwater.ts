@@ -1,5 +1,7 @@
+import { buildApiUrl, API_CONFIG } from "../config/api";
+
 export async function fetchPersonalizedNews(country: string, sector: string) {
-  const res = await fetch("http://localhost:3001/api/news", {
+  const res = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ country, sector }),

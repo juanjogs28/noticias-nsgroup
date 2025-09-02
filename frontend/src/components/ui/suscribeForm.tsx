@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { toast } from "sonner"
+import { buildApiUrl, API_CONFIG } from "../../config/api"
 
 type FormData = {
   email: string
@@ -28,7 +29,7 @@ export default function SubscribeForm({ onSuccess }: SubscribeFormProps) {
     const storedEmail = localStorage.getItem("userEmail")
     if (storedEmail) {
       setLoadingPrefs(true)
-      fetch(`http://localhost:3001/api/preferences/${storedEmail}`)
+      fetch(buildApiUrl(`${API_CONFIG.ENDPOINTS.PREFERENCES}/${storedEmail}`))
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
@@ -54,13 +55,13 @@ export default function SubscribeForm({ onSuccess }: SubscribeFormProps) {
 
   const onSubmit = async (data: FormData) => {
     try {
-      let url = "http://localhost:3001/api/subscribe"
+      let url = buildApiUrl(API_CONFIG.ENDPOINTS.SUBSCRIBE)
       let method: "POST" | "PUT" = "POST"
 
       const storedEmail = localStorage.getItem("userEmail")
 
       if (storedEmail && storedEmail === data.email) {
-        url = "http://localhost:3001/api/preferences"
+        url = buildApiUrl(API_CONFIG.ENDPOINTS.PREFERENCES)
         method = "PUT"
       }
 
@@ -236,7 +237,7 @@ function UnsubscribeButton() {
     if (!confirmed) return
 
     try {
-      const response = await fetch("http://localhost:3001/api/unsubscribe", {
+      const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.UNSUBSCRIBE), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

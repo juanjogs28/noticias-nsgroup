@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useKeenSlider } from "keen-slider/react";
 import "keen-slider/keen-slider.min.css";
+import { buildApiUrl, API_CONFIG } from "../../config/api";
 
 export default function GlobalTweetsSection() {
   const [tweets, setTweets] = useState([]);
@@ -16,7 +17,7 @@ export default function GlobalTweetsSection() {
   });
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/global-tweets")
+    fetch(buildApiUrl(API_CONFIG.ENDPOINTS.GLOBAL_TWEETS))
       .then((res) => res.json())
       .then((res) => {
         if (res.success) setTweets(res.data);

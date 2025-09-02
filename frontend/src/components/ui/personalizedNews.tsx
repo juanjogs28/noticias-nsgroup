@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import NewsList from "./newsList";
 import SectionSkeleton from "./SectionSkeleton";
+import { buildApiUrl, API_CONFIG } from "../../config/api";
 
 interface RawMeltwaterDocument {
   content: string | { title?: string; summary?: string; image?: string };
@@ -117,7 +118,7 @@ export default function PersonalizedNews() {
     const fetchNews = async () => {
       try {
         const res = await axios.post<PersonalizedNewsResponse>(
-          "http://localhost:3001/api/news/personalized",
+          buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED),
           { email }
         );
 

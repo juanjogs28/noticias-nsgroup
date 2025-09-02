@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import EditSubscriberModal from "./EditSubscriberModal";
+import { buildApiUrl, API_CONFIG } from "../../config/api";
 
 interface Subscriber {
   _id: string;
@@ -21,6 +22,8 @@ interface ScheduleTime {
   createdAt: string;
   description: string;
 }
+
+// URL configurada a través del sistema de configuración centralizada
 
 export default function AdminPanel() {
   const [email, setEmail] = useState("");
@@ -69,7 +72,7 @@ export default function AdminPanel() {
 
     try {
       // Probar autenticación con header Authorization
-      const response = await axios.get(`http://localhost:3001/api/admin`, {
+      const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN), {
         headers: {
           'Authorization': `Bearer ${password}`
         }
@@ -108,7 +111,7 @@ export default function AdminPanel() {
   const fetchSubscribers = async () => {
     try {
       const res = await axios.get<{ subscribers: Subscriber[] }>(
-        `http://localhost:3001/api/admin/subscribers`,
+        buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_SUBSCRIBERS),
         {
           headers: {
             'Authorization': `Bearer ${password}`
@@ -125,7 +128,7 @@ export default function AdminPanel() {
   const fetchScheduleTimes = async () => {
     try {
       const res = await axios.get<{ scheduleTimes: ScheduleTime[] }>(
-        `http://localhost:3001/api/admin/schedule-times`,
+        buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULE_TIMES),
         {
           headers: {
             'Authorization': `Bearer ${password}`
@@ -145,7 +148,7 @@ export default function AdminPanel() {
       setManualSendMessage("");
       
       const res = await axios.post(
-        `http://localhost:3001/api/admin/manual-newsletter/send`,
+        buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_MANUAL_NEWSLETTER),
         {},
         {
           headers: {
@@ -170,7 +173,7 @@ export default function AdminPanel() {
   const fetchDefaultConfig = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:3001/api/admin/default-config`,
+        buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_DEFAULT_CONFIG),
         {
           headers: {
             'Authorization': `Bearer ${password}`
@@ -195,7 +198,7 @@ export default function AdminPanel() {
       setDefaultConfigLoading(true);
       
       const res = await axios.patch(
-        `http://localhost:3001/api/admin/default-config`,
+        buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_DEFAULT_CONFIG),
         defaultConfig,
         {
           headers: {
@@ -229,7 +232,7 @@ export default function AdminPanel() {
       setScheduleLoading(true);
       
       const res = await axios.post(
-        `http://localhost:3001/api/admin/schedule-times`,
+        buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULE_TIMES),
         {
           time: newScheduleTime,
           description: newScheduleDescription
@@ -261,7 +264,7 @@ export default function AdminPanel() {
   const toggleScheduleTime = async (id: string, isActive: boolean) => {
     try {
       const res = await axios.patch(
-        `http://localhost:3001/api/admin/schedule-times/${id}`,
+        `${buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULE_TIMES)}/${id}`,
         { isActive },
         {
           headers: {
@@ -282,7 +285,7 @@ export default function AdminPanel() {
   const deleteScheduleTime = async (id: string) => {
     try {
       await axios.delete(
-        `http://localhost:3001/api/admin/schedule-times/${id}`,
+        `${buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_SCHEDULE_TIMES)}/${id}`,
         {
           headers: {
             'Authorization': `Bearer ${password}`
@@ -306,7 +309,7 @@ export default function AdminPanel() {
     setError("");
 
     try {
-      await axios.post(`http://localhost:3001/api/admin/subscribers`, {
+      await axios.post(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_SUBSCRIBERS), {
         email,
         countrySearchId,
         sectorSearchId,
@@ -333,7 +336,7 @@ export default function AdminPanel() {
 
   const deleteSubscriber = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:3001/api/admin/subscribers/${id}`, {
+      await axios.delete(`${buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_SUBSCRIBERS)}/${id}`, {
         headers: {
           'Authorization': `Bearer ${password}`
         }
@@ -357,7 +360,7 @@ export default function AdminPanel() {
 
     try {
       await axios.patch(
-        `http://localhost:3001/api/admin/subscribers/${editingSubscriber._id}`,
+        `${buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_SUBSCRIBERS)}/${editingSubscriber._id}`,
         updatedData,
         {
         headers: {

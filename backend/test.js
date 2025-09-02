@@ -1,6 +1,6 @@
 // Script de pruebas para verificar que el servidor funciona correctamente
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
 // Función para probar el endpoint de salud
 async function testHealthEndpoint() {

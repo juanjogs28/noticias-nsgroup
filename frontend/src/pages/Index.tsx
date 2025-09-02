@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import NewsList from "../components/ui/newsList";
 import SectionSkeleton from "../components/ui/SectionSkeleton";
+import { buildApiUrl, API_CONFIG } from "../config/api";
 
 interface MeltwaterArticle {
   title: string;
@@ -316,7 +317,7 @@ function getSentimentLabel(sentiment: number): string {
 // Función para obtener el país desde la configuración
 async function getCountryName(articles: MeltwaterArticle[] = []): Promise<string> {
   try {
-    const response = await axios.get("http://localhost:3001/api/defaultConfig");
+    const response = await axios.get(buildApiUrl(API_CONFIG.ENDPOINTS.DEFAULT_CONFIG));
     if (response.data.success && response.data.config.defaultCountrySearchId) {
       // Intentar inferir el país desde los artículos si están disponibles
       if (articles.length > 0) {
@@ -384,7 +385,7 @@ export default function Index() {
 
         // Si hay parámetros de URL, usarlos directamente
         if (countryId || sectorId) {
-          const response = await axios.post<NewsResponse>("http://localhost:3001/api/news/personalized", {
+          const response = await axios.post<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
             countryId,
             sectorId
           });
@@ -417,7 +418,7 @@ export default function Index() {
         const email = emailParam || localStorage.getItem("userEmail");
         
         if (email) {
-          const response = await axios.post<NewsResponse>("http://localhost:3001/api/news/personalized", { email });
+          const response = await axios.post<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { email });
           if (response.data.success) {
             const sectorData = adaptResults(response.data.sector);
             const paisData = adaptResults(response.data.pais);
@@ -442,8 +443,8 @@ export default function Index() {
         }
 
         // Si no hay nada, cargar noticias por defecto
-        const response = await axios.post<NewsResponse>("http://localhost:3001/api/news/personalized", { 
-          email: "default" 
+        const response = await axios.post<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
+          email: "default"
         });
         
         if (response.data.success) {
