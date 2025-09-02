@@ -18,33 +18,78 @@ app.use(cors(corsOptions));
 console.log('🌐 CORS configurado para permitir todos los orígenes (*)');
 app.use(express.json());
 
+// Función de diagnóstico de variables de entorno
+function diagnoseEnvironment() {
+  console.log("\n🔍 DIAGNÓSTICO DE ENTORNO:");
+  console.log("NODE_ENV:", process.env.NODE_ENV || "undefined");
+  console.log("MONGODB_URI:", process.env.MONGODB_URI ? "✅ Configurada" : "❌ No configurada");
+  console.log("DATABASE_URL:", process.env.DATABASE_URL ? "✅ Configurada" : "❌ No configurada");
+
+  // Listar variables relacionadas con DB
+  const dbVars = Object.keys(process.env).filter(key =>
+    key.includes('MONGO') || key.includes('DATABASE') || key.includes('DB')
+  );
+  if (dbVars.length > 0) {
+    console.log("Variables DB disponibles:", dbVars);
+  }
+  console.log("-".repeat(50));
+}
+
+diagnoseEnvironment();
+
 // Conectar a MongoDB - Usar variable de entorno o fallback
 const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || "mongodb://localhost:27017/ns-news";
 
 console.log('🔧 Configuración MongoDB:', {
   uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'), // Ocultar credenciales en logs
-  isProduction: process.env.NODE_ENV === 'production'
+  isProduction: process.env.NODE_ENV === 'production',
+  isLocalhost: MONGODB_URI.includes('localhost'),
+  hasCredentials: MONGODB_URI.includes('@'),
+  protocol: MONGODB_URI.split('://')[0]
 });
+
+// Si estamos en producción pero usando localhost, advertir
+if (process.env.NODE_ENV === 'production' && MONGODB_URI.includes('localhost')) {
+  console.error("🚨 ERROR CRÍTICO: Estás en producción pero usando MongoDB localhost!");
+  console.error("   Configura la variable MONGODB_URI en Railway con tu URL de MongoDB externa");
+  console.error("   Ejemplo: mongodb://usuario:password@containers-us-west-1.railway.app:1234/ns-news");
+}
 
 mongoose
   .connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 10000, // Aumentar timeout para Railway
+    serverSelectionTimeoutMS: 15000, // Aumentar timeout para Railway
     socketTimeoutMS: 45000,
     bufferCommands: false, // Deshabilitar buffering para evitar timeouts
-    maxPoolSize: 10, // Limitar pool de conexiones
+    maxPoolSize: 5, // Reducir pool de conexiones para Railway
+    minPoolSize: 1, // Mínimo 1 conexión
+    maxIdleTimeMS: 30000, // Cerrar conexiones inactivas después de 30s
   })
-  .then(() => console.log("✅ Conectado a MongoDB"))
+  .then(() => {
+    console.log("✅ Conectado a MongoDB exitosamente");
+    console.log("📊 Estado de conexión:", mongoose.connection.readyState);
+  })
   .catch((err) => {
-    console.error("❌ Error MongoDB:", err);
-    console.error("🔍 Detalles de conexión:", {
-      uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'),
-      nodeEnv: process.env.NODE_ENV,
-      availableEnvVars: Object.keys(process.env).filter(key =>
-        key.includes('MONGO') || key.includes('DATABASE') || key.includes('DB')
-      )
-    });
+    console.error("❌ Error MongoDB:", err.message);
+    console.error("🔍 Detalles de conexión:");
+    console.error("   URI usada:", MONGODB_URI.replace(/\/\/.*@/, '//***:***@'));
+    console.error("   NODE_ENV:", process.env.NODE_ENV);
+    console.error("   Puerto del servidor:", PORT);
+
+    // Mostrar todas las variables de entorno relacionadas con DB
+    const dbVars = Object.keys(process.env).filter(key =>
+      key.includes('MONGO') || key.includes('DATABASE') || key.includes('DB')
+    );
+    console.error("   Variables DB disponibles:", dbVars.length > 0 ? dbVars : "Ninguna");
+
+    // Si no hay variables configuradas, mostrar instrucciones
+    if (!process.env.MONGODB_URI && !process.env.DATABASE_URL) {
+      console.error("\n🚨 INSTRUCCIONES PARA CONFIGURAR:");
+      console.error("   1. Ve a Railway > Tu proyecto > Variables");
+      console.error("   2. Agrega: MONGODB_URI=mongodb://usuario:password@tu-mongodb-url/ns-news");
+      console.error("   3. Reinicia el servicio");
+    }
   });
 
 // Manejar eventos de conexión
@@ -91,7 +136,40 @@ app.get("/api/admin", requireAuth, (req, res) => {
 
 // Health check
 app.get("/api/health", (req, res) => {
-  res.json({ status: "OK", timestamp: new Date().toISOString() });
+  res.json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    mongodb: {
+      configured: !!(process.env.MONGODB_URI || process.env.DATABASE_URL),
+      uri: (process.env.MONGODB_URI || process.env.DATABASE_URL || "mongodb://localhost:27017/ns-news").replace(/\/\/.*@/, '//***:***@'),
+      isLocalhost: (process.env.MONGODB_URI || process.env.DATABASE_URL || "").includes('localhost'),
+      connectionState: mongoose.connection.readyState
+    },
+    environment: process.env.NODE_ENV
+  });
+});
+
+// Endpoint de diagnóstico (solo para debugging)
+app.get("/api/diagnose", (req, res) => {
+  res.json({
+    timestamp: new Date().toISOString(),
+    environment: {
+      NODE_ENV: process.env.NODE_ENV,
+      MONGODB_URI: process.env.MONGODB_URI ? 'CONFIGURADA' : 'NO CONFIGURADA',
+      DATABASE_URL: process.env.DATABASE_URL ? 'CONFIGURADA' : 'NO CONFIGURADA'
+    },
+    mongodb: {
+      uri: (process.env.MONGODB_URI || process.env.DATABASE_URL || "mongodb://localhost:27017/ns-news").replace(/\/\/.*@/, '//***:***@'),
+      isLocalhost: (process.env.MONGODB_URI || process.env.DATABASE_URL || "").includes('localhost'),
+      isRailway: (process.env.MONGODB_URI || process.env.DATABASE_URL || "").includes('railway.app'),
+      connectionState: mongoose.connection.readyState
+    },
+    instructions: !process.env.MONGODB_URI && !process.env.DATABASE_URL ? [
+      "1. Ve a Railway > Tu proyecto > Variables",
+      "2. Agrega MONGODB_URI=mongodb://usuario:password@tu-url/ns-news",
+      "3. Reinicia el servicio"
+    ] : []
+  });
 });
 
 // Iniciar servidor

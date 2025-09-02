@@ -202,11 +202,36 @@ MONGODB_URI=mongodb+srv://usuario:password@cluster0.xxxxx.mongodb.net/ns-news?re
 Después de configurar la variable, reinicia el servicio y verifica los logs:
 ```bash
 # Logs esperados exitosos:
-✅ Conectado a MongoDB
-🔧 Configuración MongoDB: { uri: "mongodb://***:***@railway.app/ns-news", isProduction: true }
+🔍 DIAGNÓSTICO DE ENTORNO:
+NODE_ENV: production
+MONGODB_URI: ✅ Configurada
+DATABASE_URL: ❌ No configurada
+
+🔧 Configuración MongoDB: {
+  uri: "mongodb://***:***@railway.app/ns-news",
+  isProduction: true,
+  isLocalhost: false,
+  hasCredentials: true,
+  protocol: "mongodb"
+}
+✅ Conectado a MongoDB exitosamente
+📊 Estado de conexión: 1
 ```
 
-##### **4. Archivos Actualizados:**
+##### **4. Script de Prueba de Conexión:**
+Si los logs no muestran conexión exitosa, ejecuta este script para diagnosticar:
+```bash
+# En Railway, ejecuta desde la consola del servicio:
+node backend/test-mongo-connection.js
+```
+
+O prueba manualmente:
+```bash
+# Conectar directamente a tu MongoDB
+mongosh "mongodb://usuario:password@tu-url-mongodb/ns-news"
+```
+
+##### **5. Archivos Actualizados:**
 Se han actualizado los siguientes archivos para usar variables de entorno:
 - ✅ `backend/server.js` - Conexión principal
 - ✅ `backend/routes/scheduleTimes.js` - Horarios de envío
