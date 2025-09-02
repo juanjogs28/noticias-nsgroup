@@ -8,7 +8,13 @@ const { updateScheduledJobs } = require("../scheduler.js");
 async function ensureConnection() {
   const mongoose = require("mongoose");
   if (mongoose.connection.readyState === 0) {
-    await mongoose.connect("mongodb://localhost:27017/ns-news");
+    const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || "mongodb://localhost:27017/ns-news";
+    await mongoose.connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
   }
 }
 

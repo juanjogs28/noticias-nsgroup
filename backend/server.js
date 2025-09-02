@@ -18,16 +18,34 @@ app.use(cors(corsOptions));
 console.log('🌐 CORS configurado para permitir todos los orígenes (*)');
 app.use(express.json());
 
-// Conectar a MongoDB
+// Conectar a MongoDB - Usar variable de entorno o fallback
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || "mongodb://localhost:27017/ns-news";
+
+console.log('🔧 Configuración MongoDB:', {
+  uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'), // Ocultar credenciales en logs
+  isProduction: process.env.NODE_ENV === 'production'
+});
+
 mongoose
-  .connect("mongodb://localhost:27017/ns-news", {
+  .connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000,
+    serverSelectionTimeoutMS: 10000, // Aumentar timeout para Railway
     socketTimeoutMS: 45000,
+    bufferCommands: false, // Deshabilitar buffering para evitar timeouts
+    maxPoolSize: 10, // Limitar pool de conexiones
   })
   .then(() => console.log("✅ Conectado a MongoDB"))
-  .catch((err) => console.error("❌ Error MongoDB:", err));
+  .catch((err) => {
+    console.error("❌ Error MongoDB:", err);
+    console.error("🔍 Detalles de conexión:", {
+      uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'),
+      nodeEnv: process.env.NODE_ENV,
+      availableEnvVars: Object.keys(process.env).filter(key =>
+        key.includes('MONGO') || key.includes('DATABASE') || key.includes('DB')
+      )
+    });
+  });
 
 // Manejar eventos de conexión
 mongoose.connection.on('error', (err) => {

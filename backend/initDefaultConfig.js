@@ -2,11 +2,29 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const DefaultConfig = require("./models/defaultConfig.js");
 
-// Conectar a MongoDB
+// Conectar a MongoDB - Usar variable de entorno
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || "mongodb://localhost:27017/ns-news";
+
+console.log('🔧 Configuración MongoDB initDefaultConfig:', {
+  uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'),
+  isProduction: process.env.NODE_ENV === 'production'
+});
+
 mongoose
-  .connect("mongodb://localhost:27017/ns-news")
+  .connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+  })
   .then(() => console.log("✅ Conectado a MongoDB"))
-  .catch((err) => console.error("❌ Error MongoDB:", err));
+  .catch((err) => {
+    console.error("❌ Error MongoDB:", err);
+    console.error("🔍 Detalles de conexión:", {
+      uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'),
+      nodeEnv: process.env.NODE_ENV
+    });
+  });
 
 async function initializeDefaultConfig() {
   try {

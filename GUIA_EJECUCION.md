@@ -51,10 +51,20 @@ npm install
 ### 2. Configurar Variables de Entorno
 Crear archivo `.env` en la carpeta `backend`:
 ```env
+# API de Meltwater
 MELTWATER_API_TOKEN=tu_token_aqui
+
+# Servicio de emails
 RESEND_API_KEY=tu_api_key_aqui
 RESEND_FROM_EMAIL=tu_email@dominio.com
+
+# URLs del frontend
 FRONTEND_URL=http://localhost:8080
+
+# Base de datos MongoDB
+MONGODB_URI=mongodb://localhost:27017/ns-news
+
+# Entorno
 NODE_ENV=development
 ```
 
@@ -152,6 +162,91 @@ sudo systemctl restart mongod
 - Verificar configuración de Resend en `.env`
 - Revisar logs del backend para errores de envío
 - Confirmar que haya suscriptores activos
+
+## 🚀 **Configuración para Producción**
+
+### **Configuración de MongoDB en Railway**
+
+#### **Problema Común:**
+```
+MongooseError: Operation `subscribers.find()` buffering timed out after 10000ms
+MongooseServerSelectionError: connect ECONNREFUSED ::1:27017, connect ECONNREFUSED 127.0.0.1:27017
+```
+
+#### **Causa:**
+El backend está intentando conectarse a MongoDB local (`mongodb://localhost:27017/ns-news`) pero en producción necesita una base de datos externa.
+
+#### **Solución - Configurar Variable de Entorno:**
+
+##### **1. En Railway:**
+1. Ve a tu proyecto de Railway
+2. Ve a la pestaña **"Variables"** o **"Environment"**
+3. Agrega la siguiente variable de entorno:
+```env
+MONGODB_URI=mongodb://usuario:password@containers-us-west-1.railway.app:1234/ns-news
+```
+
+##### **2. Opciones de MongoDB para Producción:**
+
+###### **Railway Database (Recomendado):**
+```env
+MONGODB_URI=mongodb://usuario:password@containers-us-west-1.railway.app:1234/ns-news
+```
+
+###### **MongoDB Atlas (Alternativo):**
+```env
+MONGODB_URI=mongodb+srv://usuario:password@cluster0.xxxxx.mongodb.net/ns-news?retryWrites=true&w=majority
+```
+
+##### **3. Verificación:**
+Después de configurar la variable, reinicia el servicio y verifica los logs:
+```bash
+# Logs esperados exitosos:
+✅ Conectado a MongoDB
+🔧 Configuración MongoDB: { uri: "mongodb://***:***@railway.app/ns-news", isProduction: true }
+```
+
+##### **4. Archivos Actualizados:**
+Se han actualizado los siguientes archivos para usar variables de entorno:
+- ✅ `backend/server.js` - Conexión principal
+- ✅ `backend/routes/scheduleTimes.js` - Horarios de envío
+- ✅ `backend/routes/defaultConfig.js` - Configuración por defecto
+- ✅ `backend/routes/news.js` - API de noticias
+- ✅ `backend/scheduler.js` - Programador de tareas
+- ✅ `backend/initDefaultConfig.js` - Inicialización
+
+#### **Variables de Entorno para Producción:**
+```env
+# Base de datos (OBLIGATORIO)
+MONGODB_URI=mongodb://usuario:password@tu-mongodb-produccion.com/ns-news
+
+# API de Meltwater
+MELTWATER_API_TOKEN=tu_token_produccion
+
+# Servicio de emails
+RESEND_API_KEY=tu_api_key_produccion
+RESEND_FROM_EMAIL=tu_email@dominio.com
+
+# Entorno
+NODE_ENV=production
+```
+
+### **Deploy Automático:**
+Si tienes GitHub/Railway conectado, los cambios se deployan automáticamente. Si no:
+```bash
+git add .
+git commit -m "Fix: Configurar MongoDB para producción usando variables de entorno"
+git push origin main
+```
+
+### **Monitoreo en Producción:**
+```bash
+# Verificar estado de la base de datos
+curl https://tu-api-railway.up.railway.app/api/health
+
+# Verificar conexión a MongoDB en logs de Railway
+# Buscar: "✅ Conectado a MongoDB"
+```
 
 ## 📊 Monitoreo y Logs
 
