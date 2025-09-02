@@ -6,8 +6,16 @@ const mongoose = require("mongoose");
 const app = express();
 const PORT = 3001;
 
-// Middlewares
-app.use(cors({ origin: "http://localhost:8080" }));
+// Configuración CORS - Permitir todos los orígenes (*)
+const corsOptions = {
+  origin: "*", // Permitir todos los orígenes como solicitaste
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
+app.use(cors(corsOptions));
+console.log('🌐 CORS configurado para permitir todos los orígenes (*)');
 app.use(express.json());
 
 // Conectar a MongoDB
@@ -71,4 +79,10 @@ app.get("/api/health", (req, res) => {
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+  console.log(`🌐 CORS: Permitidos todos los orígenes (*)`);
+  console.log(`🔗 URLs permitidas:`);
+  console.log(`   - Desarrollo: http://localhost:${PORT}`);
+  console.log(`   - Frontend: http://localhost:5173`);
+  console.log(`   - Vercel: https://noticias-nsgroup-newsroom.vercel.app`);
+  console.log(`   - Railway: https://noticias-nsgroup-production.up.railway.app`);
 });
