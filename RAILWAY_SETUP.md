@@ -7,7 +7,12 @@ Si ves errores como:
 MongooseServerSelectionError: connect ECONNREFUSED ::1:27017, connect ECONNREFUSED 127.0.0.1:27017
 ```
 
-Significa que **no tienes configurada la variable `MONGODB_URI`** en Railway.
+Significa que **no tienes configurada la variable correcta** en Railway.
+
+### Posibles Causas:
+1. ❌ **Variable `MONGO_URI`** configurada pero código busca `MONGODB_URI`
+2. ❌ **Variable `MONGODB_URI`** no configurada
+3. ❌ **Variable configurada** pero con URL incorrecta
 
 ## 🛠️ SOLUCIÓN RÁPIDA (5 minutos)
 
@@ -86,11 +91,20 @@ node backend/test-mongo-connection.js
 
 ## 📋 Checklist de Verificación
 
-- [ ] Variable `MONGODB_URI` configurada en Railway
-- [ ] URL de MongoDB es correcta (no localhost)
+### Variables de Entorno:
+- [ ] `MONGO_URI` configurada con URL correcta de MongoDB Atlas
+- [ ] URL no contiene `localhost` (debe ser `mongodb+srv://...` o Railway URL)
 - [ ] Credenciales de usuario/password son correctas
+
+### Código Actualizado:
+- [ ] Código reconoce `MONGO_URI` (ya actualizado ✅)
+- [ ] Endpoint `/api/diagnose` muestra `MONGO_URI: CONFIGURADA`
+- [ ] Logs muestran conexión exitosa a MongoDB Atlas
+
+### Verificación:
 - [ ] Servicio reiniciado después de cambios
 - [ ] Logs muestran "✅ Conectado a MongoDB exitosamente"
+- [ ] Panel de administración funciona sin errores
 
 ## 🆘 Solución de Problemas
 

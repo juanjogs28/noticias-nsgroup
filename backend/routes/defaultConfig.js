@@ -7,21 +7,23 @@ const { requireAuth } = require("../middleware/auth.js");
 async function ensureConnection() {
   const mongoose = require("mongoose");
   if (mongoose.connection.readyState === 0) {
-    const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || "mongodb://localhost:27017/ns-news";
+    const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
 
     console.log('🔧 defaultConfig.js - Conectando a MongoDB:', {
       uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'),
       isLocalhost: MONGODB_URI.includes('localhost'),
       nodeEnv: process.env.NODE_ENV,
       hasMongodbUri: !!process.env.MONGODB_URI,
-      hasDatabaseUrl: !!process.env.DATABASE_URL
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      hasMongoUri: !!process.env.MONGO_URI
     });
 
     // Advertencia crítica si estamos en producción usando localhost
     if (process.env.NODE_ENV === 'production' && MONGODB_URI.includes('localhost')) {
       console.error('🚨 CRÍTICO: Intentando conectar a localhost en PRODUCCIÓN!');
-      console.error('   Configura MONGODB_URI en Railway con tu URL externa de MongoDB');
-      console.error('   Ejemplo: mongodb://user:pass@containers-us-west-1.railway.app:1234/ns-news');
+      console.error('   Tu MONGO_URI está configurada pero usando localhost como fallback');
+      console.error('   Verifica que MONGO_URI tenga la URL correcta de MongoDB Atlas');
+      console.error('   URL actual:', process.env.MONGO_URI);
     }
 
     await mongoose.connect(MONGODB_URI, {

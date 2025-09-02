@@ -3,11 +3,14 @@ const mongoose = require("mongoose");
 const DefaultConfig = require("./models/defaultConfig.js");
 
 // Conectar a MongoDB - Usar variable de entorno
-const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || "mongodb://localhost:27017/ns-news";
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
 
 console.log('🔧 Configuración MongoDB initDefaultConfig:', {
   uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'),
-  isProduction: process.env.NODE_ENV === 'production'
+  isProduction: process.env.NODE_ENV === 'production',
+  hasMongodbUri: !!process.env.MONGODB_URI,
+  hasDatabaseUrl: !!process.env.DATABASE_URL,
+  hasMongoUri: !!process.env.MONGO_URI
 });
 
 mongoose

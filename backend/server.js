@@ -24,6 +24,7 @@ function diagnoseEnvironment() {
   console.log("NODE_ENV:", process.env.NODE_ENV || "undefined");
   console.log("MONGODB_URI:", process.env.MONGODB_URI ? "✅ Configurada" : "❌ No configurada");
   console.log("DATABASE_URL:", process.env.DATABASE_URL ? "✅ Configurada" : "❌ No configurada");
+  console.log("MONGO_URI:", process.env.MONGO_URI ? "✅ Configurada" : "❌ No configurada");
 
   // Listar variables relacionadas con DB
   const dbVars = Object.keys(process.env).filter(key =>
@@ -38,7 +39,7 @@ function diagnoseEnvironment() {
 diagnoseEnvironment();
 
 // Conectar a MongoDB - Usar variable de entorno o fallback
-const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || "mongodb://localhost:27017/ns-news";
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
 
 console.log('🔧 Configuración MongoDB:', {
   uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'), // Ocultar credenciales en logs
@@ -136,13 +137,15 @@ app.get("/api/admin", requireAuth, (req, res) => {
 
 // Health check
 app.get("/api/health", (req, res) => {
+  const finalUri = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
   res.json({
     status: "OK",
     timestamp: new Date().toISOString(),
     mongodb: {
-      configured: !!(process.env.MONGODB_URI || process.env.DATABASE_URL),
-      uri: (process.env.MONGODB_URI || process.env.DATABASE_URL || "mongodb://localhost:27017/ns-news").replace(/\/\/.*@/, '//***:***@'),
-      isLocalhost: (process.env.MONGODB_URI || process.env.DATABASE_URL || "").includes('localhost'),
+      configured: !!(process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI),
+      uri: finalUri.replace(/\/\/.*@/, '//***:***@'),
+      isLocalhost: finalUri.includes('localhost'),
+      isAtlas: finalUri.includes('mongodb.net'),
       connectionState: mongoose.connection.readyState
     },
     environment: process.env.NODE_ENV
@@ -151,20 +154,23 @@ app.get("/api/health", (req, res) => {
 
 // Endpoint de diagnóstico (solo para debugging)
 app.get("/api/diagnose", (req, res) => {
+  const finalUri = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
   res.json({
     timestamp: new Date().toISOString(),
     environment: {
       NODE_ENV: process.env.NODE_ENV,
       MONGODB_URI: process.env.MONGODB_URI ? 'CONFIGURADA' : 'NO CONFIGURADA',
-      DATABASE_URL: process.env.DATABASE_URL ? 'CONFIGURADA' : 'NO CONFIGURADA'
+      DATABASE_URL: process.env.DATABASE_URL ? 'CONFIGURADA' : 'NO CONFIGURADA',
+      MONGO_URI: process.env.MONGO_URI ? 'CONFIGURADA' : 'NO CONFIGURADA'
     },
     mongodb: {
-      uri: (process.env.MONGODB_URI || process.env.DATABASE_URL || "mongodb://localhost:27017/ns-news").replace(/\/\/.*@/, '//***:***@'),
-      isLocalhost: (process.env.MONGODB_URI || process.env.DATABASE_URL || "").includes('localhost'),
-      isRailway: (process.env.MONGODB_URI || process.env.DATABASE_URL || "").includes('railway.app'),
+      uri: finalUri.replace(/\/\/.*@/, '//***:***@'),
+      isLocalhost: finalUri.includes('localhost'),
+      isRailway: finalUri.includes('railway.app'),
+      isAtlas: finalUri.includes('mongodb.net'),
       connectionState: mongoose.connection.readyState
     },
-    instructions: !process.env.MONGODB_URI && !process.env.DATABASE_URL ? [
+    instructions: !process.env.MONGODB_URI && !process.env.DATABASE_URL && !process.env.MONGO_URI ? [
       "1. Ve a Railway > Tu proyecto > Variables",
       "2. Agrega MONGODB_URI=mongodb://usuario:password@tu-url/ns-news",
       "3. Reinicia el servicio"

@@ -8,13 +8,17 @@ console.log("📋 VARIABLES DE ENTORNO:");
 console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'undefined'}`);
 console.log(`   MONGODB_URI: ${process.env.MONGODB_URI ? '✅ PRESENTE' : '❌ FALTANTE'}`);
 console.log(`   DATABASE_URL: ${process.env.DATABASE_URL ? '✅ PRESENTE' : '❌ FALTANTE'}`);
+console.log(`   MONGO_URI: ${process.env.MONGO_URI ? '✅ PRESENTE' : '❌ FALTANTE'}`);
 
 if (process.env.MONGODB_URI) {
   console.log(`   URI (oculta): ${process.env.MONGODB_URI.replace(/\/\/.*@/, '//***:***@')}`);
 }
+if (process.env.MONGO_URI) {
+  console.log(`   MONGO_URI (oculta): ${process.env.MONGO_URI.replace(/\/\/.*@/, '//***:***@')}`);
+}
 
 // 2. Determinar URI que se usará
-const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || "mongodb://localhost:27017/ns-news";
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
 console.log("\n🎯 URI FINAL QUE SE USARÁ:");
 console.log(`   ${MONGODB_URI.replace(/\/\/.*@/, '//***:***@')}`);
 
@@ -22,8 +26,8 @@ console.log(`   ${MONGODB_URI.replace(/\/\/.*@/, '//***:***@')}`);
 console.log("\n🔍 ANÁLISIS:");
 const problemas = [];
 
-if (!process.env.MONGODB_URI && !process.env.DATABASE_URL) {
-  problemas.push("❌ No hay variable MONGODB_URI ni DATABASE_URL configurada");
+if (!process.env.MONGODB_URI && !process.env.DATABASE_URL && !process.env.MONGO_URI) {
+  problemas.push("❌ No hay variable MONGODB_URI, DATABASE_URL ni MONGO_URI configurada");
 }
 
 if (MONGODB_URI.includes('localhost')) {
@@ -37,7 +41,7 @@ if (problemas.length === 0) {
 }
 
 // 4. Soluciones
-if (!process.env.MONGODB_URI && !process.env.DATABASE_URL) {
+if (!process.env.MONGODB_URI && !process.env.DATABASE_URL && !process.env.MONGO_URI) {
   console.log("\n🛠️  SOLUCIÓN:");
   console.log("   1. Ve a Railway > Tu proyecto > Variables");
   console.log("   2. Crea una nueva variable:");
