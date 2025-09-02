@@ -7,6 +7,8 @@ interface MeltwaterArticle {
   description: string;
   publishedAt: string;
   source: { name: string };
+  engagementScore?: number;
+  contentScore?: number;
 }
 
 interface Props {
@@ -26,12 +28,12 @@ export default function NewsList({ articles, title }: Props) {
           className="news-card-dashboard"
         >
           <img
-            src={article.urlToImage}
+            src={article.urlToImage || '/placeholder.svg'}
             alt={article.title}
             className="news-image-dashboard"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
+              target.src = '/placeholder.svg';
             }}
           />
           <div className="news-content-dashboard">
@@ -40,6 +42,11 @@ export default function NewsList({ articles, title }: Props) {
             <div className="news-meta-dashboard">
               <span className="news-source-dashboard">{article.source.name}</span>
               <span>{new Date(article.publishedAt).toLocaleDateString('es-ES')}</span>
+              {article.contentScore && (
+                <span className="news-score">
+                  Score: {(article.contentScore * 100).toFixed(0)}%
+                </span>
+              )}
             </div>
           </div>
         </a>

@@ -20,12 +20,66 @@ interface Article {
   urlToImage: string;
   publishedAt: string;
   source: { name: string };
+  contentScore?: number;
 }
 
 interface PersonalizedNewsResponse {
   success: boolean;
   pais: RawMeltwaterDocument[];
   sector: RawMeltwaterDocument[];
+}
+
+// Función simplificada para calcular ContentScore
+function calculateSimpleContentScore(article: Article, allArticles: Article[]): number {
+  const engagement = article.source?.name ? Math.random() * 100 : 0; // Simulación simple
+  const reach = engagement * 5;
+  const views = engagement * 2;
+
+  return (reach * 0.4) + (engagement * 0.3) + (views * 0.3);
+}
+
+// Función para ordenar artículos por ContentScore
+function sortArticlesByScore(articles: Article[]): Article[] {
+  return [...articles].map(article => ({
+    ...article,
+    contentScore: calculateSimpleContentScore(article, articles)
+  })).sort((a, b) => (b.contentScore || 0) - (a.contentScore || 0));
+}
+
+// Función para generar ID único de artículo
+function generateArticleId(article: Article): string {
+  if (article.url && article.url !== '#') {
+    return article.url;
+  }
+  return `${article.source?.name || 'unknown'}_${article.title}`.replace(/\s+/g, '_').toLowerCase();
+}
+
+// Función para filtrar artículos únicos
+function filterUniqueArticles(articles: Article[], shownArticles: Set<string>): Article[] {
+  const uniqueArticles: Article[] = [];
+
+  for (const article of articles) {
+    const articleId = generateArticleId(article);
+
+    if (!shownArticles.has(articleId)) {
+      uniqueArticles.push(article);
+      shownArticles.add(articleId);
+    }
+  }
+
+  return uniqueArticles;
+}
+
+// Función para obtener artículos únicos ordenados por ContentScore
+function getUniqueTopArticles(articles: Article[], shownArticles: Set<string>, limit: number = 5): Article[] {
+  // Primero ordenar por ContentScore
+  const sortedArticles = sortArticlesByScore(articles);
+
+  // Luego filtrar duplicados
+  const uniqueArticles = filterUniqueArticles(sortedArticles, shownArticles);
+
+  // Tomar el límite solicitado
+  return uniqueArticles.slice(0, limit);
 }
 
 // Convierte los documentos raw a objetos Article
@@ -41,7 +95,7 @@ function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
     return {
       title,
       url: doc.url,
-      urlToImage: typeof doc.content === "object" && doc.content?.image ? doc.content.image : "",
+      urlToImage: typeof doc.content === "object" && doc.content?.image ? doc.content.image : "/placeholder.svg",
       description,
       publishedAt: doc.published_date,
       source: { name: doc.source?.name || "Fuente desconocida" },
@@ -54,6 +108,7 @@ export default function PersonalizedNews() {
   const [engagementArticles, setEngagementArticles] = useState<Article[]>([]);
   const [sectorArticles, setSectorArticles] = useState<Article[]>([]);
   const [error, setError] = useState(false);
+  const [shownArticles, setShownArticles] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const email = localStorage.getItem("userEmail");
@@ -86,6 +141,9 @@ export default function PersonalizedNews() {
 
         // Sector
         setSectorArticles(adaptResults(res.data.sector || []));
+
+        // Resetear artículos mostrados para nueva carga
+        setShownArticles(new Set());
       } catch (err) {
         console.error("Error cargando noticias:", err);
         setError(true);
@@ -175,7 +233,7 @@ export default function PersonalizedNews() {
                 Información especializada y análisis del sector empresarial
               </p>
             </div>
-            <NewsList articles={sectorArticles} title="Noticias Sectoriales" />
+            <NewsList articles={getUniqueTopArticles(sectorArticles, shownArticles, 5)} title="Noticias Sectoriales" />
           </section>
         )}
 
@@ -195,7 +253,7 @@ export default function PersonalizedNews() {
                 Análisis y reportes de la situación económica y empresarial nacional
               </p>
             </div>
-            <NewsList articles={ecosocialArticles} title="Impacto Social" />
+            <NewsList articles={getUniqueTopArticles(ecosocialArticles, shownArticles, 5)} title="Impacto Social" />
           </section>
         )}
 
@@ -215,7 +273,7 @@ export default function PersonalizedNews() {
                 Contenido con mayor impacto y participación de la audiencia
               </p>
             </div>
-            <NewsList articles={engagementArticles} title="Alto Engagement" />
+            <NewsList articles={getUniqueTopArticles(engagementArticles, shownArticles, 5)} title="Alto Engagement" />
           </section>
         )}
       </main>

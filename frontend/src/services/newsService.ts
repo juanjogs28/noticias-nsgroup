@@ -131,6 +131,7 @@ export interface NewsArticle {
     name: string;
   };
   urlToImage?: string;
+  contentScore?: number;
 }
 
 export interface NewsResponse {
@@ -161,13 +162,19 @@ export const fetchTopHeadlines = async (country: string = 'us', pageSize: number
       source: {
         name: doc.source.name
       },
-      urlToImage: doc.content.image || undefined
+      urlToImage: doc.content.image || "/placeholder.svg"
     }));
     
+    // Crear un set temporal para tracking (ya que es una función estática)
+    const tempShownArticles = new Set<string>();
+
+    // Filtrar artículos únicos ordenados por ContentScore
+    const uniqueArticles = getUniqueTopArticles(transformedArticles, tempShownArticles, transformedArticles.length);
+
     return {
       status: data.request.status,
-      totalResults: data.documents.length,
-      articles: transformedArticles
+      totalResults: uniqueArticles.length,
+      articles: uniqueArticles
     };
     
   } catch (error) {
@@ -190,11 +197,67 @@ export const searchNews = async (query: string, pageSize: number = 10): Promise<
   return data;
 };
 
+// Función para calcular ContentScore simple
+export const calculateContentScore = (article: NewsArticle, allArticles: NewsArticle[]): number => {
+  // Estimación simple basada en datos disponibles
+  const baseScore = Math.random() * 0.5; // 0-0.5 aleatorio
+  const titleLength = article.title.length / 100; // 0-1 basado en longitud del título
+  const hasImage = article.urlToImage ? 0.2 : 0; // Bonus por tener imagen
+
+  return Math.min(1, baseScore + titleLength + hasImage);
+};
+
+// Función para ordenar artículos por ContentScore
+export const sortArticlesByContentScore = (articles: NewsArticle[]): NewsArticle[] => {
+  return [...articles]
+    .map(article => ({
+      ...article,
+      contentScore: calculateContentScore(article, articles)
+    }))
+    .sort((a, b) => (b.contentScore || 0) - (a.contentScore || 0));
+};
+
+// Función para generar ID único de artículo
+export const generateArticleId = (article: NewsArticle): string => {
+  if (article.url && article.url !== '#') {
+    return article.url;
+  }
+  return `${article.source?.name || 'unknown'}_${article.title}`.replace(/\s+/g, '_').toLowerCase();
+};
+
+// Función para filtrar artículos únicos
+export const filterUniqueArticles = (articles: NewsArticle[], shownArticles: Set<string>): NewsArticle[] => {
+  const uniqueArticles: NewsArticle[] = [];
+
+  for (const article of articles) {
+    const articleId = generateArticleId(article);
+
+    if (!shownArticles.has(articleId)) {
+      uniqueArticles.push(article);
+      shownArticles.add(articleId);
+    }
+  }
+
+  return uniqueArticles;
+};
+
+// Función para obtener artículos únicos ordenados por ContentScore
+export const getUniqueTopArticles = (articles: NewsArticle[], shownArticles: Set<string>, limit: number = 5): NewsArticle[] => {
+  // Primero ordenar por ContentScore
+  const sortedArticles = sortArticlesByContentScore(articles);
+
+  // Luego filtrar duplicados
+  const uniqueArticles = filterUniqueArticles(sortedArticles, shownArticles);
+
+  // Tomar el límite solicitado
+  return uniqueArticles.slice(0, limit);
+};
+
 export const formatPublishedDate = (dateString: string): string => {
   const date = new Date(dateString);
   const now = new Date();
   const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-  
+
   if (diffInHours < 1) {
     return 'Hace menos de 1 hora';
   } else if (diffInHours < 24) {
