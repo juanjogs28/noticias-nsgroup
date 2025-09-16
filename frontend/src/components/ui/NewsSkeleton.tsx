@@ -4,9 +4,9 @@ interface NewsSkeletonProps {
   count?: number;
 }
 
-export default function NewsSkeleton({ count = 6 }: NewsSkeletonProps) {
+export default function NewsSkeleton({ count = 10 }: NewsSkeletonProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="news-grid-dashboard">
       {Array.from({ length: count }).map((_, index) => (
         <div
           key={index}

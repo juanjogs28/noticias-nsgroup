@@ -19,6 +19,7 @@ interface MeltwaterArticle {
   };
   engagementScore?: number;
   socialEchoScore?: number;
+  contentScore?: number;
   location?: {
     country_code: string;
   };
@@ -38,32 +39,101 @@ interface NewsResponse {
 }
 
 function adaptResults(raw: any[]): MeltwaterArticle[] {
-  return raw.map((doc) => ({
-    title: doc.content?.title || "Sin título",
-    url: doc.url,
-    urlToImage: doc.content?.image || "/placeholder.svg",
-    description: doc.content?.opening_text || "",
-    publishedAt: doc.published_date,
-    source: {
-      name: doc.source?.name || "Fuente desconocida",
-      metrics: doc.source?.metrics ? {
-        reach: doc.source.metrics.reach || 0,
-        ave: doc.source.metrics.ave || 0
-      } : undefined
-    },
-    engagementScore: doc.metrics?.engagement?.total ?? 0,
-    socialEchoScore: doc.metrics?.social_echo?.total ?? 0,
-    location: doc.location ? {
-      country_code: doc.location.country_code
-    } : undefined,
-    enrichments: doc.enrichments ? {
-      sentiment: doc.enrichments.sentiment || 'neutral',
-      keyphrases: doc.enrichments.keyphrases || []
-    } : undefined,
-    metrics: doc.metrics ? {
-      views: doc.metrics.views || 0
-    } : undefined,
-  }));
+  console.log('🔧 adaptResults - Datos de entrada:', raw);
+  
+  const adapted = raw.map((doc, index) => {
+    // Generar título basado en el tipo de contenido
+    let title = doc.content?.title;
+    if (!title) {
+      if (doc.content_type === "social post") {
+        // Para posts de redes sociales, usar keyphrases o un título genérico
+        if (doc.enrichments?.keyphrases && doc.enrichments.keyphrases.length > 0) {
+          title = `Post sobre: ${doc.enrichments.keyphrases.slice(0, 2).join(", ")}`;
+        } else {
+          title = `Post de ${doc.source?.name || "red social"}`;
+        }
+      } else {
+        title = "Sin título";
+      }
+    }
+
+    // Generar descripción basada en el tipo de contenido
+    let description = doc.content?.opening_text;
+    if (!description) {
+      if (doc.content_type === "social post") {
+        // Para posts de redes sociales, usar keyphrases como descripción
+        if (doc.enrichments?.keyphrases && doc.enrichments.keyphrases.length > 0) {
+          description = `Temas: ${doc.enrichments.keyphrases.join(", ")}`;
+        } else {
+          description = `Contenido de ${doc.source?.name || "red social"}`;
+        }
+      } else {
+        description = "";
+      }
+    }
+
+    // Generar URL si no existe (para posts de redes sociales)
+    let url = doc.url;
+    if (!url && doc.content_type === "social post") {
+      // Crear una URL ficticia basada en el external_id o id
+      const postId = doc.external_id || doc.id;
+      if (postId) {
+        url = `https://twitter.com/i/web/status/${postId}`;
+      } else {
+        url = "#";
+      }
+    }
+
+    const adaptedDoc = {
+      title,
+      url: url || "#",
+      urlToImage: doc.content?.image || "/placeholder.svg",
+      description,
+      publishedAt: doc.published_date,
+      source: {
+        name: doc.source?.name || "Fuente desconocida",
+        metrics: doc.source?.metrics ? {
+          reach: doc.source.metrics.reach || 0,
+          ave: doc.source.metrics.ave || 0
+        } : undefined
+      },
+      engagementScore: doc.metrics?.engagement?.total ?? 
+        (doc.metrics?.engagement ? 
+          (doc.metrics.engagement.likes || 0) + 
+          (doc.metrics.engagement.replies || 0) + 
+          (doc.metrics.engagement.reposts || 0) + 
+          (doc.metrics.engagement.shares || 0) + 
+          (doc.metrics.engagement.comments || 0) + 
+          (doc.metrics.engagement.quotes || 0) + 
+          (doc.metrics.engagement.reactions || 0) : 0),
+      socialEchoScore: doc.metrics?.social_echo?.total ?? 
+        (doc.metrics?.social_echo ? 
+          (doc.metrics.social_echo.x || 0) + 
+          (doc.metrics.social_echo.facebook || 0) + 
+          (doc.metrics.social_echo.reddit || 0) : 0),
+      location: doc.location ? {
+        country_code: doc.location.country_code
+      } : undefined,
+      enrichments: doc.enrichments ? {
+        sentiment: doc.enrichments.sentiment || 'neutral',
+        keyphrases: doc.enrichments.keyphrases || []
+      } : undefined,
+      metrics: doc.metrics ? {
+        views: doc.metrics.views || 0
+      } : undefined,
+    };
+    
+    // Log detallado de cada documento adaptado
+    console.log(`📄 Documento ${index + 1} adaptado:`, {
+      original: doc,
+      adapted: adaptedDoc
+    });
+    
+    return adaptedDoc;
+  });
+  
+  console.log('🔧 adaptResults - Resultado final:', adapted);
+  return adapted;
 }
 
 // Funciones auxiliares para normalización
@@ -111,52 +181,47 @@ function calculateContentScore(article: MeltwaterArticle, allArticles: Meltwater
   // Calcular ContentScore compuesto
   const contentScore = w1 * reachNorm + w2 * engagementNorm + w3 * aveNorm + w4 * viewsNorm;
 
-  // LOG detallado del cálculo
-  console.log(`🔍 ContentScore para "${article.title}":`);
-  console.log(`   📊 Métricas crudas: Reach=${reach}, Engagement=${engagement}, AVE=${ave}, Views=${views}`);
-  console.log(`   📈 Rangos globales: Reach[${minReach}-${maxReach}], Engagement[${minEngagement}-${maxEngagement}]`);
-  console.log(`   🔧 Valores normalizados: Reach=${reachNorm.toFixed(3)}, Engagement=${engagementNorm.toFixed(3)}, AVE=${aveNorm.toFixed(3)}, Views=${viewsNorm.toFixed(3)}`);
-  console.log(`   ⚖️ Pesos aplicados: Reach=${(w1 * reachNorm).toFixed(3)}, Engagement=${(w2 * engagementNorm).toFixed(3)}, AVE=${(w3 * aveNorm).toFixed(3)}, Views=${(w4 * viewsNorm).toFixed(3)}`);
-  console.log(`   🎯 ContentScore FINAL: ${(contentScore * 100).toFixed(1)}%`);
-  console.log('   ─────────────────────────────────────────────────');
+  // Logs de debug removidos para limpiar la consola
 
   return contentScore;
 }
 
 // Función para ordenar artículos por ContentScore
 function sortArticlesByContentScore(articles: MeltwaterArticle[]): MeltwaterArticle[] {
-  console.log(`\n🏆 ORDENANDO ${articles.length} ARTÍCULOS POR CONTENTSCORE`);
-  console.log('='.repeat(80));
-
   const sortedArticles = [...articles].sort((a, b) => {
     const scoreA = calculateContentScore(a, articles);
     const scoreB = calculateContentScore(b, articles);
     return scoreB - scoreA; // Orden descendente (mayor score primero)
   });
 
-  // Mostrar ranking final
-  console.log('\n📋 RANKING FINAL DE NOTICIAS:');
-  console.log('='.repeat(80));
-  sortedArticles.slice(0, 10).forEach((article, index) => {
-    const score = calculateContentScore(article, articles);
-    const position = index + 1;
-    const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : ` ${position}.`;
-    console.log(`${medal} ${(score * 100).toFixed(1)}% - "${article.title}"`);
-    console.log(`   📊 Fuente: ${article.source?.name}, Engagement: ${article.engagementScore}`);
-    console.log(`   📈 Reach: ${article.source?.metrics?.reach || 'N/A'}, AVE: ${article.source?.metrics?.ave || 'N/A'}`);
-  });
+  return sortedArticles;
+}
 
-  if (articles.length > 10) {
-    console.log(`   ... y ${articles.length - 10} noticias más`);
-  }
-
-  console.log('='.repeat(80));
-  console.log(`✅ TOP 5 NOTICIAS SELECCIONADAS PARA MOSTRAR:`);
-  sortedArticles.slice(0, 5).forEach((article, index) => {
-    const score = calculateContentScore(article, articles);
-    console.log(`   ${index + 1}. ${(score * 100).toFixed(1)}% - "${article.title.substring(0, 60)}${article.title.length > 60 ? '...' : ''}"`);
+// Función específica para ordenar artículos del país por socialEchoScore con fallback a engagement
+function sortPaisArticlesBySocialEcho(articles: MeltwaterArticle[]): MeltwaterArticle[] {
+  const sortedArticles = [...articles].sort((a, b) => {
+    // Priorizar socialEchoScore si está disponible
+    const socialEchoA = a.socialEchoScore || 0;
+    const socialEchoB = b.socialEchoScore || 0;
+    
+    // Si ambos tienen socialEchoScore, ordenar por ese valor
+    if (socialEchoA > 0 && socialEchoB > 0) {
+      return socialEchoB - socialEchoA;
+    }
+    
+    // Si solo uno tiene socialEchoScore, priorizarlo
+    if (socialEchoA > 0 && socialEchoB === 0) {
+      return -1;
+    }
+    if (socialEchoA === 0 && socialEchoB > 0) {
+      return 1;
+    }
+    
+    // Si ninguno tiene socialEchoScore, usar engagement como fallback
+    const engagementA = a.engagementScore || 0;
+    const engagementB = b.engagementScore || 0;
+    return engagementB - engagementA;
   });
-  console.log('='.repeat(80));
 
   return sortedArticles;
 }
@@ -188,7 +253,6 @@ function filterUniqueArticles(articles: MeltwaterArticle[], shownArticles: Set<s
 
     // Si el artículo ya fue mostrado, lo saltamos
     if (shownArticles.has(articleId)) {
-      console.log(`🔄 DUPLICADO SALTADO: "${article.title}" (ID: ${articleId})`);
       continue;
     }
 
@@ -196,7 +260,6 @@ function filterUniqueArticles(articles: MeltwaterArticle[], shownArticles: Set<s
     if (!newShownArticles.has(articleId)) {
       uniqueArticles.push(article);
       newShownArticles.add(articleId);
-      console.log(`✅ ARTÍCULO ÚNICO AGREGADO: "${article.title}" (ID: ${articleId})`);
     }
   }
 
@@ -204,10 +267,7 @@ function filterUniqueArticles(articles: MeltwaterArticle[], shownArticles: Set<s
 }
 
 // Función para obtener artículos únicos ordenados por ContentScore
-function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 5): MeltwaterArticle[] {
-  console.log(`\n🔍 FILTRANDO ARTÍCULOS ÚNICOS (${articles.length} candidatos, límite: ${limit})`);
-  console.log(`📈 Artículos ya mostrados: ${shownArticles.size}`);
-
+function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 10): MeltwaterArticle[] {
   // Primero ordenar por ContentScore
   const sortedArticles = sortArticlesByContentScore(articles);
 
@@ -217,30 +277,77 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
   // Tomar el límite solicitado
   const result = uniqueArticles.slice(0, limit);
 
-  console.log(`📊 RESULTADO: ${result.length} artículos únicos seleccionados de ${articles.length} candidatos`);
-  console.log(`🎯 Artículos totales mostrados ahora: ${shownArticles.size}`);
-  console.log(`✅ Artículos disponibles para futuras secciones: ${uniqueArticles.length - result.length}`);
+  return assignContentScores(result);
+}
 
-  if (result.length > 0) {
-    console.log('📋 TOP ARTÍCULOS SELECCIONADOS:');
-    result.forEach((article, index) => {
-      const score = calculateContentScore(article, articles);
-      console.log(`   ${index + 1}. ${(score * 100).toFixed(1)}% - "${article.title.substring(0, 40)}..."`);
-    });
-  }
+// Función específica para obtener artículos del país ordenados por socialEchoScore
+function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 10): MeltwaterArticle[] {
+  // Fuentes de redes sociales a excluir
+  const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube'];
+  
+  // Filtrar artículos excluyendo fuentes de redes sociales
+  const filteredArticles = articles.filter(article => {
+    const sourceName = article.source?.name?.toLowerCase() || '';
+    return !excludedSources.some(excludedSource => 
+      sourceName.includes(excludedSource)
+    );
+  });
 
-  console.log('─'.repeat(60));
+  // Separar artículos con y sin socialEchoScore
+  const articlesWithSocialEcho = filteredArticles.filter(article => (article.socialEchoScore || 0) > 0);
+  const articlesWithoutSocialEcho = filteredArticles.filter(article => (article.socialEchoScore || 0) === 0);
+
+  // Ordenar cada grupo por su métrica correspondiente
+  const sortedWithSocialEcho = sortPaisArticlesBySocialEcho(articlesWithSocialEcho);
+  const sortedWithoutSocialEcho = articlesWithoutSocialEcho.sort((a, b) => {
+    const engagementA = a.engagementScore || 0;
+    const engagementB = b.engagementScore || 0;
+    return engagementB - engagementA;
+  });
+
+  // Combinar: primero los que tienen socialEchoScore, luego los de engagement
+  const combinedArticles = [...sortedWithSocialEcho, ...sortedWithoutSocialEcho];
+
+  // Filtrar duplicados
+  const uniqueArticles = filterUniqueArticles(combinedArticles, shownArticles);
+
+  // Tomar el límite solicitado
+  const result = uniqueArticles.slice(0, limit);
+
+  return assignContentScores(result);
+}
+
+// Función específica para obtener artículos de redes sociales ordenados por engagement
+function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 10): MeltwaterArticle[] {
+  // Fuentes de redes sociales permitidas
+  const allowedSources = ['instagram', 'facebook', 'twitter', 'x'];
+  
+  // Filtrar artículos solo de redes sociales permitidas
+  const socialMediaArticles = articles.filter(article => {
+    const sourceName = article.source?.name?.toLowerCase() || '';
+    return allowedSources.some(allowedSource => 
+      sourceName.includes(allowedSource)
+    );
+  });
+
+  // Ordenar únicamente por engagement
+  const sortedArticles = socialMediaArticles.sort((a, b) => {
+    const engagementA = a.engagementScore || 0;
+    const engagementB = b.engagementScore || 0;
+    return engagementB - engagementA; // Orden descendente (mayor engagement primero)
+  });
+
+  // Filtrar duplicados
+  const uniqueArticles = filterUniqueArticles(sortedArticles, shownArticles);
+
+  // Tomar el límite solicitado
+  const result = uniqueArticles.slice(0, limit);
 
   return assignContentScores(result);
 }
 
 // Función para calcular métricas relevantes basadas en la API de Meltwater
 function calculateRelevantMetrics(articles: MeltwaterArticle[]) {
-  console.log(`\n🚀 INICIANDO ANÁLISIS DE ${articles.length} ARTÍCULOS`);
-  console.log(`📊 ESTRATEGIA DE SCORING: 40% Reach + 30% Engagement + 20% AVE + 10% Views`);
-  console.log(`🔄 SISTEMA ANTI-DUPLICADOS: ACTIVADO`);
-  console.log('─'.repeat(80));
-
   // Ordenar artículos por ContentScore para priorizar los más importantes
   const sortedArticles = sortArticlesByContentScore(articles);
 
@@ -291,7 +398,7 @@ function calculateRelevantMetrics(articles: MeltwaterArticle[]) {
     avgSentiment,
     uniqueSources: Math.max(uniqueSources, 0),
     topTopic: mostFrequentKeyword,
-    sortedArticles: sortedArticles.slice(0, 5) // Top 5 artículos por ContentScore
+    sortedArticles: sortedArticles.slice(0, 10) // Top 10 artículos por ContentScore
   };
 }
 
@@ -391,8 +498,21 @@ export default function Index() {
           });
 
           if (response.data.success) {
+            // Log de la respuesta cruda de la API
+            console.log('🔍 RESPUESTA CRUDA DE LA API (con parámetros URL):');
+            console.log('📊 Datos del sector (raw):', response.data.sector);
+            console.log('📊 Datos del país (raw):', response.data.pais);
+            console.log('📊 Total sector:', response.data.sector?.length || 0);
+            console.log('📊 Total país:', response.data.pais?.length || 0);
+            
             const sectorData = adaptResults(response.data.sector);
             const paisData = adaptResults(response.data.pais);
+            
+            // Log de los datos después de adaptResults
+            console.log('🔄 DESPUÉS DE adaptResults:');
+            console.log('📊 Sector adaptado:', sectorData);
+            console.log('📊 País adaptado:', paisData);
+            
             setSectorArticles(sectorData);
             setPaisArticles(paisData);
 
@@ -420,8 +540,21 @@ export default function Index() {
         if (email) {
           const response = await axios.post<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { email });
           if (response.data.success) {
+            // Log de la respuesta cruda de la API
+            console.log('🔍 RESPUESTA CRUDA DE LA API (con email):');
+            console.log('📊 Datos del sector (raw):', response.data.sector);
+            console.log('📊 Datos del país (raw):', response.data.pais);
+            console.log('📊 Total sector:', response.data.sector?.length || 0);
+            console.log('📊 Total país:', response.data.pais?.length || 0);
+            
             const sectorData = adaptResults(response.data.sector);
             const paisData = adaptResults(response.data.pais);
+            
+            // Log de los datos después de adaptResults
+            console.log('🔄 DESPUÉS DE adaptResults:');
+            console.log('📊 Sector adaptado:', sectorData);
+            console.log('📊 País adaptado:', paisData);
+            
             setSectorArticles(sectorData);
             setPaisArticles(paisData);
 
@@ -448,8 +581,21 @@ export default function Index() {
         });
         
         if (response.data.success) {
+          // Log de la respuesta cruda de la API
+          console.log('🔍 RESPUESTA CRUDA DE LA API (default):');
+          console.log('📊 Datos del sector (raw):', response.data.sector);
+          console.log('📊 Datos del país (raw):', response.data.pais);
+          console.log('📊 Total sector:', response.data.sector?.length || 0);
+          console.log('📊 Total país:', response.data.pais?.length || 0);
+          
           const sectorData = adaptResults(response.data.sector);
           const paisData = adaptResults(response.data.pais);
+          
+          // Log de los datos después de adaptResults
+          console.log('🔄 DESPUÉS DE adaptResults:');
+          console.log('📊 Sector adaptado:', sectorData);
+          console.log('📊 País adaptado:', paisData);
+          
           setSectorArticles(sectorData);
           setPaisArticles(paisData);
 
@@ -501,19 +647,19 @@ export default function Index() {
           </div>
         </header>
 
-        <main className="container-spacing section-spacing">
+        <main className="dashboard-container">
           {/* Skeleton para Sector */}
           <SectionSkeleton 
             title="Noticias del Sector"
             showDescription={true}
-            articleCount={6}
+            articleCount={10}
           />
 
           {/* Skeleton para País */}
           <SectionSkeleton 
             title="Noticias del País"
             showDescription={true}
-            articleCount={6}
+            articleCount={10}
           />
         </main>
       </div>
@@ -559,6 +705,19 @@ export default function Index() {
 
   const paisEngagement = paisArticles.filter((a) => a.engagementScore !== undefined);
   const paisEcoSocial = paisArticles.filter((a) => a.socialEchoScore !== undefined);
+  
+  // Logs generales de datos disponibles
+  console.log('📊 DATOS DISPONIBLES:');
+  console.log(`  Sector: ${sectorArticles.length} artículos`);
+  console.log(`  País: ${paisArticles.length} artículos`);
+  console.log(`  País con Engagement: ${paisEngagement.length} artículos`);
+  console.log(`  País con SocialEcho: ${paisEcoSocial.length} artículos`);
+  
+  // Log de fuentes disponibles
+  const sectorSources = [...new Set(sectorArticles.map(a => a.source.name))];
+  const paisSources = [...new Set(paisArticles.map(a => a.source.name))];
+  console.log('📰 FUENTES SECTOR:', sectorSources);
+  console.log('📰 FUENTES PAÍS:', paisSources);
 
   return (
     <div className="min-h-screen tech-background network-pattern">
@@ -584,81 +743,8 @@ export default function Index() {
       </header>
 
       <main className="dashboard-container">
-        {/* Sección de Métricas Estratégicas */}
-        <div className="metrics-section">
-          <h2 className="metrics-title">Métricas Estratégicas de Contenido</h2>
-          <div className="metrics-grid">
-            <div className="metric-card">
-              <div className="metric-icon">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                </svg>
-              </div>
-              <div className="metric-value">{formatNumber(metrics.totalEngagement)}</div>
-              <div className="metric-label">Engagement Total</div>
-              <div className="metric-subtitle">Interacciones totales</div>
-            </div>
-            <div className="metric-card">
-              <div className="metric-icon">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9m0-9v9" />
-                </svg>
-              </div>
-              <div className="metric-value">{formatNumber(metrics.totalReach)}</div>
-              <div className="metric-label">Alcance Total</div>
-              <div className="metric-subtitle">Personas alcanzadas</div>
-            </div>
-           {/*  <div className="metric-card">
-              <div className="metric-icon">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <div className="metric-value">{formatNumber(metrics.totalArticles)}</div>
-              <div className="metric-label">Artículos</div>
-              <div className="metric-subtitle">Contenido monitoreado</div>
-            </div> */}
-            <div className="metric-card">
-              <div className="metric-icon">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <div className={`metric-value ${getSentimentColor(metrics.avgSentiment)}`}>
-                {getSentimentLabel(metrics.avgSentiment)}
-              </div>
-              <div className="metric-label">Sentimiento</div>
-              <div className="metric-subtitle">Opinión pública</div>
-            </div>
-
-            {/* FUENTES ACTIVAS */}
-            <div className="metric-card">
-              <div className="metric-icon">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                </svg>
-              </div>
-              <div className="metric-value">{formatNumber(metrics.uniqueSources)}</div>
-              <div className="metric-label">Fuentes Activas</div>
-              <div className="metric-subtitle">Medios monitoreados</div>
-            </div>
-
-            {/* TEMA PRINCIPAL */}
-            <div className="metric-card">
-              <div className="metric-icon">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                </svg>
-              </div>
-              <div className="metric-value text-sm leading-tight">
-                {metrics.topTopic.length > 15 ? `${metrics.topTopic.substring(0, 15)}...` : metrics.topTopic}
-              </div>
-              <div className="metric-label">Tema Principal</div>
-              <div className="metric-subtitle">Más mencionado</div>
-            </div>
-          </div>
-        </div>
-        {/* TOP 5 Temas - Sector */}
+     
+        {/* TOP 10 Temas - Sector */}
         {sectorArticles.length > 0 && (
           <div className="news-section">
             <div className="section-header-dashboard">
@@ -668,17 +754,24 @@ export default function Index() {
                 </svg>
               </div>
               <div>
-                <h2 className="section-title-dashboard">TOP 5 Contenido - Sector</h2>
+                <h2 className="section-title-dashboard">TOP 10 Contenido - Sector</h2>
                 <p className="section-description">
                   Las noticias más relevantes ordenadas por ContentScore (alcance, engagement, impacto)
                 </p>
               </div>
             </div>
-            <NewsList articles={getUniqueTopArticles(sectorArticles, shownArticles, 5)} title="Noticias Sectoriales" />
+            <NewsList articles={(() => {
+              const articles = getUniqueTopArticles(sectorArticles, shownArticles, 10);
+              console.log('🔵 TOP 10 SECTOR - Artículos mostrados:', articles.length);
+              articles.forEach((article, index) => {
+                console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | ContentScore: ${article.contentScore?.toFixed(3)} | Engagement: ${article.engagementScore}`);
+              });
+              return articles;
+            })()} title="Noticias Sectoriales" />
           </div>
         )}
 
-        {/* TOP 5 Contenido - País */}
+        {/* TOP 10 Contenido - País */}
         {paisArticles.length > 0 && (
           <div className="news-section">
             <div className="section-header-dashboard">
@@ -688,18 +781,25 @@ export default function Index() {
                 </svg>
               </div>
               <div>
-                <h2 className="section-title-dashboard">TOP 5 Contenido - {countryName}</h2>
+                <h2 className="section-title-dashboard">TOP 10 Contenido - {countryName}</h2>
                 <p className="section-description">
-                  Las noticias más impactantes ordenadas por ContentScore (alcance, engagement, relevancia)
+                  Las noticias más impactantes ordenadas por Social Echo Score (eco social, engagement como fallback). Excluye fuentes de redes sociales.
                 </p>
               </div>
             </div>
-            <NewsList articles={getUniqueTopArticles(paisArticles, shownArticles, 5)} title="Noticias del País" />
+            <NewsList articles={(() => {
+              const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 10);
+              console.log('🟢 TOP 10 PAÍS - Artículos mostrados:', articles.length);
+              articles.forEach((article, index) => {
+                console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | SocialEcho: ${article.socialEchoScore} | Engagement: ${article.engagementScore} | ContentScore: ${article.contentScore?.toFixed(3)}`);
+              });
+              return articles;
+            })()} title="Noticias del País" />
             </div>
           )}
 
         {/* Contenido Más Relevante */}
-        {(paisEngagement.length > 0 || paisEcoSocial.length > 0) && (
+        {paisArticles.length > 0 && (
           <div className="news-section">
             <div className="section-header-dashboard">
               <div className="section-icon-dashboard">
@@ -710,12 +810,19 @@ export default function Index() {
             <div>
                 <h2 className="section-title-dashboard">Contenido Más Relevante</h2>
                 <p className="section-description">
-                  Las noticias con mayor impacto y engagement, ordenadas por ContentScore para identificar oportunidades de HOT NEWS
+                  Contenido de redes sociales (Instagram, Facebook, Twitter/X) ordenado por engagement para identificar oportunidades de HOT NEWS
                 </p>
               </div>
             </div>
             <div className="news-grid-dashboard">
-              {getUniqueTopArticles([...paisEngagement, ...paisEcoSocial], shownArticles, 6).map((article, index) => (
+              {(() => {
+                const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 10);
+                console.log('🔴 REDES SOCIALES - Artículos mostrados:', articles.length);
+                articles.forEach((article, index) => {
+                  console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);
+                });
+                return articles;
+              })().map((article, index) => (
                 <a
                   key={`${article.url}-${index}`}
                   href={article.url}

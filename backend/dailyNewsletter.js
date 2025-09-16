@@ -4,8 +4,24 @@ const Subscriber = require("./models/subscribers.js");
 const { Resend } = require("resend");
 
 // Conectar a MongoDB
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
+
+console.log('🔧 dailyNewsletter.js - Conectando a MongoDB:', {
+  uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'),
+  isLocalhost: MONGODB_URI.includes('localhost'),
+  nodeEnv: process.env.NODE_ENV,
+  hasMongodbUri: !!process.env.MONGODB_URI,
+  hasDatabaseUrl: !!process.env.DATABASE_URL,
+  hasMongoUri: !!process.env.MONGO_URI
+});
+
 mongoose
-  .connect("mongodb://localhost:27017/ns-news")
+  .connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  })
   .then(() => console.log("✅ Conectado a MongoDB"))
   .catch((err) => console.error("❌ Error MongoDB:", err));
 

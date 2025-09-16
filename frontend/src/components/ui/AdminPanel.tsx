@@ -477,7 +477,7 @@ export default function AdminPanel() {
         <p className="text-blue-700 text-sm mb-3">
           Esta configuración se usa cuando un usuario no está logueado y no proporciona sector ni país.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           <input
             type="text"
             placeholder="ID búsqueda país por defecto"
@@ -530,7 +530,7 @@ export default function AdminPanel() {
         <p className="text-purple-700 text-sm mb-3">
           Configura los horarios automáticos de envío de newsletters.
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4">
           <input
             type="time"
             value={newScheduleTime}
@@ -596,7 +596,7 @@ export default function AdminPanel() {
       {/* Formulario de suscriptores */}
       <div className="bg-gray-50 p-4 rounded-lg mb-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">👥 Gestión de Suscriptores</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
           <input
             type="email"
             placeholder="Email"

@@ -42,11 +42,11 @@ export default function NewsList({ articles, title }: Props) {
             <div className="news-meta-dashboard">
               <span className="news-source-dashboard">{article.source.name}</span>
               <span>{new Date(article.publishedAt).toLocaleDateString('es-ES')}</span>
-              {article.contentScore && (
+              {/* {article.contentScore && (
                 <span className="news-score">
                   Score: {(article.contentScore * 100).toFixed(0)}%
                 </span>
-              )}
+              )} */}
             </div>
           </div>
         </a>

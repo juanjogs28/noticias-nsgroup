@@ -5,8 +5,16 @@ const ScheduleTime = require("./models/scheduleTimes.js");
 const Subscriber = require("./models/subscribers.js");
 
 // Conectar a MongoDB
+const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
+
+console.log('🔧 testConnection.js - Conectando a MongoDB:', {
+  uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'),
+  isLocalhost: MONGODB_URI.includes('localhost'),
+  nodeEnv: process.env.NODE_ENV
+});
+
 mongoose
-  .connect("mongodb://localhost:27017/ns-news", {
+  .connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000,
