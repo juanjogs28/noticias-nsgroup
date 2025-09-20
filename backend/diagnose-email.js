@@ -24,7 +24,7 @@ if (process.env.FRONTEND_URL) {
 
 console.log("\n🔧 CONFIGURACIÓN ACTUAL:");
 const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
+const frontendUrl = process.env.FRONTEND_URL || "https://newsroom.eyewatch.me";
 
 console.log(`Email FROM: ${fromEmail}`);
 console.log(`Frontend URL: ${frontendUrl}`);

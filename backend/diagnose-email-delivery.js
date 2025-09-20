@@ -31,7 +31,7 @@ async function diagnoseEmailDelivery() {
     
     // Verificar variables críticas
     const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
+    const frontendUrl = process.env.FRONTEND_URL || "https://newsroom.eyewatch.me";
     
     console.log(`FROM Email: ${fromEmail}`);
     console.log(`Frontend URL: ${frontendUrl}`);

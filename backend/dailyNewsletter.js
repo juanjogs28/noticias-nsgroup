@@ -31,7 +31,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Función para generar el HTML del email
 function generateEmailHTML(subscriber, personalizedUrl) {
   // Construir URL personalizada con los parámetros del suscriptor
-  const baseUrl = process.env.FRONTEND_URL || "http://localhost:8080";
+  const baseUrl = process.env.FRONTEND_URL || "https://newsroom.eyewatch.me";
   
   // Agregar información de personalización si está disponible
   let personalizationInfo = "";
@@ -216,7 +216,7 @@ function generateEmailHTML(subscriber, personalizedUrl) {
 async function sendNewsletterToSubscriber(subscriber) {
   try {
     // Construir URL personalizada para este suscriptor
-    const baseUrl = process.env.FRONTEND_URL || "http://localhost:8080";
+    const baseUrl = process.env.FRONTEND_URL || "https://newsroom.eyewatch.me";
     let personalizedUrl = baseUrl;
     
     // Agregar parámetros de personalización si están disponibles
@@ -258,7 +258,7 @@ async function sendNewsletterToSubscriber(subscriber) {
 async function sendNewsletterToSubscriberWithDetails(subscriber) {
   try {
     // Construir URL personalizada para este suscriptor
-    const baseUrl = process.env.FRONTEND_URL || "http://localhost:8080";
+    const baseUrl = process.env.FRONTEND_URL || "https://newsroom.eyewatch.me";
     let personalizedUrl = baseUrl;
     
     // Agregar parámetros de personalización si están disponibles
