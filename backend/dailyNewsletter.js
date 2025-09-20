@@ -254,6 +254,63 @@ async function sendNewsletterToSubscriber(subscriber) {
   }
 }
 
+// Función mejorada que devuelve detalles del envío
+async function sendNewsletterToSubscriberWithDetails(subscriber) {
+  try {
+    // Construir URL personalizada para este suscriptor
+    const baseUrl = process.env.FRONTEND_URL || "http://localhost:8080";
+    let personalizedUrl = baseUrl;
+    
+    // Agregar parámetros de personalización si están disponibles
+    const params = new URLSearchParams();
+    if (subscriber.countrySearchId) {
+      params.append('countryId', subscriber.countrySearchId);
+    }
+    if (subscriber.sectorSearchId) {
+      params.append('sectorId', subscriber.sectorSearchId);
+    }
+    
+    if (params.toString()) {
+      personalizedUrl += `?${params.toString()}`;
+    }
+    
+    console.log(`🔗 URL personalizada para ${subscriber.email}: ${personalizedUrl}`);
+    
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+      to: [subscriber.email],
+      subject: `📰 Noticias Personalizadas - ${new Date().toLocaleDateString('es-ES')}`,
+      html: generateEmailHTML(subscriber, personalizedUrl),
+    });
+
+    if (error) {
+      console.error(`❌ Error enviando email a ${subscriber.email}:`, error);
+      return {
+        success: false,
+        error: error.message || error,
+        emailId: null,
+        personalizedUrl
+      };
+    }
+
+    console.log(`✅ Email enviado a: ${subscriber.email} (ID: ${data?.id})`);
+    return {
+      success: true,
+      error: null,
+      emailId: data?.id,
+      personalizedUrl
+    };
+  } catch (error) {
+    console.error(`❌ Error enviando email a ${subscriber.email}:`, error.message);
+    return {
+      success: false,
+      error: error.message,
+      emailId: null,
+      personalizedUrl: null
+    };
+  }
+}
+
 // Función principal para enviar newsletter diario
 async function sendDailyNewsletter() {
   try {
@@ -295,9 +352,84 @@ async function sendDailyNewsletter() {
   // No cerramos la conexión aquí para evitar problemas con el scheduler
 }
 
+// Función mejorada que devuelve resultados detallados
+async function sendDailyNewsletterWithResults() {
+  try {
+    console.log("🚀 Iniciando envío de newsletter diario con resultados...");
+    
+    // Obtener todos los suscriptores activos
+    const subscribers = await Subscriber.find({ isActive: true });
+    console.log(`📧 Encontrados ${subscribers.length} suscriptores activos`);
+    
+    if (subscribers.length === 0) {
+      console.log("ℹ️ No hay suscriptores activos");
+      return {
+        totalSubscribers: 0,
+        successCount: 0,
+        errorCount: 0,
+        successEmails: [],
+        errorEmails: [],
+        message: "No hay suscriptores activos"
+      };
+    }
+    
+    let successCount = 0;
+    let errorCount = 0;
+    const successEmails = [];
+    const errorEmails = [];
+    
+    // Enviar emails a todos los suscriptores
+    for (const subscriber of subscribers) {
+      const result = await sendNewsletterToSubscriberWithDetails(subscriber);
+      if (result.success) {
+        successCount++;
+        successEmails.push({
+          email: subscriber.email,
+          emailId: result.emailId,
+          personalizedUrl: result.personalizedUrl
+        });
+      } else {
+        errorCount++;
+        errorEmails.push({
+          email: subscriber.email,
+          error: result.error
+        });
+      }
+      
+      // Pausa entre emails para evitar rate limiting
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    console.log(`📊 Resumen del envío:`);
+    console.log(`✅ Emails enviados exitosamente: ${successCount}`);
+    console.log(`❌ Emails fallidos: ${errorCount}`);
+    console.log(`📅 Newsletter diario completado: ${new Date().toISOString()}`);
+    
+    return {
+      totalSubscribers: subscribers.length,
+      successCount,
+      errorCount,
+      successEmails,
+      errorEmails,
+      message: `Enviados ${successCount}/${subscribers.length} emails exitosamente`
+    };
+    
+  } catch (error) {
+    console.error("❌ Error en newsletter diario:", error.message);
+    return {
+      totalSubscribers: 0,
+      successCount: 0,
+      errorCount: 0,
+      successEmails: [],
+      errorEmails: [],
+      message: `Error: ${error.message}`
+    };
+  }
+}
+
 // Ejecutar si se llama directamente
 if (require.main === module) {
   sendDailyNewsletter();
 }
 
-module.exports = { sendDailyNewsletter };
+module.exports = { sendDailyNewsletter, sendDailyNewsletterWithResults };

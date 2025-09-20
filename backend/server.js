@@ -178,6 +178,25 @@ app.get("/api/diagnose", (req, res) => {
   });
 });
 
+// Endpoint temporal para verificar variables de email
+app.get("/api/check-email-env", (req, res) => {
+  res.json({
+    timestamp: new Date().toISOString(),
+    emailConfig: {
+      RESEND_API_KEY: process.env.RESEND_API_KEY ? "CONFIGURADA" : "NO CONFIGURADA",
+      RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL || "NO CONFIGURADA",
+      FRONTEND_URL: process.env.FRONTEND_URL || "NO CONFIGURADA",
+      NODE_ENV: process.env.NODE_ENV || "undefined"
+    },
+    recommendations: !process.env.RESEND_FROM_EMAIL ? [
+      "1. Ve a Railway > Tu proyecto > Variables",
+      "2. Agrega RESEND_FROM_EMAIL=noticias@newsroom.eyewatch.me",
+      "3. Agrega FRONTEND_URL=https://newsroom.eyewatch.me",
+      "4. Reinicia el servicio"
+    ] : []
+  });
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
