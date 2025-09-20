@@ -197,6 +197,74 @@ app.get("/api/check-email-env", (req, res) => {
   });
 });
 
+// Endpoint temporal para probar envío de email SIN autenticación
+app.post("/api/test-email", async (req, res) => {
+  try {
+    const { Resend } = require("resend");
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    
+    console.log("🧪 Probando envío de email desde Railway...");
+    console.log("FROM:", process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev');
+    console.log("TO: juanjo28599@gmail.com");
+    
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+      to: ['juanjo28599@gmail.com'],
+      subject: `🧪 Prueba Railway - ${new Date().toISOString()}`,
+      html: `
+        <h1>🧪 Email de Prueba desde Railway</h1>
+        <p>Este email se envió desde Railway para verificar la configuración.</p>
+        <hr>
+        <p><strong>Configuración:</strong></p>
+        <ul>
+          <li><strong>FROM:</strong> ${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}</li>
+          <li><strong>NODE_ENV:</strong> ${process.env.NODE_ENV || "undefined"}</li>
+          <li><strong>FRONTEND_URL:</strong> ${process.env.FRONTEND_URL || "NO CONFIGURADA"}</li>
+          <li><strong>Timestamp:</strong> ${new Date().toISOString()}</li>
+        </ul>
+        <hr>
+        <p><em>Si recibes este email, la configuración básica funciona.</em></p>
+        <p><em>Si no lo recibes, revisa:</em></p>
+        <ul>
+          <li>Carpeta de spam</li>
+          <li>Configuración de dominio en Resend</li>
+          <li>Límites de rate limiting</li>
+        </ul>
+      `,
+    });
+
+    if (error) {
+      console.error("❌ Error enviando email:", error);
+      return res.status(500).json({
+        success: false,
+        error: error.message || error,
+        details: error
+      });
+    }
+
+    console.log("✅ Email enviado exitosamente:", data?.id);
+    res.json({
+      success: true,
+      message: "Email de prueba enviado",
+      emailId: data?.id,
+      timestamp: new Date().toISOString(),
+      config: {
+        from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+        nodeEnv: process.env.NODE_ENV || "undefined",
+        frontendUrl: process.env.FRONTEND_URL || "NO CONFIGURADA"
+      }
+    });
+    
+  } catch (error) {
+    console.error("❌ Error en prueba de email:", error.message);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
