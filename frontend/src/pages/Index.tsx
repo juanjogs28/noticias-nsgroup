@@ -393,7 +393,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   // Tomar el límite solicitado
   let result = uniqueArticles.slice(0, limit);
 
-  // Rellenar si faltan elementos usando engagement (manteniendo exclusión de redes sociales)
+  // Rellenar si faltan elementos: primero engagement, luego ContentScore (manteniendo exclusión de redes sociales)
   if (result.length < limit) {
     const selectedIds = new Set(result.map(a => generateArticleId(a)));
 
@@ -407,6 +407,25 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       if (!selectedIds.has(id) && !shownArticles.has(id)) {
         result.push(candidate);
         selectedIds.add(id);
+      }
+    }
+
+    // Si aún faltan, usar ContentScore de fuentes no sociales
+    if (result.length < limit) {
+      const contentScoreCandidates = [...articlesWithoutSocialEcho]
+        .sort((a, b) => {
+          const scoreA = calculateContentScore(a, articles);
+          const scoreB = calculateContentScore(b, articles);
+          return scoreB - scoreA;
+        });
+
+      for (const candidate of contentScoreCandidates) {
+        if (result.length >= limit) break;
+        const id = generateArticleId(candidate);
+        if (!selectedIds.has(id) && !shownArticles.has(id)) {
+          result.push(candidate);
+          selectedIds.add(id);
+        }
       }
     }
 
@@ -475,6 +494,19 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     // 4) Heurística por URL path (por si es shortlink redirigido)
     const url = article.url || '';
     if (/instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be)/i.test(url)) return true;
+
+    // 5) Detección por campos de contenido social (más amplia)
+    const raw: any = article as any;
+    const hasSocialFields = raw?.content?.text || raw?.content?.message || raw?.content?.caption || 
+                           raw?.content?.post_text || raw?.content?.status_text || raw?.content?.tweet_text;
+    const hasSocialMetrics = raw?.metrics?.likes || raw?.metrics?.shares || raw?.metrics?.comments || 
+                           raw?.metrics?.retweets || raw?.metrics?.reactions;
+    if (hasSocialFields && hasSocialMetrics) return true;
+
+    // 6) Detección por engagement social específico
+    const socialEngagement = (article.engagementScore || 0) > 0;
+    const hasSocialEcho = (article.socialEchoScore || 0) > 0;
+    if (socialEngagement && (hasSocialEcho || sourceName.includes('social') || sourceName.includes('post'))) return true;
 
     return false;
   };

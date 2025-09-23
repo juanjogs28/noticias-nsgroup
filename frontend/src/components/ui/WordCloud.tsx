@@ -56,7 +56,7 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
     return { arr, rankMap };
   }, [items]);
 
-  // Tamaño en píxeles con énfasis en grandes y diferenciación por ranking: 16..72px
+  // Tamaño en píxeles con énfasis en grandes y diferenciación por ranking: 14..64px (achicado un poco las grandes)
   const sizeFor = (word: string, count: number) => {
     const n = ranked.arr.length || 1;
     const rank = ranked.rankMap.get(word) ?? 0; // 0 = más grande
@@ -66,7 +66,7 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
     const t = Math.min(1, Math.max(0, 0.65 * (tRank ** 0.7) + 0.35 * (tLog ** 0.7)));
     // pequeña variación por palabra para evitar empates visuales
     const jitter = ((hash(word) % 5) - 2) * 0.5; // -1..+1 px
-    return Math.round(16 + t * 56 + jitter);
+    return Math.round(14 + t * 50 + jitter);
   };
 
   // Utilidades para pseudo-aleatoriedad estable por palabra
@@ -136,8 +136,8 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
 
     sortedBySize.forEach((item, idx) => {
       const fs0 = sizeFor(item.word, item.count);
-      const weight0 = fs0 >= 56 ? 800 : fs0 >= 40 ? 700 : fs0 >= 26 ? 600 : 500;
-      const opacity0 = Math.min(1, 0.65 + (fs0 - 16) / 56 * 0.3);
+      const weight0 = fs0 >= 50 ? 800 : fs0 >= 36 ? 700 : fs0 >= 24 ? 600 : 500;
+      const opacity0 = Math.min(1, 0.65 + (fs0 - 14) / 50 * 0.3);
 
       // RNG estable por palabra
       const r = mulberry32(hash(item.word) ^ seed ^ idx);
@@ -209,7 +209,7 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
           // Colores en gama amarillo/dorado, variando con tamaño y un jitter sutil
           const localSeed = hash(p.word) ^ seed ^ idx;
           const r = mulberry32(localSeed);
-          const sFactor = Math.min(1.0, Math.max(0.0, (p.fontSize - 12) / 28));
+          const sFactor = Math.min(1.0, Math.max(0.0, (p.fontSize - 14) / 50));
           // Dorados: hue ~ 42-52 (amarillo-dorado)
           const hueBase = 44 + sFactor * 6; // 44..50
           const hueJitter = (r() - 0.5) * 6; // +-3°
