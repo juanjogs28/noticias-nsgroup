@@ -365,17 +365,19 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   console.log('  Total artículos de entrada:', articles.length);
   console.log('  Artículos ya mostrados:', shownArticles.size);
   
-  // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
+  // Fuentes de redes sociales a excluir (solo redes sociales puras, no medios tradicionales)
   const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
   
-  // Filtrar artículos excluyendo fuentes de redes sociales
+  // Filtrar artículos excluyendo solo redes sociales puras
   const filteredArticles = articles.filter(article => {
     const sourceName = article.source?.name?.toLowerCase() || '';
     const isExcluded = excludedSources.some(excludedSource => 
       sourceName.includes(excludedSource)
     );
     if (isExcluded) {
-      console.log(`  ❌ Excluido: ${article.title} | Fuente: ${article.source?.name}`);
+      console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
+    } else {
+      console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
     }
     return !isExcluded;
   });
@@ -1146,7 +1148,7 @@ export default function Index() {
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
               <NewsList articles={(() => {
                 console.log('🚀 INICIANDO getUniqueTopPaisArticles con:', paisArticles.length, 'artículos del país');
-                // Sección 2: País - Mostrar TODOS los artículos del país ordenados por SocialEcho/Engagement
+                // Sección 2: País - Mostrar artículos del país (medios tradicionales) ordenados por SocialEcho/ContentScore
                 const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 50);
                 // Marcar como mostrados para evitar duplicados con la sección de redes
                 markShown(shownArticles, articles);
