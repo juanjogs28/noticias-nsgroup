@@ -246,12 +246,44 @@ function generateArticleId(article: MeltwaterArticle): string {
 // Normaliza el título para comparar artículos equivalentes entre fuentes distintas
 function normalizeTitleForKey(title: string | undefined): string {
   if (!title) return '';
-  return title
+  // quitar acentos
+  const noAccents = title.normalize('NFD').replace(/\p{Diacritic}+/gu, '');
+  return noAccents
     .toLowerCase()
     .replace(/https?:\/\/\S+/g, '') // quitar URLs
-    .replace(/[^a-z0-9áéíóúüñ\s]/g, ' ') // quitar signos/puntuación manteniendo letras/números
+    .replace(/[#@][\w-]+/g, ' ') // quitar hashtags y menciones
+    .replace(/[\u{1F300}-\u{1FAFF}]/gu, '') // quitar emojis
+    .replace(/\([^)]*\)/g, ' ') // quitar paréntesis y contenido
+    .replace(/[^a-z0-9\s]/g, ' ') // quitar signos/puntuación
     .replace(/\s+/g, ' ') // colapsar espacios
     .trim();
+}
+
+// Canonicaliza URL: sin protocolo, sin www, sin query/fragment y sin slash final
+function canonicalizeUrl(rawUrl: string | undefined): string {
+  if (!rawUrl || rawUrl === '#') return '';
+  try {
+    const u = new URL(rawUrl);
+    const host = u.hostname.replace(/^www\./, '').toLowerCase();
+    const path = u.pathname.replace(/\/$/, '');
+    return `${host}${path}`;
+  } catch {
+    return rawUrl.toLowerCase();
+  }
+}
+
+// Normaliza descripción para key adicional
+function normalizeDescription(desc: string | undefined): string {
+  if (!desc) return '';
+  const noAccents = desc.normalize('NFD').replace(/\p{Diacritic}+/gu, '');
+  return noAccents
+    .toLowerCase()
+    .replace(/https?:\/\/\S+/g, '')
+    .replace(/[\u{1F300}-\u{1FAFF}]/gu, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 140); // limitar para claves estables
 }
 
 // Función para filtrar artículos duplicados
@@ -261,19 +293,25 @@ function filterUniqueArticles(articles: MeltwaterArticle[], shownArticles: Set<s
 
   for (const article of articles) {
     const articleId = generateArticleId(article);
+    const canonicalUrlKey = canonicalizeUrl(article.url);
     const titleKey = normalizeTitleForKey(article.title);
+    const descKey = normalizeDescription(article.description);
     const seenById = shownArticles.has(`id:${articleId}`) || newShownArticles.has(`id:${articleId}`);
+    const seenByCanonical = canonicalUrlKey !== '' && (shownArticles.has(`url:${canonicalUrlKey}`) || newShownArticles.has(`url:${canonicalUrlKey}`));
     const seenByTitle = titleKey !== '' && (shownArticles.has(`title:${titleKey}`) || newShownArticles.has(`title:${titleKey}`));
+    const seenByDesc = descKey !== '' && (shownArticles.has(`desc:${descKey}`) || newShownArticles.has(`desc:${descKey}`));
 
     // Si el artículo ya fue mostrado, lo saltamos
-    if (seenById || seenByTitle) {
+    if (seenById || seenByCanonical || seenByTitle || seenByDesc) {
       continue;
     }
 
     // Si es un artículo nuevo, lo agregamos
     uniqueArticles.push(article);
     newShownArticles.add(`id:${articleId}`);
+    if (canonicalUrlKey) newShownArticles.add(`url:${canonicalUrlKey}`);
     if (titleKey) newShownArticles.add(`title:${titleKey}`);
+    if (descKey) newShownArticles.add(`desc:${descKey}`);
   }
 
   return uniqueArticles;
@@ -283,9 +321,13 @@ function filterUniqueArticles(articles: MeltwaterArticle[], shownArticles: Set<s
 function markShown(shown: Set<string>, articles: MeltwaterArticle[]): void {
   for (const article of articles) {
     const id = generateArticleId(article);
+    const canonicalUrlKey = canonicalizeUrl(article.url);
     const titleKey = normalizeTitleForKey(article.title);
+    const descKey = normalizeDescription(article.description);
     shown.add(`id:${id}`);
+    if (canonicalUrlKey) shown.add(`url:${canonicalUrlKey}`);
     if (titleKey) shown.add(`title:${titleKey}`);
+    if (descKey) shown.add(`desc:${descKey}`);
   }
 }
 
