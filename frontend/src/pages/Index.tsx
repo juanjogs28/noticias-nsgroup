@@ -410,9 +410,16 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // Si aún faltan, usar ContentScore de fuentes no sociales
+    // Si aún faltan, usar ContentScore de TODOS los artículos no sociales (no solo los sin socialEcho)
     if (result.length < limit) {
-      const contentScoreCandidates = [...articlesWithoutSocialEcho]
+      const allNonSocialArticles = articles.filter(article => {
+        const sourceName = article.source?.name?.toLowerCase() || '';
+        return !excludedSources.some(excludedSource => 
+          sourceName.includes(excludedSource)
+        );
+      });
+      
+      const contentScoreCandidates = allNonSocialArticles
         .sort((a, b) => {
           const scoreA = calculateContentScore(a, articles);
           const scoreB = calculateContentScore(b, articles);
@@ -513,6 +520,30 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   
   // Filtrar artículos solo sociales
   const socialMediaArticles = articles.filter(isSocialArticle);
+  
+  // Debug: logs para entender qué datos llegan de la API
+  console.log('🔍 DEBUG REDES SOCIALES:');
+  console.log(`  Total artículos: ${articles.length}`);
+  console.log(`  Artículos sociales detectados: ${socialMediaArticles.length}`);
+  
+  // Analizar fuentes disponibles
+  const allSources = [...new Set(articles.map(a => a.source?.name))];
+  const socialSources = [...new Set(socialMediaArticles.map(a => a.source?.name))];
+  console.log('  Fuentes totales:', allSources);
+  console.log('  Fuentes sociales detectadas:', socialSources);
+  
+  // Analizar algunos artículos para debug
+  const sampleArticles = articles.slice(0, 3);
+  sampleArticles.forEach((article, idx) => {
+    console.log(`  Artículo ${idx + 1}:`, {
+      source: article.source?.name,
+      url: article.url,
+      content_type: (article as any).content_type,
+      engagement: article.engagementScore,
+      socialEcho: article.socialEchoScore,
+      isSocial: isSocialArticle(article)
+    });
+  });
 
   // Ordenar únicamente por engagement
   const sortedArticles = socialMediaArticles.sort((a, b) => {
