@@ -373,7 +373,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   // Tomar el límite solicitado
   let result = uniqueArticles.slice(0, limit);
 
-  // Rellenar si faltan elementos: primero intentar con más sociales; luego con no sociales por engagement
+  // Rellenar si faltan elementos: intentar con más posts sociales por engagement (sin incluir no sociales)
   if (result.length < limit) {
     const selectedIds = new Set(result.map(a => generateArticleId(a)));
 
@@ -390,28 +390,9 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
       }
     }
 
-    // 2) Si aún faltan, usar contenido no social con mayor engagement para completar
+    // 2) Último recurso: permitir duplicados sociales ya mostrados para no dejar huecos (mantener social-only)
     if (result.length < limit) {
-      const nonSocialCandidates = articles
-        .filter(article => {
-          const sourceName = article.source?.name?.toLowerCase() || '';
-          return !allowedSources.some(src => sourceName.includes(src));
-        })
-        .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
-
-      for (const candidate of nonSocialCandidates) {
-        if (result.length >= limit) break;
-        const id = generateArticleId(candidate);
-        if (!selectedIds.has(id) && !shownArticles.has(id)) {
-          result.push(candidate);
-          selectedIds.add(id);
-        }
-      }
-    }
-
-    // 3) Último recurso: permitir duplicados ya mostrados para no dejar huecos
-    if (result.length < limit) {
-      const fallbackPool = [...socialMediaArticles, ...articles]
+      const fallbackPool = [...socialMediaArticles]
         .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
       for (const candidate of fallbackPool) {
         if (result.length >= limit) break;
