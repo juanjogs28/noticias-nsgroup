@@ -19,7 +19,7 @@ function normalizeWord(text: string): string {
     .trim();
 }
 
-export default function WordCloud({ words, maxWords = 40 }: Props) {
+export default function WordCloud({ words, maxWords = 30 }: Props) {
   const filtered = words
     .filter(w => w.word && w.count > 0)
     .map(w => ({ word: normalizeWord(w.word), count: w.count }))
@@ -48,8 +48,8 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
     if (logMax === logMin) return 0.5;
     return (Math.log1p(c) - logMin) / (logMax - logMin);
   };
-  // Tamaño en píxeles basado en escala logarítmica: 12px .. 40px
-  const sizeFor = (c: number) => Math.round(12 + norm(c) * 28);
+  // Tamaño en píxeles basado en escala logarítmica: 18px .. 60px (más llamativo)
+  const sizeFor = (c: number) => Math.round(18 + norm(c) * 42);
 
   // Utilidades para pseudo-aleatoriedad estable por palabra
   const hash = (s: string) => {
@@ -77,7 +77,7 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
 
   // Layout sin solapamientos
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 260 });
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 320 });
 
   useEffect(() => {
     const el = containerRef.current;
@@ -93,7 +93,7 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
 
   const placed = useMemo<Placed[]>(() => {
     const W = containerSize.width || 600;
-    const H = containerSize.height || 260;
+    const H = containerSize.height || 320;
     const basePad = 6;
 
     // Aproximación de ancho por carácter según fontSize
@@ -118,15 +118,15 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
 
     sortedBySize.forEach((item, idx) => {
       const fs0 = sizeFor(item.count);
-      const weight0 = fs0 >= 34 ? 800 : fs0 >= 28 ? 700 : fs0 >= 22 ? 600 : 500;
-      const opacity0 = Math.min(1, 0.55 + (fs0 - 12) / 28 * 0.35);
+      const weight0 = fs0 >= 48 ? 800 : fs0 >= 36 ? 700 : fs0 >= 26 ? 600 : 500;
+      const opacity0 = Math.min(1, 0.65 + (fs0 - 18) / 42 * 0.3);
 
       // RNG estable por palabra
       const r = mulberry32(hash(item.word) ^ seed ^ idx);
       const angle0 = r() * Math.PI * 2;
 
       // Intentar con reducciones progresivas de tamaño si no cabe
-      const sizeSteps = [1, 0.92, 0.84, 0.76];
+      const sizeSteps = [1, 0.94, 0.88, 0.82, 0.76];
       let placedX = 0;
       let placedY = 0;
       let finalW = 0;
@@ -183,7 +183,7 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-lg p-4 md:p-6 shadow-sm">
-      <div ref={containerRef} className="relative overflow-hidden" style={{height: 260}}>
+      <div ref={containerRef} className="relative overflow-hidden" style={{height: 320}}>
         {placed.map((p, idx) => {
           // Colores en gama amarillo/dorado, variando con tamaño y un jitter sutil
           const localSeed = hash(p.word) ^ seed ^ idx;
@@ -193,14 +193,14 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
           const hueBase = 44 + sFactor * 6; // 44..50
           const hueJitter = (r() - 0.5) * 6; // +-3°
           const hue = Math.max(38, Math.min(52, hueBase + hueJitter));
-          const sat = 68 + sFactor * 18; // 68%..86%
-          const light = 62 - sFactor * 12; // 62%..50%
-          const color = `hsl(${hue.toFixed(0)} ${sat.toFixed(0)}% ${light.toFixed(0)}% / ${Math.max(0.7, p.opacity).toFixed(2)})`;
+          const sat = 72 + sFactor * 18; // 72%..90%
+          const light = 58 - sFactor * 14; // 58%..44%
+          const color = `hsl(${hue.toFixed(0)} ${sat.toFixed(0)}% ${light.toFixed(0)}% / ${Math.max(0.8, p.opacity).toFixed(2)})`;
 
           return (
             <span
               key={`${p.word}-${idx}`}
-              className="absolute transition-colors select-none hover:brightness-125"
+              className="absolute transition-transform transition-colors select-none hover:brightness-125"
               style={{
                 top: `${p.y}px`,
                 left: `${p.x}px`,
@@ -209,7 +209,7 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
                 fontWeight: p.weight as any,
                 color,
                 whiteSpace: 'nowrap',
-                textShadow: '0 1px 2px rgba(0,0,0,0.25)',
+                textShadow: '0 2px 6px rgba(0,0,0,0.35), 0 0 12px rgba(255,220,100,0.15)',
               }}
               title={`${p.word}`}
             >
