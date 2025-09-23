@@ -43,26 +43,61 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
   const min = Math.min(...counts);
   const max = Math.max(...counts);
   const scale = (c: number) => {
-    if (max === min) return 0.6; // valor medio si todos iguales
-    return 0.6 + (c - min) / (max - min) * 1.1; // 0.6x a 1.7x
+    if (max === min) return 1.0; // valor medio si todos iguales
+    // expandir rango para diferencias más marcadas: 0.8x a 2.2x
+    return 0.8 + (c - min) / (max - min) * 1.4;
   };
+
+  // Utilidades para pseudo-aleatoriedad estable por palabra
+  const hash = (s: string) => {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+    }
+    return h >>> 0;
+  };
+  const mulberry32 = (seed: number) => {
+    return () => {
+      let t = seed += 0x6D2B79F5;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  };
+
+  // Desordenar (shuffle) con RNG basado en contenido para estabilidad
+  const seed = items.reduce((acc, it) => acc ^ hash(it.word), 0) || 1;
+  const rng = mulberry32(seed);
+  const shuffled = [...items].sort(() => rng() - 0.5);
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-lg p-4 md:p-6 shadow-sm">
-      <div className="flex flex-wrap gap-3 md:gap-4">
-        {items.map((item, idx) => {
+      <div className="relative overflow-hidden" style={{height: 260}}>
+        {shuffled.map((item, idx) => {
           const s = scale(item.count);
-          const fontSize = `${Math.round(14 * s)}px`;
-          const opacity = 0.6 + (s - 0.6) * 0.3;
-          const weight = s > 1.3 ? 700 : s > 1.0 ? 600 : 500;
+          const fontSize = Math.round(14 * s);
+          const opacity = Math.min(1, 0.55 + (s - 0.8) * 0.35);
+          const weight = s > 1.8 ? 800 : s > 1.4 ? 700 : s > 1.1 ? 600 : 500;
+
+          // Posiciones y rotación pseudo-aleatorias
+          const rLocal = mulberry32(hash(item.word) ^ seed ^ idx);
+          const topPct = 5 + rLocal() * 80;  // 5%..85%
+          const leftPct = 4 + rLocal() * 88; // 4%..92%
+          const rotateDeg = Math.round((rLocal() - 0.5) * 16); // -8..8 deg
+
           return (
             <span
               key={`${item.word}-${idx}`}
-              className="text-white hover:text-cyan-300 transition-colors"
+              className="absolute text-white/90 hover:text-cyan-300 transition-colors select-none"
               style={{
-                fontSize,
+                top: `${topPct}%`,
+                left: `${leftPct}%`,
+                transform: `translate(-50%, -50%) rotate(${rotateDeg}deg)`,
+                fontSize: `${fontSize}px`,
                 fontWeight: weight as any,
                 opacity,
+                whiteSpace: 'nowrap',
               }}
               title={`${item.word} (${item.count})`}
             >
