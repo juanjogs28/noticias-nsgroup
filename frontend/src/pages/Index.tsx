@@ -312,7 +312,37 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   const uniqueArticles = filterUniqueArticles(combinedArticles, shownArticles);
 
   // Tomar el límite solicitado
-  const result = uniqueArticles.slice(0, limit);
+  let result = uniqueArticles.slice(0, limit);
+
+  // Rellenar si faltan elementos usando engagement (manteniendo exclusión de redes sociales)
+  if (result.length < limit) {
+    const selectedIds = new Set(result.map(a => generateArticleId(a)));
+
+    // Candidatos por engagement dentro de fuentes no sociales
+    const engagementCandidates = [...articlesWithoutSocialEcho]
+      .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
+
+    for (const candidate of engagementCandidates) {
+      if (result.length >= limit) break;
+      const id = generateArticleId(candidate);
+      if (!selectedIds.has(id) && !shownArticles.has(id)) {
+        result.push(candidate);
+        selectedIds.add(id);
+      }
+    }
+
+    // Como último recurso, permitir candidatos ya mostrados para no dejar huecos
+    if (result.length < limit) {
+      for (const candidate of engagementCandidates) {
+        if (result.length >= limit) break;
+        const id = generateArticleId(candidate);
+        if (!selectedIds.has(id)) {
+          result.push(candidate);
+          selectedIds.add(id);
+        }
+      }
+    }
+  }
 
   return assignContentScores(result);
 }
@@ -341,7 +371,58 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   const uniqueArticles = filterUniqueArticles(sortedArticles, shownArticles);
 
   // Tomar el límite solicitado
-  const result = uniqueArticles.slice(0, limit);
+  let result = uniqueArticles.slice(0, limit);
+
+  // Rellenar si faltan elementos: primero intentar con más sociales; luego con no sociales por engagement
+  if (result.length < limit) {
+    const selectedIds = new Set(result.map(a => generateArticleId(a)));
+
+    // 1) Intentar con más posts sociales ordenados por engagement
+    const moreSocialCandidates = [...socialMediaArticles]
+      .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
+
+    for (const candidate of moreSocialCandidates) {
+      if (result.length >= limit) break;
+      const id = generateArticleId(candidate);
+      if (!selectedIds.has(id) && !shownArticles.has(id)) {
+        result.push(candidate);
+        selectedIds.add(id);
+      }
+    }
+
+    // 2) Si aún faltan, usar contenido no social con mayor engagement para completar
+    if (result.length < limit) {
+      const nonSocialCandidates = articles
+        .filter(article => {
+          const sourceName = article.source?.name?.toLowerCase() || '';
+          return !allowedSources.some(src => sourceName.includes(src));
+        })
+        .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
+
+      for (const candidate of nonSocialCandidates) {
+        if (result.length >= limit) break;
+        const id = generateArticleId(candidate);
+        if (!selectedIds.has(id) && !shownArticles.has(id)) {
+          result.push(candidate);
+          selectedIds.add(id);
+        }
+      }
+    }
+
+    // 3) Último recurso: permitir duplicados ya mostrados para no dejar huecos
+    if (result.length < limit) {
+      const fallbackPool = [...socialMediaArticles, ...articles]
+        .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
+      for (const candidate of fallbackPool) {
+        if (result.length >= limit) break;
+        const id = generateArticleId(candidate);
+        if (!selectedIds.has(id)) {
+          result.push(candidate);
+          selectedIds.add(id);
+        }
+      }
+    }
+  }
 
   return assignContentScores(result);
 }
