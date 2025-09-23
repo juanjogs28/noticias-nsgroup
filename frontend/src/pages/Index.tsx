@@ -1120,7 +1120,7 @@ export default function Index() {
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
               <NewsList articles={(() => {
                 console.log('🚀 INICIANDO getUniqueTopPaisArticles con:', paisArticles.length, 'artículos del país');
-                // Sección 2: País (SocialEcho con fallback engagement, excluyendo redes)
+                // Sección 2: País - Mostrar TODOS los artículos del país ordenados por SocialEcho/Engagement
                 const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 50);
                 // Marcar como mostrados para evitar duplicados con la sección de redes
                 markShown(shownArticles, articles);
@@ -1186,7 +1186,7 @@ export default function Index() {
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
               <div className="news-grid-dashboard">
                 {(() => {
-                  // Sección 3: Redes Sociales (solo engagement y solo redes)
+                  // Sección 3: Redes Sociales - Solo artículos que NO fueron mostrados en la sección País
                   const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 50);
                   console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
                   articles.forEach((article, index) => {
