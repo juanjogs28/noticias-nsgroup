@@ -361,20 +361,33 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
 
 // Función específica para obtener artículos del país ordenados por socialEchoScore
 function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 50): MeltwaterArticle[] {
+  console.log('🔍 DEBUG getUniqueTopPaisArticles:');
+  console.log('  Total artículos de entrada:', articles.length);
+  console.log('  Artículos ya mostrados:', shownArticles.size);
+  
   // Fuentes de redes sociales a excluir (más amplio)
   const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
   
   // Filtrar artículos excluyendo fuentes de redes sociales
   const filteredArticles = articles.filter(article => {
     const sourceName = article.source?.name?.toLowerCase() || '';
-    return !excludedSources.some(excludedSource => 
+    const isExcluded = excludedSources.some(excludedSource => 
       sourceName.includes(excludedSource)
     );
+    if (isExcluded) {
+      console.log(`  ❌ Excluido: ${article.title} | Fuente: ${article.source?.name}`);
+    }
+    return !isExcluded;
   });
+  
+  console.log('  Artículos después de filtrar redes sociales:', filteredArticles.length);
 
   // Separar artículos con y sin socialEchoScore
   const articlesWithSocialEcho = filteredArticles.filter(article => (article.socialEchoScore || 0) > 0);
   const articlesWithoutSocialEcho = filteredArticles.filter(article => (article.socialEchoScore || 0) === 0);
+  
+  console.log('  Artículos con SocialEcho:', articlesWithSocialEcho.length);
+  console.log('  Artículos sin SocialEcho:', articlesWithoutSocialEcho.length);
 
   // Ordenar cada grupo por su métrica correspondiente
   const sortedWithSocialEcho = sortPaisArticlesBySocialEcho(articlesWithSocialEcho);
@@ -386,12 +399,18 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
 
   // Combinar: primero los que tienen socialEchoScore, luego los de engagement
   const combinedArticles = [...sortedWithSocialEcho, ...sortedWithoutSocialEcho];
+  
+  console.log('  Artículos combinados:', combinedArticles.length);
 
   // Filtrar duplicados
   const uniqueArticles = filterUniqueArticles(combinedArticles, shownArticles);
+  
+  console.log('  Artículos únicos después de filtrar duplicados:', uniqueArticles.length);
 
   // Tomar el límite solicitado
   let result = uniqueArticles.slice(0, limit);
+  
+  console.log('  Resultado final antes de rellenar:', result.length);
 
   // Rellenar si faltan elementos: primero engagement, luego ContentScore (manteniendo exclusión de redes sociales)
   if (result.length < limit) {
@@ -475,6 +494,11 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
   }
+
+  console.log('  🎯 RESULTADO FINAL getUniqueTopPaisArticles:', result.length);
+  result.forEach((article, index) => {
+    console.log(`    ${index + 1}. ${article.title} | Fuente: ${article.source.name} | SocialEcho: ${article.socialEchoScore} | Engagement: ${article.engagementScore}`);
+  });
 
   return assignContentScores(result);
 }
