@@ -436,6 +436,32 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
+    // Si aún faltan, usar CUALQUIER artículo no social por ContentScore (incluyendo duplicados si es necesario)
+    if (result.length < limit) {
+      const allNonSocialArticles = articles.filter(article => {
+        const sourceName = article.source?.name?.toLowerCase() || '';
+        return !excludedSources.some(excludedSource => 
+          sourceName.includes(excludedSource)
+        );
+      });
+      
+      const contentScoreCandidates = allNonSocialArticles
+        .sort((a, b) => {
+          const scoreA = calculateContentScore(a, articles);
+          const scoreB = calculateContentScore(b, articles);
+          return scoreB - scoreA;
+        });
+
+      for (const candidate of contentScoreCandidates) {
+        if (result.length >= limit) break;
+        const id = generateArticleId(candidate);
+        if (!selectedIds.has(id)) {
+          result.push(candidate);
+          selectedIds.add(id);
+        }
+      }
+    }
+
     // Como último recurso, permitir candidatos ya mostrados para no dejar huecos
     if (result.length < limit) {
       for (const candidate of engagementCandidates) {
@@ -521,10 +547,25 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   // Filtrar artículos solo sociales
   const socialMediaArticles = articles.filter(isSocialArticle);
   
-  // Debug: logs para entender qué datos llegan de la API
+  // Debug: Log de detección de redes sociales
   console.log('🔍 DEBUG REDES SOCIALES:');
   console.log(`  Total artículos: ${articles.length}`);
   console.log(`  Artículos sociales detectados: ${socialMediaArticles.length}`);
+  console.log('  Fuentes detectadas:', [...new Set(socialMediaArticles.map(a => a.source.name))]);
+  console.log('  URLs de redes:', socialMediaArticles.slice(0, 5).map(a => a.url));
+  
+  // Debug: Analizar por qué no se detectan otras redes
+  const allSources = [...new Set(articles.map(a => a.source.name))];
+  console.log('  Todas las fuentes disponibles:', allSources);
+  
+  const socialCandidates = articles.filter(article => {
+    const sourceName = article.source?.name?.toLowerCase() || '';
+    return sourceName.includes('instagram') || sourceName.includes('facebook') || 
+           sourceName.includes('reddit') || sourceName.includes('tiktok') || 
+           sourceName.includes('youtube') || sourceName.includes('threads');
+  });
+  console.log(`  Candidatos por nombre de fuente: ${socialCandidates.length}`);
+  console.log('  Candidatos:', socialCandidates.map(a => ({ source: a.source.name, url: a.url })));
   
   // Analizar fuentes disponibles
   const allSources = [...new Set(articles.map(a => a.source?.name))];
