@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export interface WordFrequency {
   word: string;
@@ -71,40 +71,120 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
   const rng = mulberry32(seed);
   const shuffled = [...items].sort(() => rng() - 0.5);
 
+  // Layout sin solapamientos
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 260 });
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setContainerSize({ width: el.clientWidth, height: el.clientHeight });
+    update();
+    const ro = new (window as any).ResizeObserver?.(update);
+    if (ro && el) ro.observe(el);
+    return () => ro && ro.disconnect();
+  }, []);
+
+  type Placed = { word: string; fontSize: number; weight: number; opacity: number; x: number; y: number };
+
+  const placed = useMemo<Placed[]>(() => {
+    const W = containerSize.width || 600;
+    const H = containerSize.height || 260;
+    const pad = 6;
+
+    // Aproximación de ancho por carácter según fontSize
+    const textWidth = (w: string, fs: number) => Math.max(8, w.length * fs * 0.55);
+    const textHeight = (fs: number) => fs * 1.1;
+
+    const boxes: { x: number; y: number; w: number; h: number }[] = [];
+    const results: Placed[] = [];
+
+    const collides = (x: number, y: number, w: number, h: number) => {
+      for (const b of boxes) {
+        if (x < b.x + b.w && x + w > b.x && y < b.y + b.h && y + h > b.y) return true;
+      }
+      return false;
+    };
+
+    const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
+
+    // Centro base
+    const cx = W / 2;
+    const cy = H / 2;
+
+    shuffled.forEach((item, idx) => {
+      const s = scale(item.count);
+      const fs = Math.round(14 * s);
+      const weight = s > 1.8 ? 800 : s > 1.4 ? 700 : s > 1.1 ? 600 : 500;
+      const opacity = Math.min(1, 0.55 + (s - 0.8) * 0.35);
+      const w = textWidth(item.word, fs) + pad * 2;
+      const h = textHeight(fs) + pad * 2;
+
+      // RNG estable por palabra
+      const r = mulberry32(hash(item.word) ^ seed ^ idx);
+      const angle0 = r() * Math.PI * 2;
+
+      let placedX = cx - w / 2;
+      let placedY = cy - h / 2;
+      let found = false;
+      const maxTurns = 1200;
+      const spiralStep = 3 + r() * 3; // paso de espiral
+
+      for (let t = 0; t < maxTurns; t++) {
+        const radius = 2 + (t * spiralStep) / 4;
+        const angle = angle0 + t * 0.15;
+        const x = cx + radius * Math.cos(angle) - w / 2;
+        const y = cy + radius * Math.sin(angle) - h / 2;
+
+        // Limitar a contenedor
+        const clampedX = clamp(x, pad, W - w - pad);
+        const clampedY = clamp(y, pad, H - h - pad);
+
+        if (!collides(clampedX, clampedY, w, h)) {
+          placedX = clampedX;
+          placedY = clampedY;
+          found = true;
+          break;
+        }
+      }
+
+      // Si no se encontró sitio, intentar bordes
+      if (!found) {
+        for (let tries = 0; tries < 200; tries++) {
+          const x = r() * (W - w - pad * 2) + pad;
+          const y = r() * (H - h - pad * 2) + pad;
+          if (!collides(x, y, w, h)) { placedX = x; placedY = y; break; }
+        }
+      }
+
+      boxes.push({ x: placedX, y: placedY, w, h });
+      results.push({ word: item.word, fontSize: fs, weight, opacity, x: placedX + w / 2, y: placedY + h / 2 });
+    });
+
+    return results;
+  }, [shuffled, scale, containerSize.width, containerSize.height]);
+
   return (
     <div className="bg-white/5 border border-white/10 rounded-lg p-4 md:p-6 shadow-sm">
-      <div className="relative overflow-hidden" style={{height: 260}}>
-        {shuffled.map((item, idx) => {
-          const s = scale(item.count);
-          const fontSize = Math.round(14 * s);
-          const opacity = Math.min(1, 0.55 + (s - 0.8) * 0.35);
-          const weight = s > 1.8 ? 800 : s > 1.4 ? 700 : s > 1.1 ? 600 : 500;
-
-          // Posiciones y rotación pseudo-aleatorias
-          const rLocal = mulberry32(hash(item.word) ^ seed ^ idx);
-          const topPct = 5 + rLocal() * 80;  // 5%..85%
-          const leftPct = 4 + rLocal() * 88; // 4%..92%
-          const rotateDeg = Math.round((rLocal() - 0.5) * 16); // -8..8 deg
-
-          return (
-            <span
-              key={`${item.word}-${idx}`}
-              className="absolute text-white/90 hover:text-cyan-300 transition-colors select-none"
-              style={{
-                top: `${topPct}%`,
-                left: `${leftPct}%`,
-                transform: `translate(-50%, -50%) rotate(${rotateDeg}deg)`,
-                fontSize: `${fontSize}px`,
-                fontWeight: weight as any,
-                opacity,
-                whiteSpace: 'nowrap',
-              }}
-              title={`${item.word} (${item.count})`}
-            >
-              {item.word}
-            </span>
-          );
-        })}
+      <div ref={containerRef} className="relative overflow-hidden" style={{height: 260}}>
+        {placed.map((p, idx) => (
+          <span
+            key={`${p.word}-${idx}`}
+            className="absolute text-white/90 hover:text-cyan-300 transition-colors select-none"
+            style={{
+              top: `${p.y}px`,
+              left: `${p.x}px`,
+              transform: `translate(-50%, -50%)`,
+              fontSize: `${p.fontSize}px`,
+              fontWeight: p.weight as any,
+              opacity: p.opacity,
+              whiteSpace: 'nowrap',
+            }}
+            title={`${p.word}`}
+          >
+            {p.word}
+          </span>
+        ))}
       </div>
     </div>
   );
