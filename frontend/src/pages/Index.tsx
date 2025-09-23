@@ -369,18 +369,108 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
   const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
   
-  // Filtrar artículos excluyendo fuentes de redes sociales
+  // Fuentes de medios tradicionales permitidas
+  const allowedTraditionalSources = ['diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion', 'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'chicagotribune', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'];
+  
+  // Filtrar artículos - SOLO medios tradicionales
   const filteredArticles = articles.filter(article => {
     const sourceName = article.source?.name?.toLowerCase() || '';
-    const isExcluded = excludedSources.some(excludedSource => 
+    
+    // Excluir redes sociales
+    const isSocialMedia = excludedSources.some(excludedSource => 
       sourceName.includes(excludedSource)
     );
-    if (isExcluded) {
+    
+    // Incluir solo medios tradicionales
+    const isTraditional = allowedTraditionalSources.some(traditionalSource => 
+      sourceName.includes(traditionalSource)
+    );
+    
+    // También incluir si NO es red social y tiene características de medio tradicional
+    const hasTraditionalCharacteristics = !isSocialMedia && (
+      sourceName.includes('diario') || 
+      sourceName.includes('newspaper') || 
+      sourceName.includes('news') || 
+      sourceName.includes('radio') || 
+      sourceName.includes('tv') || 
+      sourceName.includes('television') || 
+      sourceName.includes('magazine') || 
+      sourceName.includes('journal') || 
+      sourceName.includes('press') || 
+      sourceName.includes('media') ||
+      sourceName.includes('pais') ||
+      sourceName.includes('nacion') ||
+      sourceName.includes('clarin') ||
+      sourceName.includes('lanacion') ||
+      sourceName.includes('infobae') ||
+      sourceName.includes('pagina12') ||
+      sourceName.includes('ambito') ||
+      sourceName.includes('cronista') ||
+      sourceName.includes('perfil') ||
+      sourceName.includes('telesur') ||
+      sourceName.includes('rt') ||
+      sourceName.includes('bbc') ||
+      sourceName.includes('cnn') ||
+      sourceName.includes('reuters') ||
+      sourceName.includes('ap') ||
+      sourceName.includes('afp') ||
+      sourceName.includes('efe') ||
+      sourceName.includes('ansa') ||
+      sourceName.includes('dpa') ||
+      sourceName.includes('xinhua') ||
+      sourceName.includes('ria') ||
+      sourceName.includes('itar') ||
+      sourceName.includes('tass') ||
+      sourceName.includes('sputnik') ||
+      sourceName.includes('aljazeera') ||
+      sourceName.includes('dw') ||
+      sourceName.includes('france24') ||
+      sourceName.includes('euronews') ||
+      sourceName.includes('sky') ||
+      sourceName.includes('itv') ||
+      sourceName.includes('channel4') ||
+      sourceName.includes('abc') ||
+      sourceName.includes('cbs') ||
+      sourceName.includes('nbc') ||
+      sourceName.includes('fox') ||
+      sourceName.includes('msnbc') ||
+      sourceName.includes('cnbc') ||
+      sourceName.includes('bloomberg') ||
+      sourceName.includes('wsj') ||
+      sourceName.includes('nytimes') ||
+      sourceName.includes('washingtonpost') ||
+      sourceName.includes('usatoday') ||
+      sourceName.includes('latimes') ||
+      sourceName.includes('chicagotribune') ||
+      sourceName.includes('bostonglobe') ||
+      sourceName.includes('philly') ||
+      sourceName.includes('dallasnews') ||
+      sourceName.includes('seattletimes') ||
+      sourceName.includes('denverpost') ||
+      sourceName.includes('azcentral') ||
+      sourceName.includes('miamiherald') ||
+      sourceName.includes('orlandosentinel') ||
+      sourceName.includes('sun') ||
+      sourceName.includes('baltimoresun') ||
+      sourceName.includes('chicagotribune') ||
+      sourceName.includes('dailypress') ||
+      sourceName.includes('hamptonroads') ||
+      sourceName.includes('pilotonline') ||
+      sourceName.includes('virginian') ||
+      sourceName.includes('pilot')
+    );
+    
+    const isIncluded = !isSocialMedia && (isTraditional || hasTraditionalCharacteristics);
+    
+    if (isSocialMedia) {
       console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
-    } else {
+    } else if (isIncluded) {
       console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
+    } else {
+      console.log(`  ❌ Excluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`);
     }
-    return !isExcluded;
+    
+    return isIncluded;
   });
   
   console.log('  Artículos después de filtrar redes sociales:', filteredArticles.length);
@@ -499,26 +589,8 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // Si AÚN faltan, rellenar con artículos de redes sociales (último recurso para llegar a 50)
-    if (result.length < limit) {
-      const socialArticles = articles.filter(article => {
-        const sourceName = article.source?.name?.toLowerCase() || '';
-        const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
-        return excludedSources.some(excludedSource => sourceName.includes(excludedSource));
-      });
-
-      const socialCandidates = socialArticles
-        .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
-
-      for (const candidate of socialCandidates) {
-        if (result.length >= limit) break;
-        const id = generateArticleId(candidate);
-        if (!selectedIds.has(id)) {
-          result.push(candidate);
-          selectedIds.add(id);
-        }
-      }
-    }
+    // NO rellenar con redes sociales - mantener solo medios tradicionales
+    // Si no hay suficientes medios tradicionales, mostrar menos artículos pero mantener la pureza
   }
 
   console.log('  🎯 RESULTADO FINAL getUniqueTopPaisArticles:', result.length);
@@ -565,27 +637,24 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   };
 
   const isSocialArticle = (article: MeltwaterArticle) => {
-    // 1) Por tipo de contenido
+    // 1) Por tipo de contenido - SOLO posts sociales
     // @ts-ignore: raw field may exist from API adaptation
     if (article && (article as any).content_type === 'social post') return true;
+    if (article && (article as any).content_type === 'repost') return true;
 
-    // 2) Por dominio de la URL
+    // 2) Por dominio de la URL - SOLO dominios de redes sociales
     const host = getHost(article.url);
     if (host && socialHosts.has(host)) return true;
 
-    // 2b) Por dominio de la fuente (si viene)
-    const srcDomain = getSourceDomain(article);
-    if (srcDomain && socialHosts.has(srcDomain)) return true;
-
-    // 3) Por nombre de la fuente (tokens seguros, sin usar 'x' genérico)
+    // 3) Por nombre de la fuente - SOLO fuentes de redes sociales
     const sourceName = article.source?.name?.toLowerCase() || '';
     if (allowedSources.some(token => sourceName.includes(token))) return true;
 
-    // 4) Heurística por URL path (por si es shortlink redirigido)
+    // 4) Heurística por URL path - SOLO URLs de redes sociales
     const url = article.url || '';
     if (/instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be)/i.test(url)) return true;
 
-    // 5) Detección por campos de contenido social (más amplia)
+    // 5) Detección por campos de contenido social - SOLO si tiene métricas sociales
     const raw: any = article as any;
     const hasSocialFields = raw?.content?.text || raw?.content?.message || raw?.content?.caption || 
                            raw?.content?.post_text || raw?.content?.status_text || raw?.content?.tweet_text;
@@ -593,10 +662,12 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
                            raw?.metrics?.retweets || raw?.metrics?.reactions;
     if (hasSocialFields && hasSocialMetrics) return true;
 
-    // 6) Detección por engagement social específico
-    const socialEngagement = (article.engagementScore || 0) > 0;
-    const hasSocialEcho = (article.socialEchoScore || 0) > 0;
-    if (socialEngagement && (hasSocialEcho || sourceName.includes('social') || sourceName.includes('post'))) return true;
+    // EXCLUIR medios tradicionales explícitamente
+    const traditionalSources = ['diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion', 'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'chicagotribune', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'];
+    
+    if (traditionalSources.some(traditional => sourceName.includes(traditional))) {
+      return false; // Excluir medios tradicionales
+    }
 
     return false;
   };
@@ -692,26 +763,8 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
       }
     }
 
-    // 3) Si AÚN faltan, rellenar con artículos de medios tradicionales (último recurso para llegar a 50)
-    if (result.length < limit) {
-      const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
-      const traditionalArticles = articles.filter(article => {
-        const sourceName = article.source?.name?.toLowerCase() || '';
-        return !excludedSources.some(excludedSource => sourceName.includes(excludedSource));
-      });
-
-      const traditionalCandidates = traditionalArticles
-        .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
-
-      for (const candidate of traditionalCandidates) {
-        if (result.length >= limit) break;
-        const id = generateArticleId(candidate);
-        if (!selectedIds.has(id)) {
-          result.push(candidate);
-          selectedIds.add(id);
-        }
-      }
-    }
+    // NO rellenar con medios tradicionales - mantener solo redes sociales
+    // Si no hay suficientes redes sociales, mostrar menos artículos pero mantener la pureza
   }
 
   console.log('  🎯 RESULTADO FINAL getUniqueSocialMediaArticles:', result.length);
