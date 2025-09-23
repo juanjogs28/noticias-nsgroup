@@ -346,7 +346,7 @@ function markShown(shown: Set<string>, articles: MeltwaterArticle[]): void {
 }
 
 // Función para obtener artículos únicos ordenados por ContentScore
-function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 10): MeltwaterArticle[] {
+function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 50): MeltwaterArticle[] {
   // Primero ordenar por ContentScore
   const sortedArticles = sortArticlesByContentScore(articles);
 
@@ -360,7 +360,7 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
 }
 
 // Función específica para obtener artículos del país ordenados por socialEchoScore
-function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 10): MeltwaterArticle[] {
+function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 50): MeltwaterArticle[] {
   // Fuentes de redes sociales a excluir (más amplio)
   const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
   
@@ -480,7 +480,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
 }
 
 // Función específica para obtener artículos de redes sociales ordenados por engagement
-function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 10): MeltwaterArticle[] {
+function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 50): MeltwaterArticle[] {
   // Fuentes de redes sociales permitidas (nombres legibles)
   const allowedSources = ['instagram', 'facebook', 'twitter', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin'];
 
@@ -1056,7 +1056,7 @@ export default function Index() {
             </div>
             <NewsList articles={(() => {
               // Sección 1: Sector (ContentScore)
-              const articles = getUniqueTopArticles(sectorArticles, shownArticles, 10);
+              const articles = getUniqueTopArticles(sectorArticles, shownArticles, 50);
               // Marcar como mostrados para evitar duplicados con las siguientes secciones
               markShown(shownArticles, articles);
               console.log('🔵 TOP 10 SECTOR - Artículos mostrados:', articles.length);
@@ -1068,8 +1068,8 @@ export default function Index() {
           </div>
         )}
 
-        {/* Nube de Palabras (entre secciones) */}
-        {(sectorArticles.length > 0 || paisArticles.length > 0) && (() => {
+        {/* Nube de Palabras - Sector */}
+        {sectorArticles.length > 0 && (() => {
           const freqMap = new Map<string, number>();
           const addWords = (words?: string[]) => {
             if (!words) return;
@@ -1079,9 +1079,8 @@ export default function Index() {
               freqMap.set(key, (freqMap.get(key) || 0) + 1);
             }
           };
-          // tomar keyphrases de todos los conjuntos
+          // tomar keyphrases solo del sector
           sectorArticles.forEach(a => addWords(a.enrichments?.keyphrases));
-          paisArticles.forEach(a => addWords(a.enrichments?.keyphrases));
           const words: WordFrequency[] = Array.from(freqMap.entries()).map(([word, count]) => ({ word, count }));
           if (words.length === 0) return null;
           return (
@@ -1093,8 +1092,8 @@ export default function Index() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="section-title-dashboard">Nube de Palabras</h2>
-                  <p className="section-description">Palabras clave más mencionadas; mayor tamaño indica mayor relevancia</p>
+                  <h2 className="section-title-dashboard">Nube de Palabras - Sector</h2>
+                  <p className="section-description">Palabras clave más mencionadas en noticias sectoriales; mayor tamaño indica mayor relevancia</p>
                 </div>
               </div>
               <WordCloud words={words} maxWords={40} />
@@ -1120,7 +1119,7 @@ export default function Index() {
             </div>
             <NewsList articles={(() => {
               // Sección 2: País (SocialEcho con fallback engagement, excluyendo redes)
-              const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 10);
+              const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 50);
               // Marcar como mostrados para evitar duplicados con la sección de redes
               markShown(shownArticles, articles);
               console.log('🟢 TOP 10 PAÍS - Artículos mostrados:', articles.length);
@@ -1131,6 +1130,39 @@ export default function Index() {
             })()} title="Noticias del País" />
             </div>
           )}
+
+        {/* Nube de Palabras - País */}
+        {paisArticles.length > 0 && (() => {
+          const freqMap = new Map<string, number>();
+          const addWords = (words?: string[]) => {
+            if (!words) return;
+            for (const w of words) {
+              if (!w) continue;
+              const key = w.toLowerCase();
+              freqMap.set(key, (freqMap.get(key) || 0) + 1);
+            }
+          };
+          // tomar keyphrases solo del país
+          paisArticles.forEach(a => addWords(a.enrichments?.keyphrases));
+          const words: WordFrequency[] = Array.from(freqMap.entries()).map(([word, count]) => ({ word, count }));
+          if (words.length === 0) return null;
+          return (
+            <div className="news-section">
+              <div className="section-header-dashboard">
+                <div className="section-icon-dashboard">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h18M3 12h18M3 19h18" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="section-title-dashboard">Nube de Palabras - País</h2>
+                  <p className="section-description">Palabras clave más mencionadas en noticias del país; mayor tamaño indica mayor relevancia</p>
+                </div>
+              </div>
+              <WordCloud words={words} maxWords={40} />
+            </div>
+          );
+        })()}
 
         {/* Contenido Más Relevante */}
         {paisArticles.length > 0 && (
@@ -1151,7 +1183,7 @@ export default function Index() {
             <div className="news-grid-dashboard">
               {(() => {
                 // Sección 3: Redes Sociales (solo engagement y solo redes)
-                const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 10);
+                const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 50);
                 console.log('🔴 REDES SOCIALES - Artículos mostrados:', articles.length);
                 articles.forEach((article, index) => {
                   console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);

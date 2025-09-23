@@ -142,9 +142,8 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
       // RNG estable por palabra
       const r = mulberry32(hash(item.word) ^ seed ^ idx);
       const angle0 = r() * Math.PI * 2;
-      // Inclinación sutil: grandes menos inclinación, chicas más
-      const maxTilt = fs0 >= 56 ? 3 : fs0 >= 40 ? 5 : 8; // grados
-      const tiltDeg = Math.round((r() - 0.5) * 2 * maxTilt);
+      // Sin inclinación
+      const tiltDeg = 0;
 
       // Intentar con reducciones progresivas de tamaño si no cabe
       const sizeSteps = [1, 0.94, 0.88, 0.82, 0.76];
