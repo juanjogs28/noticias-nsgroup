@@ -48,8 +48,11 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
     if (logMax === logMin) return 0.5;
     return (Math.log1p(c) - logMin) / (logMax - logMin);
   };
-  // Tamaño en píxeles basado en escala logarítmica: 18px .. 60px (más llamativo)
-  const sizeFor = (c: number) => Math.round(18 + norm(c) * 42);
+  // Tamaño en píxeles basado en escala logarítmica con énfasis en palabras grandes: 16px .. 72px
+  const sizeFor = (c: number) => {
+    const t = norm(c) ** 0.7; // potencia para acentuar diferencias
+    return Math.round(16 + t * 56);
+  };
 
   // Utilidades para pseudo-aleatoriedad estable por palabra
   const hash = (s: string) => {
@@ -77,7 +80,7 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
 
   // Layout sin solapamientos
   const containerRef = useRef<HTMLDivElement>(null);
-  const [containerSize, setContainerSize] = useState({ width: 0, height: 320 });
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 360 });
 
   useEffect(() => {
     const el = containerRef.current;
@@ -93,7 +96,7 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
 
   const placed = useMemo<Placed[]>(() => {
     const W = containerSize.width || 600;
-    const H = containerSize.height || 320;
+    const H = containerSize.height || 360;
     const basePad = 6;
 
     // Aproximación de ancho por carácter según fontSize
@@ -118,12 +121,15 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
 
     sortedBySize.forEach((item, idx) => {
       const fs0 = sizeFor(item.count);
-      const weight0 = fs0 >= 48 ? 800 : fs0 >= 36 ? 700 : fs0 >= 26 ? 600 : 500;
-      const opacity0 = Math.min(1, 0.65 + (fs0 - 18) / 42 * 0.3);
+      const weight0 = fs0 >= 56 ? 800 : fs0 >= 40 ? 700 : fs0 >= 26 ? 600 : 500;
+      const opacity0 = Math.min(1, 0.65 + (fs0 - 16) / 56 * 0.3);
 
       // RNG estable por palabra
       const r = mulberry32(hash(item.word) ^ seed ^ idx);
       const angle0 = r() * Math.PI * 2;
+      // Inclinación sutil: grandes menos inclinación, chicas más
+      const maxTilt = fs0 >= 56 ? 3 : fs0 >= 40 ? 5 : 8; // grados
+      const tiltDeg = Math.round((r() - 0.5) * 2 * maxTilt);
 
       // Intentar con reducciones progresivas de tamaño si no cabe
       const sizeSteps = [1, 0.94, 0.88, 0.82, 0.76];
@@ -175,7 +181,7 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
       }
 
       boxes.push({ x: placedX, y: placedY, w: finalW, h: finalH });
-      results.push({ word: item.word, fontSize: fs, weight, opacity, x: placedX + finalW / 2, y: placedY + finalH / 2 });
+      results.push({ word: item.word, fontSize: fs, weight, opacity, x: placedX + finalW / 2, y: placedY + finalH / 2, tilt: tiltDeg } as any);
     });
 
     return results;
@@ -183,7 +189,7 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-lg p-4 md:p-6 shadow-sm">
-      <div ref={containerRef} className="relative overflow-hidden" style={{height: 320}}>
+      <div ref={containerRef} className="relative overflow-hidden" style={{height: 360}}>
         {placed.map((p, idx) => {
           // Colores en gama amarillo/dorado, variando con tamaño y un jitter sutil
           const localSeed = hash(p.word) ^ seed ^ idx;
@@ -204,7 +210,7 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
               style={{
                 top: `${p.y}px`,
                 left: `${p.x}px`,
-                transform: `translate(-50%, -50%)`,
+                transform: `translate(-50%, -50%) rotate(${(p as any).tilt || 0}deg)`,
                 fontSize: `${p.fontSize}px`,
                 fontWeight: p.weight as any,
                 color,
