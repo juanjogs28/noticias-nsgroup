@@ -44,9 +44,13 @@ function adaptResults(raw: any[]): MeltwaterArticle[] {
   
   const adapted = raw.map((doc, index) => {
     // Generar título basado en el tipo de contenido
-    let title = doc.content?.title;
+    const isSocial = doc.content_type === "social post";
+    const originalSocialTitle = isSocial 
+      ? (doc.content?.title || doc.content?.text || doc.content?.message || doc.content?.caption || doc.content?.headline || doc.title)
+      : undefined;
+    let title = originalSocialTitle || doc.content?.title;
     if (!title) {
-      if (doc.content_type === "social post") {
+      if (isSocial) {
         // Para posts de redes sociales, usar keyphrases o un título genérico
         if (doc.enrichments?.keyphrases && doc.enrichments.keyphrases.length > 0) {
           title = `Post sobre: ${doc.enrichments.keyphrases.slice(0, 2).join(", ")}`;
@@ -57,9 +61,14 @@ function adaptResults(raw: any[]): MeltwaterArticle[] {
         title = "Sin título";
       }
     }
+    // Normalizar longitud para UI
+    if (title && typeof title === 'string') {
+      title = title.replace(/\s+/g, ' ').trim();
+      if (title.length > 140) title = title.slice(0, 137) + '…';
+    }
 
     // Generar descripción basada en el tipo de contenido
-    let description = doc.content?.opening_text;
+    let description = doc.content?.opening_text || doc.content?.description || (isSocial ? (doc.content?.text || doc.content?.message || doc.content?.caption) : undefined);
     if (!description) {
       if (doc.content_type === "social post") {
         // Para posts de redes sociales, usar keyphrases como descripción
@@ -71,6 +80,10 @@ function adaptResults(raw: any[]): MeltwaterArticle[] {
       } else {
         description = "";
       }
+    }
+    if (description && typeof description === 'string') {
+      description = description.replace(/\s+/g, ' ').trim();
+      if (description.length > 200) description = description.slice(0, 197) + '…';
     }
 
     // Generar URL si no existe (para posts de redes sociales)
