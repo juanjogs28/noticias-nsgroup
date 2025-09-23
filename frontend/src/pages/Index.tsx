@@ -1113,12 +1113,13 @@ export default function Index() {
               <div>
                 <h2 className="section-title-dashboard">TOP 10 Contenido - {countryName}</h2>
                 <p className="section-description">
-                  Las noticias más impactantes ordenadas por Social Echo Score (eco social, engagement como fallback). Excluye fuentes de redes sociales.
+                  Las noticias más impactantes ordenadas por Social Echo Score (eco social, engagement como fallback). Incluye todas las fuentes disponibles.
                 </p>
               </div>
             </div>
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
               <NewsList articles={(() => {
+                console.log('🚀 INICIANDO getUniqueTopPaisArticles con:', paisArticles.length, 'artículos del país');
                 // Sección 2: País (SocialEcho con fallback engagement, excluyendo redes)
                 const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 50);
                 // Marcar como mostrados para evitar duplicados con la sección de redes
