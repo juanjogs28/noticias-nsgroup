@@ -42,11 +42,14 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
   const counts = items.map(i => i.count);
   const min = Math.min(...counts);
   const max = Math.max(...counts);
-  const scale = (c: number) => {
-    if (max === min) return 1.0; // valor medio si todos iguales
-    // expandir rango para diferencias más marcadas: 0.8x a 2.2x
-    return 0.8 + (c - min) / (max - min) * 1.4;
+  const logMin = Math.log1p(min);
+  const logMax = Math.log1p(max);
+  const norm = (c: number) => {
+    if (logMax === logMin) return 0.5;
+    return (Math.log1p(c) - logMin) / (logMax - logMin);
   };
+  // Tamaño en píxeles basado en escala logarítmica: 12px .. 40px
+  const sizeFor = (c: number) => Math.round(12 + norm(c) * 28);
 
   // Utilidades para pseudo-aleatoriedad estable por palabra
   const hash = (s: string) => {
@@ -114,17 +117,16 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
     const cy = H / 2;
 
     sortedBySize.forEach((item, idx) => {
-      const s = scale(item.count);
-      const fs0 = Math.round(14 * s);
-      const weight0 = s > 1.8 ? 800 : s > 1.4 ? 700 : s > 1.1 ? 600 : 500;
-      const opacity0 = Math.min(1, 0.55 + (s - 0.8) * 0.35);
+      const fs0 = sizeFor(item.count);
+      const weight0 = fs0 >= 34 ? 800 : fs0 >= 28 ? 700 : fs0 >= 22 ? 600 : 500;
+      const opacity0 = Math.min(1, 0.55 + (fs0 - 12) / 28 * 0.35);
 
       // RNG estable por palabra
       const r = mulberry32(hash(item.word) ^ seed ^ idx);
       const angle0 = r() * Math.PI * 2;
 
       // Intentar con reducciones progresivas de tamaño si no cabe
-      const sizeSteps = [1, 0.9, 0.8, 0.7];
+      const sizeSteps = [1, 0.92, 0.84, 0.76];
       let placedX = 0;
       let placedY = 0;
       let finalW = 0;
@@ -177,7 +179,7 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
     });
 
     return results;
-  }, [sortedBySize, scale, containerSize.width, containerSize.height]);
+  }, [sortedBySize, sizeFor, containerSize.width, containerSize.height]);
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-lg p-4 md:p-6 shadow-sm">
@@ -186,7 +188,7 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
           // Colores en gama amarillo/dorado, variando con tamaño y un jitter sutil
           const localSeed = hash(p.word) ^ seed ^ idx;
           const r = mulberry32(localSeed);
-          const sFactor = Math.min(1.0, Math.max(0.0, (p.fontSize - 12) / 24));
+          const sFactor = Math.min(1.0, Math.max(0.0, (p.fontSize - 12) / 28));
           // Dorados: hue ~ 42-52 (amarillo-dorado)
           const hueBase = 44 + sFactor * 6; // 44..50
           const hueJitter = (r() - 0.5) * 6; // +-3°
