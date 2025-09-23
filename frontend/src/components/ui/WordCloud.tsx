@@ -69,7 +69,8 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
   // Desordenar (shuffle) con RNG basado en contenido para estabilidad
   const seed = items.reduce((acc, it) => acc ^ hash(it.word), 0) || 1;
   const rng = mulberry32(seed);
-  const shuffled = [...items].sort(() => rng() - 0.5);
+  // Ordenar por tamaño (frecuencia) para colocar primero palabras grandes
+  const sortedBySize = [...items].sort((a, b) => b.count - a.count);
 
   // Layout sin solapamientos
   const containerRef = useRef<HTMLDivElement>(null);
@@ -90,7 +91,7 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
   const placed = useMemo<Placed[]>(() => {
     const W = containerSize.width || 600;
     const H = containerSize.height || 260;
-    const pad = 6;
+    const basePad = 6;
 
     // Aproximación de ancho por carácter según fontSize
     const textWidth = (w: string, fs: number) => Math.max(8, w.length * fs * 0.55);
@@ -112,57 +113,71 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
     const cx = W / 2;
     const cy = H / 2;
 
-    shuffled.forEach((item, idx) => {
+    sortedBySize.forEach((item, idx) => {
       const s = scale(item.count);
-      const fs = Math.round(14 * s);
-      const weight = s > 1.8 ? 800 : s > 1.4 ? 700 : s > 1.1 ? 600 : 500;
-      const opacity = Math.min(1, 0.55 + (s - 0.8) * 0.35);
-      const w = textWidth(item.word, fs) + pad * 2;
-      const h = textHeight(fs) + pad * 2;
+      const fs0 = Math.round(14 * s);
+      const weight0 = s > 1.8 ? 800 : s > 1.4 ? 700 : s > 1.1 ? 600 : 500;
+      const opacity0 = Math.min(1, 0.55 + (s - 0.8) * 0.35);
 
       // RNG estable por palabra
       const r = mulberry32(hash(item.word) ^ seed ^ idx);
       const angle0 = r() * Math.PI * 2;
 
-      let placedX = cx - w / 2;
-      let placedY = cy - h / 2;
+      // Intentar con reducciones progresivas de tamaño si no cabe
+      const sizeSteps = [1, 0.9, 0.8, 0.7];
+      let placedX = 0;
+      let placedY = 0;
+      let finalW = 0;
+      let finalH = 0;
+      let fs = fs0;
+      let weight = weight0;
+      let opacity = opacity0;
       let found = false;
-      const maxTurns = 1200;
-      const spiralStep = 3 + r() * 3; // paso de espiral
 
-      for (let t = 0; t < maxTurns; t++) {
-        const radius = 2 + (t * spiralStep) / 4;
-        const angle = angle0 + t * 0.15;
-        const x = cx + radius * Math.cos(angle) - w / 2;
-        const y = cy + radius * Math.sin(angle) - h / 2;
+      for (const factor of sizeSteps) {
+        fs = Math.max(12, Math.round(fs0 * factor));
+        weight = weight0; // mantener peso relativo
+        opacity = opacity0;
+        const pad = basePad + Math.round(fs * 0.08);
+        const w = textWidth(item.word, fs) + pad * 2;
+        const h = textHeight(fs) + pad * 2;
 
-        // Limitar a contenedor
-        const clampedX = clamp(x, pad, W - w - pad);
-        const clampedY = clamp(y, pad, H - h - pad);
+        const maxTurns = 1400;
+        const spiralStep = 3 + r() * 3; // paso de espiral
 
-        if (!collides(clampedX, clampedY, w, h)) {
-          placedX = clampedX;
-          placedY = clampedY;
-          found = true;
-          break;
+        for (let t = 0; t < maxTurns; t++) {
+          const radius = 2 + (t * spiralStep) / 4;
+          const angle = angle0 + t * 0.15;
+          const x = cx + radius * Math.cos(angle) - w / 2;
+          const y = cy + radius * Math.sin(angle) - h / 2;
+
+          // Limitar a contenedor
+          const clampedX = clamp(x, pad, W - w - pad);
+          const clampedY = clamp(y, pad, H - h - pad);
+
+          if (!collides(clampedX, clampedY, w, h)) {
+            placedX = clampedX;
+            placedY = clampedY;
+            finalW = w;
+            finalH = h;
+            found = true;
+            break;
+          }
         }
+        if (found) break;
       }
 
-      // Si no se encontró sitio, intentar bordes
       if (!found) {
-        for (let tries = 0; tries < 200; tries++) {
-          const x = r() * (W - w - pad * 2) + pad;
-          const y = r() * (H - h - pad * 2) + pad;
-          if (!collides(x, y, w, h)) { placedX = x; placedY = y; break; }
-        }
+        // Omitir palabra si no se puede colocar sin solapar
+        return;
       }
 
-      boxes.push({ x: placedX, y: placedY, w, h });
-      results.push({ word: item.word, fontSize: fs, weight, opacity, x: placedX + w / 2, y: placedY + h / 2 });
+      boxes.push({ x: placedX, y: placedY, w: finalW, h: finalH });
+      results.push({ word: item.word, fontSize: fs, weight, opacity, x: placedX + finalW / 2, y: placedY + finalH / 2 });
     });
 
     return results;
-  }, [shuffled, scale, containerSize.width, containerSize.height]);
+  }, [sortedBySize, scale, containerSize.width, containerSize.height]);
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-lg p-4 md:p-6 shadow-sm">
