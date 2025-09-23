@@ -320,7 +320,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
 // Función específica para obtener artículos de redes sociales ordenados por engagement
 function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 10): MeltwaterArticle[] {
   // Fuentes de redes sociales permitidas
-  const allowedSources = ['instagram', 'facebook', 'twitter', 'x'];
+  const allowedSources = ['instagram', 'facebook', 'twitter', 'x', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin'];
   
   // Filtrar artículos solo de redes sociales permitidas
   const socialMediaArticles = articles.filter(article => {
@@ -810,7 +810,7 @@ export default function Index() {
             <div>
                 <h2 className="section-title-dashboard">Contenido Más Relevante</h2>
                 <p className="section-description">
-                  Contenido de redes sociales (Instagram, Facebook, Twitter/X) ordenado por engagement para identificar oportunidades de HOT NEWS
+                  Contenido de redes sociales (Instagram, Facebook, Twitter/X, Reddit, YouTube) ordenado por engagement para identificar oportunidades de HOT NEWS
                 </p>
               </div>
             </div>
