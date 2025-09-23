@@ -361,7 +361,7 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
 
 // Función específica para obtener artículos del país ordenados por socialEchoScore
 function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 50): MeltwaterArticle[] {
-  console.log('🔍 DEBUG getUniqueTopPaisArticles:');
+  console.log('🔍 DEBUG getUniqueTopPaisArticles - INICIANDO FUNCIÓN');
   console.log('  Total artículos de entrada:', articles.length);
   console.log('  Artículos ya mostrados:', shownArticles.size);
   
@@ -1129,7 +1129,7 @@ export default function Index() {
           );
         })()}
 
-        {/* TOP 10 Contenido - País */}
+        {/* TOP 50 Contenido - País */}
         {paisArticles.length > 0 && (
           <div className="news-section">
             <div className="section-header-dashboard">
