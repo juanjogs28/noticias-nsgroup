@@ -1055,45 +1055,17 @@ export default function Index() {
               </div>
             </div>
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
-              <div className="news-grid-dashboard" style={{ height: 'auto', minHeight: 'fit-content' }}>
-                {(() => {
-                  // Sección 1: Sector (ContentScore)
-                  const articles = getUniqueTopArticles(sectorArticles, shownArticles, 50);
-                  // Marcar como mostrados para evitar duplicados con las siguientes secciones
-                  markShown(shownArticles, articles);
-                  console.log('🔵 TOP 50 SECTOR - Artículos mostrados:', articles.length);
-                  articles.forEach((article, index) => {
-                    console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | ContentScore: ${article.contentScore?.toFixed(3)} | Engagement: ${article.engagementScore}`);
-                  });
-                  return articles;
-                })().map((article) => (
-                  <a
-                    key={article.url}
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="news-card-dashboard"
-                  >
-                    <img
-                      src={article.urlToImage || '/placeholder.svg'}
-                      alt={article.title}
-                      className="news-image-dashboard"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/placeholder.svg';
-                      }}
-                    />
-                    <div className="news-content-dashboard">
-                      <h3 className="news-title-dashboard">{article.title}</h3>
-                      <p className="news-description-dashboard">{article.description}</p>
-                      <div className="news-meta-dashboard">
-                        <span className="news-source-dashboard">{article.source.name}</span>
-                        <span>{new Date(article.publishedAt).toLocaleDateString('es-ES')}</span>
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
+              <NewsList articles={(() => {
+                // Sección 1: Sector (ContentScore)
+                const articles = getUniqueTopArticles(sectorArticles, shownArticles, 50);
+                // Marcar como mostrados para evitar duplicados con las siguientes secciones
+                markShown(shownArticles, articles);
+                console.log('🔵 TOP 50 SECTOR - Artículos mostrados:', articles.length);
+                articles.forEach((article, index) => {
+                  console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | ContentScore: ${article.contentScore?.toFixed(3)} | Engagement: ${article.engagementScore}`);
+                });
+                return articles;
+              })()} title="Noticias Sectoriales" />
             </div>
           </div>
         )}
@@ -1148,45 +1120,17 @@ export default function Index() {
               </div>
             </div>
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
-              <div className="news-grid-dashboard" style={{ height: 'auto', minHeight: 'fit-content' }}>
-                {(() => {
-                  // Sección 2: País (SocialEcho con fallback engagement, excluyendo redes)
-                  const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 50);
-                  // Marcar como mostrados para evitar duplicados con la sección de redes
-                  markShown(shownArticles, articles);
-                  console.log('🟢 TOP 50 PAÍS - Artículos mostrados:', articles.length);
-                  articles.forEach((article, index) => {
-                    console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | SocialEcho: ${article.socialEchoScore} | Engagement: ${article.engagementScore} | ContentScore: ${article.contentScore?.toFixed(3)}`);
-                  });
-                  return articles;
-                })().map((article) => (
-                  <a
-                    key={article.url}
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="news-card-dashboard"
-                  >
-                    <img
-                      src={article.urlToImage || '/placeholder.svg'}
-                      alt={article.title}
-                      className="news-image-dashboard"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/placeholder.svg';
-                      }}
-                    />
-                    <div className="news-content-dashboard">
-                      <h3 className="news-title-dashboard">{article.title}</h3>
-                      <p className="news-description-dashboard">{article.description}</p>
-                      <div className="news-meta-dashboard">
-                        <span className="news-source-dashboard">{article.source.name}</span>
-                        <span>{new Date(article.publishedAt).toLocaleDateString('es-ES')}</span>
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
+              <NewsList articles={(() => {
+                // Sección 2: País (SocialEcho con fallback engagement, excluyendo redes)
+                const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 50);
+                // Marcar como mostrados para evitar duplicados con la sección de redes
+                markShown(shownArticles, articles);
+                console.log('🟢 TOP 50 PAÍS - Artículos mostrados:', articles.length);
+                articles.forEach((article, index) => {
+                  console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | SocialEcho: ${article.socialEchoScore} | Engagement: ${article.engagementScore} | ContentScore: ${article.contentScore?.toFixed(3)}`);
+                });
+                return articles;
+              })()} title="Noticias del País" />
             </div>
             </div>
           )}
@@ -1241,7 +1185,7 @@ export default function Index() {
               </div>
             </div>
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
-              <div className="news-grid-dashboard" style={{ height: 'auto', minHeight: 'fit-content' }}>
+              <div className="news-grid-dashboard">
                 {(() => {
                   // Sección 3: Redes Sociales (solo engagement y solo redes)
                   const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 50);
