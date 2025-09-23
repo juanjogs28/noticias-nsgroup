@@ -435,16 +435,35 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     try { return new URL(url).hostname.toLowerCase(); } catch { return ''; }
   };
 
+  // Extra: detección por dominio en el objeto source si lo expone Meltwater
+  const getSourceDomain = (article: MeltwaterArticle) => {
+    const raw: any = article as any;
+    const d: string | undefined = raw?.source?.domain || raw?.source_domain || raw?.domain;
+    return (d || '').toLowerCase();
+  };
+
   const isSocialArticle = (article: MeltwaterArticle) => {
     // 1) Por tipo de contenido
     // @ts-ignore: raw field may exist from API adaptation
     if (article && (article as any).content_type === 'social post') return true;
+
     // 2) Por dominio de la URL
     const host = getHost(article.url);
     if (host && socialHosts.has(host)) return true;
+
+    // 2b) Por dominio de la fuente (si viene)
+    const srcDomain = getSourceDomain(article);
+    if (srcDomain && socialHosts.has(srcDomain)) return true;
+
     // 3) Por nombre de la fuente (tokens seguros, sin usar 'x' genérico)
     const sourceName = article.source?.name?.toLowerCase() || '';
-    return allowedSources.some(token => sourceName.includes(token));
+    if (allowedSources.some(token => sourceName.includes(token))) return true;
+
+    // 4) Heurística por URL path (por si es shortlink redirigido)
+    const url = article.url || '';
+    if (/instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be)/i.test(url)) return true;
+
+    return false;
   };
   
   // Filtrar artículos solo sociales

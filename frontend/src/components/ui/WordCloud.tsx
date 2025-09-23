@@ -48,10 +48,25 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
     if (logMax === logMin) return 0.5;
     return (Math.log1p(c) - logMin) / (logMax - logMin);
   };
-  // Tamaño en píxeles basado en escala logarítmica con énfasis en palabras grandes: 16px .. 72px
-  const sizeFor = (c: number) => {
-    const t = norm(c) ** 0.7; // potencia para acentuar diferencias
-    return Math.round(16 + t * 56);
+  // Precalcular ranking para diferenciar tamaños incluso con empates
+  const ranked = useMemo(() => {
+    const arr = [...items].sort((a, b) => b.count - a.count);
+    const rankMap = new Map<string, number>();
+    arr.forEach((it, i) => rankMap.set(it.word, i));
+    return { arr, rankMap };
+  }, [items]);
+
+  // Tamaño en píxeles con énfasis en grandes y diferenciación por ranking: 16..72px
+  const sizeFor = (word: string, count: number) => {
+    const n = ranked.arr.length || 1;
+    const rank = ranked.rankMap.get(word) ?? 0; // 0 = más grande
+    const tRank = n <= 1 ? 1 : 1 - rank / (n - 1); // 1..0
+    // combinar ranking con escala log para evitar grupos planos
+    const tLog = norm(count);
+    const t = Math.min(1, Math.max(0, 0.65 * (tRank ** 0.7) + 0.35 * (tLog ** 0.7)));
+    // pequeña variación por palabra para evitar empates visuales
+    const jitter = ((hash(word) % 5) - 2) * 0.5; // -1..+1 px
+    return Math.round(16 + t * 56 + jitter);
   };
 
   // Utilidades para pseudo-aleatoriedad estable por palabra
@@ -120,7 +135,7 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
     const cy = H / 2;
 
     sortedBySize.forEach((item, idx) => {
-      const fs0 = sizeFor(item.count);
+      const fs0 = sizeFor(item.word, item.count);
       const weight0 = fs0 >= 56 ? 800 : fs0 >= 40 ? 700 : fs0 >= 26 ? 600 : 500;
       const opacity0 = Math.min(1, 0.65 + (fs0 - 16) / 56 * 0.3);
 
