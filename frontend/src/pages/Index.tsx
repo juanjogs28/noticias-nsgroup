@@ -361,7 +361,7 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
 
 // Función específica para obtener artículos del país ordenados por socialEchoScore
 function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 50): MeltwaterArticle[] {
-  console.log('🔍 DEBUG getUniqueTopPaisArticles - INICIANDO FUNCIÓN');
+  console.log('🔍 DEBUG getUniqueTopPaisArticles - INICIANDO FUNCIÓN - VERSION FIXED');
   console.log('  Total artículos de entrada:', articles.length);
   console.log('  Artículos ya mostrados:', shownArticles.size);
   
