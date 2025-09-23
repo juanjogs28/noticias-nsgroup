@@ -182,24 +182,38 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
   return (
     <div className="bg-white/5 border border-white/10 rounded-lg p-4 md:p-6 shadow-sm">
       <div ref={containerRef} className="relative overflow-hidden" style={{height: 260}}>
-        {placed.map((p, idx) => (
-          <span
-            key={`${p.word}-${idx}`}
-            className="absolute text-white/90 hover:text-cyan-300 transition-colors select-none"
-            style={{
-              top: `${p.y}px`,
-              left: `${p.x}px`,
-              transform: `translate(-50%, -50%)`,
-              fontSize: `${p.fontSize}px`,
-              fontWeight: p.weight as any,
-              opacity: p.opacity,
-              whiteSpace: 'nowrap',
-            }}
-            title={`${p.word}`}
-          >
-            {p.word}
-          </span>
-        ))}
+        {placed.map((p, idx) => {
+          // Color coherente con el estilo (gama azul-cyan-violeta), variando con tamaño y un RNG por palabra
+          const localSeed = hash(p.word) ^ seed ^ idx;
+          const r = mulberry32(localSeed);
+          const sFactor = Math.min(1.0, Math.max(0.0, (p.fontSize - 12) / 24));
+          const hueBase = 190 + sFactor * 50; // 190..240 (cyan a azul)
+          const hueJitter = (r() - 0.5) * 16; // +-8°
+          const hue = Math.max(180, Math.min(250, hueBase + hueJitter));
+          const sat = 65 + sFactor * 20; // 65%..85%
+          const light = 70 - sFactor * 20; // 70%..50%
+          const color = `hsl(${hue.toFixed(0)} ${sat.toFixed(0)}% ${light.toFixed(0)}% / ${Math.max(0.6, p.opacity).toFixed(2)})`;
+
+          return (
+            <span
+              key={`${p.word}-${idx}`}
+              className="absolute transition-colors select-none hover:brightness-125"
+              style={{
+                top: `${p.y}px`,
+                left: `${p.x}px`,
+                transform: `translate(-50%, -50%)`,
+                fontSize: `${p.fontSize}px`,
+                fontWeight: p.weight as any,
+                color,
+                whiteSpace: 'nowrap',
+                textShadow: '0 1px 2px rgba(0,0,0,0.25)',
+              }}
+              title={`${p.word}`}
+            >
+              {p.word}
+            </span>
+          );
+        })}
       </div>
     </div>
   );
