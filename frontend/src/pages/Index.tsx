@@ -580,25 +580,6 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   });
   console.log(`  Candidatos por nombre de fuente: ${socialCandidates.length}`);
   console.log('  Candidatos:', socialCandidates.map(a => ({ source: a.source.name, url: a.url })));
-  
-  // Analizar fuentes disponibles
-  const allSources = [...new Set(articles.map(a => a.source?.name))];
-  const socialSources = [...new Set(socialMediaArticles.map(a => a.source?.name))];
-  console.log('  Fuentes totales:', allSources);
-  console.log('  Fuentes sociales detectadas:', socialSources);
-  
-  // Analizar algunos artículos para debug
-  const sampleArticles = articles.slice(0, 3);
-  sampleArticles.forEach((article, idx) => {
-    console.log(`  Artículo ${idx + 1}:`, {
-      source: article.source?.name,
-      url: article.url,
-      content_type: (article as any).content_type,
-      engagement: article.engagementScore,
-      socialEcho: article.socialEchoScore,
-      isSocial: isSocialArticle(article)
-    });
-  });
 
   // Ordenar únicamente por engagement (usar solo los completos)
   const sortedArticles = completeSocialArticles.sort((a, b) => {
