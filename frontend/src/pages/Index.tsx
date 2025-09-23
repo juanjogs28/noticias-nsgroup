@@ -414,16 +414,40 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
 
 // Función específica para obtener artículos de redes sociales ordenados por engagement
 function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 10): MeltwaterArticle[] {
-  // Fuentes de redes sociales permitidas
-  const allowedSources = ['instagram', 'facebook', 'twitter', 'x', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin'];
-  
-  // Filtrar artículos solo de redes sociales permitidas
-  const socialMediaArticles = articles.filter(article => {
+  // Fuentes de redes sociales permitidas (nombres legibles)
+  const allowedSources = ['instagram', 'facebook', 'twitter', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin'];
+
+  // Dominios sociales reconocidos para URL
+  const socialHosts = new Set([
+    'twitter.com', 'x.com',
+    'instagram.com', 'www.instagram.com',
+    'facebook.com', 'www.facebook.com', 'm.facebook.com',
+    'reddit.com', 'www.reddit.com',
+    'youtube.com', 'www.youtube.com', 'youtu.be',
+    'tiktok.com', 'www.tiktok.com',
+    'threads.net', 'www.threads.net',
+    'linkedin.com', 'www.linkedin.com'
+  ]);
+
+  const getHost = (url?: string) => {
+    if (!url) return '';
+    try { return new URL(url).hostname.toLowerCase(); } catch { return ''; }
+  };
+
+  const isSocialArticle = (article: MeltwaterArticle) => {
+    // 1) Por tipo de contenido
+    // @ts-ignore: raw field may exist from API adaptation
+    if (article && (article as any).content_type === 'social post') return true;
+    // 2) Por dominio de la URL
+    const host = getHost(article.url);
+    if (host && socialHosts.has(host)) return true;
+    // 3) Por nombre de la fuente (tokens seguros, sin usar 'x' genérico)
     const sourceName = article.source?.name?.toLowerCase() || '';
-    return allowedSources.some(allowedSource => 
-      sourceName.includes(allowedSource)
-    );
-  });
+    return allowedSources.some(token => sourceName.includes(token));
+  };
+  
+  // Filtrar artículos solo sociales
+  const socialMediaArticles = articles.filter(isSocialArticle);
 
   // Ordenar únicamente por engagement
   const sortedArticles = socialMediaArticles.sort((a, b) => {
