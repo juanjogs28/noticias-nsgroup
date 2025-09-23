@@ -829,7 +829,8 @@ export default function Index() {
         if (countryId || sectorId) {
           const response = await axios.post<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
             countryId,
-            sectorId
+            sectorId,
+            limit: 50  // Solicitar 50 artículos para cada sección
           });
 
           if (response.data.success) {
@@ -873,7 +874,10 @@ export default function Index() {
         const email = emailParam || localStorage.getItem("userEmail");
         
         if (email) {
-          const response = await axios.post<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { email });
+          const response = await axios.post<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { 
+            email,
+            limit: 50  // Solicitar 50 artículos para cada sección
+          });
           if (response.data.success) {
             // Log de la respuesta cruda de la API
             console.log('🔍 RESPUESTA CRUDA DE LA API (con email):');
