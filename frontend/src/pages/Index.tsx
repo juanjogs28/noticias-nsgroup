@@ -321,7 +321,7 @@ function filterUniqueArticles(articles: MeltwaterArticle[], shownArticles: Set<s
     }
 
     // Si es un artículo nuevo, lo agregamos
-    uniqueArticles.push(article);
+      uniqueArticles.push(article);
     newShownArticles.add(`id:${articleId}`);
     if (canonicalUrlKey) newShownArticles.add(`url:${canonicalUrlKey}`);
     if (titleKey) newShownArticles.add(`title:${titleKey}`);
@@ -572,14 +572,25 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   const allSources = [...new Set(articles.map(a => a.source.name))];
   console.log('  Todas las fuentes disponibles:', allSources);
   
-  const socialCandidates = articles.filter(article => {
-    const sourceName = article.source?.name?.toLowerCase() || '';
-    return sourceName.includes('instagram') || sourceName.includes('facebook') || 
-           sourceName.includes('reddit') || sourceName.includes('tiktok') || 
-           sourceName.includes('youtube') || sourceName.includes('threads');
+  // Debug: Verificar detección por cada método
+  const byContentType = articles.filter(a => (a as any).content_type === 'social post');
+  const byHost = articles.filter(a => {
+    const host = getHost(a.url);
+    return host && socialHosts.has(host);
   });
-  console.log(`  Candidatos por nombre de fuente: ${socialCandidates.length}`);
-  console.log('  Candidatos:', socialCandidates.map(a => ({ source: a.source.name, url: a.url })));
+  const bySourceName = articles.filter(a => {
+    const sourceName = a.source?.name?.toLowerCase() || '';
+    return allowedSources.some(token => sourceName.includes(token));
+  });
+  const byUrlRegex = articles.filter(a => {
+    const url = a.url || '';
+    return /instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be)/i.test(url);
+  });
+  
+  console.log('  Por content_type:', byContentType.length);
+  console.log('  Por host:', byHost.length);
+  console.log('  Por nombre fuente:', bySourceName.length);
+  console.log('  Por URL regex:', byUrlRegex.length);
 
   // Ordenar únicamente por engagement (usar solo los completos)
   const sortedArticles = completeSocialArticles.sort((a, b) => {
