@@ -434,6 +434,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
 
     // Si aún faltan, usar ContentScore de TODOS los artículos no sociales (misma métrica que sector)
     if (result.length < limit) {
+      const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
       const allNonSocialArticles = articles.filter(article => {
         const sourceName = article.source?.name?.toLowerCase() || '';
         return !excludedSources.some(excludedSource => 
@@ -461,6 +462,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
 
     // Si aún faltan, usar CUALQUIER artículo no social por ContentScore (incluyendo duplicados si es necesario)
     if (result.length < limit) {
+      const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
       const allNonSocialArticles = articles.filter(article => {
         const sourceName = article.source?.name?.toLowerCase() || '';
         return !excludedSources.some(excludedSource => 
