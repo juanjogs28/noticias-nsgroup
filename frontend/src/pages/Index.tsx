@@ -415,7 +415,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   
   console.log('  Resultado final antes de rellenar:', result.length);
 
-  // Rellenar si faltan elementos: primero engagement, luego ContentScore (manteniendo exclusión de redes sociales)
+  // Rellenar hasta 50 artículos: primero engagement, luego ContentScore (manteniendo exclusión de redes sociales)
   if (result.length < limit) {
     const selectedIds = new Set(result.map(a => generateArticleId(a)));
 
@@ -490,6 +490,27 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     // Como último recurso, permitir candidatos ya mostrados para no dejar huecos
     if (result.length < limit) {
       for (const candidate of engagementCandidates) {
+        if (result.length >= limit) break;
+        const id = generateArticleId(candidate);
+        if (!selectedIds.has(id)) {
+          result.push(candidate);
+          selectedIds.add(id);
+        }
+      }
+    }
+
+    // Si AÚN faltan, rellenar con artículos de redes sociales (último recurso para llegar a 50)
+    if (result.length < limit) {
+      const socialArticles = articles.filter(article => {
+        const sourceName = article.source?.name?.toLowerCase() || '';
+        const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
+        return excludedSources.some(excludedSource => sourceName.includes(excludedSource));
+      });
+
+      const socialCandidates = socialArticles
+        .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
+
+      for (const candidate of socialCandidates) {
         if (result.length >= limit) break;
         const id = generateArticleId(candidate);
         if (!selectedIds.has(id)) {
@@ -640,7 +661,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   // Tomar el límite solicitado
   let result = uniqueArticles.slice(0, limit);
 
-  // Rellenar si faltan elementos: intentar con más posts sociales por engagement (sin incluir no sociales)
+  // Rellenar hasta 50 artículos: intentar con más posts sociales por engagement
   if (result.length < limit) {
     const selectedIds = new Set(result.map(a => generateArticleId(a)));
 
@@ -657,11 +678,32 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
       }
     }
 
-    // 2) Último recurso: permitir duplicados sociales ya mostrados para no dejar huecos (mantener social-only)
+    // 2) Si aún faltan, permitir duplicados sociales ya mostrados para no dejar huecos
     if (result.length < limit) {
       const fallbackPool = [...completeSocialArticles]
         .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
       for (const candidate of fallbackPool) {
+        if (result.length >= limit) break;
+        const id = generateArticleId(candidate);
+        if (!selectedIds.has(id)) {
+          result.push(candidate);
+          selectedIds.add(id);
+        }
+      }
+    }
+
+    // 3) Si AÚN faltan, rellenar con artículos de medios tradicionales (último recurso para llegar a 50)
+    if (result.length < limit) {
+      const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
+      const traditionalArticles = articles.filter(article => {
+        const sourceName = article.source?.name?.toLowerCase() || '';
+        return !excludedSources.some(excludedSource => sourceName.includes(excludedSource));
+      });
+
+      const traditionalCandidates = traditionalArticles
+        .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
+
+      for (const candidate of traditionalCandidates) {
         if (result.length >= limit) break;
         const id = generateArticleId(candidate);
         if (!selectedIds.has(id)) {
