@@ -183,16 +183,17 @@ export default function WordCloud({ words, maxWords = 40 }: Props) {
     <div className="bg-white/5 border border-white/10 rounded-lg p-4 md:p-6 shadow-sm">
       <div ref={containerRef} className="relative overflow-hidden" style={{height: 260}}>
         {placed.map((p, idx) => {
-          // Color coherente con el estilo (gama azul-cyan-violeta), variando con tamaño y un RNG por palabra
+          // Colores en gama amarillo/dorado, variando con tamaño y un jitter sutil
           const localSeed = hash(p.word) ^ seed ^ idx;
           const r = mulberry32(localSeed);
           const sFactor = Math.min(1.0, Math.max(0.0, (p.fontSize - 12) / 24));
-          const hueBase = 190 + sFactor * 50; // 190..240 (cyan a azul)
-          const hueJitter = (r() - 0.5) * 16; // +-8°
-          const hue = Math.max(180, Math.min(250, hueBase + hueJitter));
-          const sat = 65 + sFactor * 20; // 65%..85%
-          const light = 70 - sFactor * 20; // 70%..50%
-          const color = `hsl(${hue.toFixed(0)} ${sat.toFixed(0)}% ${light.toFixed(0)}% / ${Math.max(0.6, p.opacity).toFixed(2)})`;
+          // Dorados: hue ~ 42-52 (amarillo-dorado)
+          const hueBase = 44 + sFactor * 6; // 44..50
+          const hueJitter = (r() - 0.5) * 6; // +-3°
+          const hue = Math.max(38, Math.min(52, hueBase + hueJitter));
+          const sat = 68 + sFactor * 18; // 68%..86%
+          const light = 62 - sFactor * 12; // 62%..50%
+          const color = `hsl(${hue.toFixed(0)} ${sat.toFixed(0)}% ${light.toFixed(0)}% / ${Math.max(0.7, p.opacity).toFixed(2)})`;
 
           return (
             <span
