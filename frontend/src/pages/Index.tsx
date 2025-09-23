@@ -365,8 +365,22 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   console.log('  Total artículos de entrada:', articles.length);
   console.log('  Artículos ya mostrados:', shownArticles.size);
   
-  // TEMPORAL: Incluir TODOS los artículos del país (medios + redes) para llegar a 50
-  const filteredArticles = articles;
+  // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
+  const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
+  
+  // Filtrar artículos excluyendo fuentes de redes sociales
+  const filteredArticles = articles.filter(article => {
+    const sourceName = article.source?.name?.toLowerCase() || '';
+    const isExcluded = excludedSources.some(excludedSource => 
+      sourceName.includes(excludedSource)
+    );
+    if (isExcluded) {
+      console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
+    } else {
+      console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
+    }
+    return !isExcluded;
+  });
   
   console.log('  Artículos después de filtrar redes sociales:', filteredArticles.length);
 
@@ -417,9 +431,14 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // Si aún faltan, usar ContentScore de TODOS los artículos (misma métrica que sector)
+    // Si aún faltan, usar ContentScore de TODOS los artículos no sociales (misma métrica que sector)
     if (result.length < limit) {
-      const allNonSocialArticles = articles;
+      const allNonSocialArticles = articles.filter(article => {
+        const sourceName = article.source?.name?.toLowerCase() || '';
+        return !excludedSources.some(excludedSource => 
+          sourceName.includes(excludedSource)
+        );
+      });
       
       // Usar la misma lógica de ContentScore que el sector
       const contentScoreCandidates = allNonSocialArticles
@@ -439,9 +458,14 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // Si aún faltan, usar CUALQUIER artículo por ContentScore (incluyendo duplicados si es necesario)
+    // Si aún faltan, usar CUALQUIER artículo no social por ContentScore (incluyendo duplicados si es necesario)
     if (result.length < limit) {
-      const allNonSocialArticles = articles;
+      const allNonSocialArticles = articles.filter(article => {
+        const sourceName = article.source?.name?.toLowerCase() || '';
+        return !excludedSources.some(excludedSource => 
+          sourceName.includes(excludedSource)
+        );
+      });
       
       const contentScoreCandidates = allNonSocialArticles
         .sort((a, b) => {
@@ -1117,7 +1141,7 @@ export default function Index() {
               <div>
                 <h2 className="section-title-dashboard">TOP 50 Contenido - {countryName}</h2>
                 <p className="section-description">
-                  Las noticias más impactantes del país ordenadas por Social Echo Score (eco social, engagement como fallback). Incluye medios tradicionales y redes sociales.
+                  Las noticias más impactantes de medios tradicionales del país ordenadas por Social Echo Score (eco social, engagement como fallback). Excluye redes sociales.
                 </p>
               </div>
             </div>
