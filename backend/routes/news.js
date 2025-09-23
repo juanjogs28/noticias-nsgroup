@@ -37,7 +37,7 @@ async function getSearchResults(searchId) {
       tz: "America/Montevideo",
       start,
       end,
-      limit: 10,
+      limit: 20,
     }),
   });
 
