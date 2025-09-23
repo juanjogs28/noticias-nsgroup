@@ -1069,7 +1069,7 @@ export default function Index() {
         )}
 
         {/* Nube de Palabras (entre secciones) */}
-        {(sectorArticles.length > 0 || paisArticles.length > 0 || socialMediaArticles.length > 0) && (() => {
+        {(sectorArticles.length > 0 || paisArticles.length > 0) && (() => {
           const freqMap = new Map<string, number>();
           const addWords = (words?: string[]) => {
             if (!words) return;
@@ -1082,7 +1082,6 @@ export default function Index() {
           // tomar keyphrases de todos los conjuntos
           sectorArticles.forEach(a => addWords(a.enrichments?.keyphrases));
           paisArticles.forEach(a => addWords(a.enrichments?.keyphrases));
-          socialMediaArticles.forEach(a => addWords(a.enrichments?.keyphrases));
           const words: WordFrequency[] = Array.from(freqMap.entries()).map(([word, count]) => ({ word, count }));
           if (words.length === 0) return null;
           return (
