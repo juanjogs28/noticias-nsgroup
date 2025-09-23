@@ -243,6 +243,17 @@ function generateArticleId(article: MeltwaterArticle): string {
   return `${article.source?.name || 'unknown'}_${article.title}`.replace(/\s+/g, '_').toLowerCase();
 }
 
+// Normaliza el título para comparar artículos equivalentes entre fuentes distintas
+function normalizeTitleForKey(title: string | undefined): string {
+  if (!title) return '';
+  return title
+    .toLowerCase()
+    .replace(/https?:\/\/\S+/g, '') // quitar URLs
+    .replace(/[^a-z0-9áéíóúüñ\s]/g, ' ') // quitar signos/puntuación manteniendo letras/números
+    .replace(/\s+/g, ' ') // colapsar espacios
+    .trim();
+}
+
 // Función para filtrar artículos duplicados
 function filterUniqueArticles(articles: MeltwaterArticle[], shownArticles: Set<string>): MeltwaterArticle[] {
   const uniqueArticles: MeltwaterArticle[] = [];
@@ -250,20 +261,32 @@ function filterUniqueArticles(articles: MeltwaterArticle[], shownArticles: Set<s
 
   for (const article of articles) {
     const articleId = generateArticleId(article);
+    const titleKey = normalizeTitleForKey(article.title);
+    const seenById = shownArticles.has(`id:${articleId}`) || newShownArticles.has(`id:${articleId}`);
+    const seenByTitle = titleKey !== '' && (shownArticles.has(`title:${titleKey}`) || newShownArticles.has(`title:${titleKey}`));
 
     // Si el artículo ya fue mostrado, lo saltamos
-    if (shownArticles.has(articleId)) {
+    if (seenById || seenByTitle) {
       continue;
     }
 
     // Si es un artículo nuevo, lo agregamos
-    if (!newShownArticles.has(articleId)) {
-      uniqueArticles.push(article);
-      newShownArticles.add(articleId);
-    }
+    uniqueArticles.push(article);
+    newShownArticles.add(`id:${articleId}`);
+    if (titleKey) newShownArticles.add(`title:${titleKey}`);
   }
 
   return uniqueArticles;
+}
+
+// Marca artículos como mostrados en un Set con claves por id y por título normalizado
+function markShown(shown: Set<string>, articles: MeltwaterArticle[]): void {
+  for (const article of articles) {
+    const id = generateArticleId(article);
+    const titleKey = normalizeTitleForKey(article.title);
+    shown.add(`id:${id}`);
+    if (titleKey) shown.add(`title:${titleKey}`);
+  }
 }
 
 // Función para obtener artículos únicos ordenados por ContentScore
@@ -823,7 +846,10 @@ export default function Index() {
               </div>
             </div>
             <NewsList articles={(() => {
+              // Sección 1: Sector (ContentScore)
               const articles = getUniqueTopArticles(sectorArticles, shownArticles, 10);
+              // Marcar como mostrados para evitar duplicados con las siguientes secciones
+              markShown(shownArticles, articles);
               console.log('🔵 TOP 10 SECTOR - Artículos mostrados:', articles.length);
               articles.forEach((article, index) => {
                 console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | ContentScore: ${article.contentScore?.toFixed(3)} | Engagement: ${article.engagementScore}`);
@@ -850,7 +876,10 @@ export default function Index() {
               </div>
             </div>
             <NewsList articles={(() => {
+              // Sección 2: País (SocialEcho con fallback engagement, excluyendo redes)
               const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 10);
+              // Marcar como mostrados para evitar duplicados con la sección de redes
+              markShown(shownArticles, articles);
               console.log('🟢 TOP 10 PAÍS - Artículos mostrados:', articles.length);
               articles.forEach((article, index) => {
                 console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | SocialEcho: ${article.socialEchoScore} | Engagement: ${article.engagementScore} | ContentScore: ${article.contentScore?.toFixed(3)}`);
@@ -878,6 +907,7 @@ export default function Index() {
             </div>
             <div className="news-grid-dashboard">
               {(() => {
+                // Sección 3: Redes Sociales (solo engagement y solo redes)
                 const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 10);
                 console.log('🔴 REDES SOCIALES - Artículos mostrados:', articles.length);
                 articles.forEach((article, index) => {
