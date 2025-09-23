@@ -417,14 +417,9 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // Si aún faltan, usar ContentScore de TODOS los artículos no sociales (misma métrica que sector)
+    // Si aún faltan, usar ContentScore de TODOS los artículos (misma métrica que sector)
     if (result.length < limit) {
-      const allNonSocialArticles = articles.filter(article => {
-        const sourceName = article.source?.name?.toLowerCase() || '';
-        return !excludedSources.some(excludedSource => 
-          sourceName.includes(excludedSource)
-        );
-      });
+      const allNonSocialArticles = articles;
       
       // Usar la misma lógica de ContentScore que el sector
       const contentScoreCandidates = allNonSocialArticles
@@ -444,14 +439,9 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // Si aún faltan, usar CUALQUIER artículo no social por ContentScore (incluyendo duplicados si es necesario)
+    // Si aún faltan, usar CUALQUIER artículo por ContentScore (incluyendo duplicados si es necesario)
     if (result.length < limit) {
-      const allNonSocialArticles = articles.filter(article => {
-        const sourceName = article.source?.name?.toLowerCase() || '';
-        return !excludedSources.some(excludedSource => 
-          sourceName.includes(excludedSource)
-        );
-      });
+      const allNonSocialArticles = articles;
       
       const contentScoreCandidates = allNonSocialArticles
         .sort((a, b) => {
