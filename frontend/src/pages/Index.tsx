@@ -1055,7 +1055,7 @@ export default function Index() {
               </div>
             </div>
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
-              <div className="news-grid-dashboard">
+              <div className="news-grid-dashboard" style={{ height: 'auto', minHeight: 'fit-content' }}>
                 {(() => {
                   // Sección 1: Sector (ContentScore)
                   const articles = getUniqueTopArticles(sectorArticles, shownArticles, 50);
@@ -1148,7 +1148,7 @@ export default function Index() {
               </div>
             </div>
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
-              <div className="news-grid-dashboard">
+              <div className="news-grid-dashboard" style={{ height: 'auto', minHeight: 'fit-content' }}>
                 {(() => {
                   // Sección 2: País (SocialEcho con fallback engagement, excluyendo redes)
                   const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 50);
@@ -1241,7 +1241,7 @@ export default function Index() {
               </div>
             </div>
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
-              <div className="news-grid-dashboard">
+              <div className="news-grid-dashboard" style={{ height: 'auto', minHeight: 'fit-content' }}>
                 {(() => {
                   // Sección 3: Redes Sociales (solo engagement y solo redes)
                   const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 50);
