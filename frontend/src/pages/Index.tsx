@@ -365,20 +365,8 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   console.log('  Total artículos de entrada:', articles.length);
   console.log('  Artículos ya mostrados:', shownArticles.size);
   
-  // Fuentes de redes sociales a excluir (más amplio)
-  const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
-  
-  // Filtrar artículos excluyendo fuentes de redes sociales
-  const filteredArticles = articles.filter(article => {
-    const sourceName = article.source?.name?.toLowerCase() || '';
-    const isExcluded = excludedSources.some(excludedSource => 
-      sourceName.includes(excludedSource)
-    );
-    if (isExcluded) {
-      console.log(`  ❌ Excluido: ${article.title} | Fuente: ${article.source?.name}`);
-    }
-    return !isExcluded;
-  });
+  // NO filtrar redes sociales para la sección país, ya que los datos del país vienen principalmente de redes sociales
+  const filteredArticles = articles;
   
   console.log('  Artículos después de filtrar redes sociales:', filteredArticles.length);
 
@@ -429,20 +417,13 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // Si aún faltan, usar ContentScore de TODOS los artículos no sociales (misma métrica que sector)
+    // Si aún faltan, usar ContentScore de TODOS los artículos (incluyendo redes sociales)
     if (result.length < limit) {
-      const allNonSocialArticles = articles.filter(article => {
-        const sourceName = article.source?.name?.toLowerCase() || '';
-        return !excludedSources.some(excludedSource => 
-          sourceName.includes(excludedSource)
-        );
-      });
-      
       // Usar la misma lógica de ContentScore que el sector
-      const contentScoreCandidates = allNonSocialArticles
+      const contentScoreCandidates = articles
         .sort((a, b) => {
-          const scoreA = calculateContentScore(a, allNonSocialArticles);
-          const scoreB = calculateContentScore(b, allNonSocialArticles);
+          const scoreA = calculateContentScore(a, articles);
+          const scoreB = calculateContentScore(b, articles);
           return scoreB - scoreA;
         });
 
@@ -456,19 +437,12 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // Si aún faltan, usar CUALQUIER artículo no social por ContentScore (incluyendo duplicados si es necesario)
+    // Si aún faltan, usar CUALQUIER artículo por ContentScore (incluyendo duplicados si es necesario)
     if (result.length < limit) {
-      const allNonSocialArticles = articles.filter(article => {
-        const sourceName = article.source?.name?.toLowerCase() || '';
-        return !excludedSources.some(excludedSource => 
-          sourceName.includes(excludedSource)
-        );
-      });
-      
-      const contentScoreCandidates = allNonSocialArticles
+      const contentScoreCandidates = articles
         .sort((a, b) => {
-          const scoreA = calculateContentScore(a, allNonSocialArticles);
-          const scoreB = calculateContentScore(b, allNonSocialArticles);
+          const scoreA = calculateContentScore(a, articles);
+          const scoreB = calculateContentScore(b, articles);
           return scoreB - scoreA;
         });
 
