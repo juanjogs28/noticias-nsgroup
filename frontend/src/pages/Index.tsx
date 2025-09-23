@@ -361,8 +361,8 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
 
 // Función específica para obtener artículos del país ordenados por socialEchoScore
 function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 10): MeltwaterArticle[] {
-  // Fuentes de redes sociales a excluir
-  const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube'];
+  // Fuentes de redes sociales a excluir (más amplio)
+  const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
   
   // Filtrar artículos excluyendo fuentes de redes sociales
   const filteredArticles = articles.filter(article => {
@@ -410,7 +410,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // Si aún faltan, usar ContentScore de TODOS los artículos no sociales (no solo los sin socialEcho)
+    // Si aún faltan, usar ContentScore de TODOS los artículos no sociales (misma métrica que sector)
     if (result.length < limit) {
       const allNonSocialArticles = articles.filter(article => {
         const sourceName = article.source?.name?.toLowerCase() || '';
@@ -419,10 +419,11 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
         );
       });
       
+      // Usar la misma lógica de ContentScore que el sector
       const contentScoreCandidates = allNonSocialArticles
         .sort((a, b) => {
-          const scoreA = calculateContentScore(a, articles);
-          const scoreB = calculateContentScore(b, articles);
+          const scoreA = calculateContentScore(a, allNonSocialArticles);
+          const scoreB = calculateContentScore(b, allNonSocialArticles);
           return scoreB - scoreA;
         });
 
@@ -447,8 +448,8 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       
       const contentScoreCandidates = allNonSocialArticles
         .sort((a, b) => {
-          const scoreA = calculateContentScore(a, articles);
-          const scoreB = calculateContentScore(b, articles);
+          const scoreA = calculateContentScore(a, allNonSocialArticles);
+          const scoreB = calculateContentScore(b, allNonSocialArticles);
           return scoreB - scoreA;
         });
 
@@ -547,10 +548,23 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   // Filtrar artículos solo sociales
   const socialMediaArticles = articles.filter(isSocialArticle);
   
+  // Filtrar posts sociales con datos completos (título y descripción válidos)
+  const completeSocialArticles = socialMediaArticles.filter(article => {
+    const hasValidTitle = article.title && article.title.trim().length > 3 && 
+                         !article.title.includes('Post sobre:') && 
+                         !article.title.includes('Post de');
+    const hasValidDescription = article.description && article.description.trim().length > 5;
+    const hasValidImage = article.urlToImage && article.urlToImage !== '/placeholder.svg';
+    
+    // Al menos título válido O (descripción válida Y imagen válida)
+    return hasValidTitle || (hasValidDescription && hasValidImage);
+  });
+  
   // Debug: Log de detección de redes sociales
   console.log('🔍 DEBUG REDES SOCIALES:');
   console.log(`  Total artículos: ${articles.length}`);
   console.log(`  Artículos sociales detectados: ${socialMediaArticles.length}`);
+  console.log(`  Artículos sociales completos: ${completeSocialArticles.length}`);
   console.log('  Fuentes detectadas:', [...new Set(socialMediaArticles.map(a => a.source.name))]);
   console.log('  URLs de redes:', socialMediaArticles.slice(0, 5).map(a => a.url));
   
@@ -586,8 +600,8 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     });
   });
 
-  // Ordenar únicamente por engagement
-  const sortedArticles = socialMediaArticles.sort((a, b) => {
+  // Ordenar únicamente por engagement (usar solo los completos)
+  const sortedArticles = completeSocialArticles.sort((a, b) => {
     const engagementA = a.engagementScore || 0;
     const engagementB = b.engagementScore || 0;
     return engagementB - engagementA; // Orden descendente (mayor engagement primero)
@@ -604,7 +618,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     const selectedIds = new Set(result.map(a => generateArticleId(a)));
 
     // 1) Intentar con más posts sociales ordenados por engagement
-    const moreSocialCandidates = [...socialMediaArticles]
+    const moreSocialCandidates = [...completeSocialArticles]
       .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
 
     for (const candidate of moreSocialCandidates) {
@@ -618,7 +632,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
 
     // 2) Último recurso: permitir duplicados sociales ya mostrados para no dejar huecos (mantener social-only)
     if (result.length < limit) {
-      const fallbackPool = [...socialMediaArticles]
+      const fallbackPool = [...completeSocialArticles]
         .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
       for (const candidate of fallbackPool) {
         if (result.length >= limit) break;
