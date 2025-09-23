@@ -18,7 +18,7 @@ interface Props {
 
 export default function NewsList({ articles, title }: Props) {
   return (
-    <div className="news-grid-dashboard max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
+    <div className="news-grid-dashboard">
       {articles.map((article) => (
         <a
           key={article.url}
