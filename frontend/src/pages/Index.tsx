@@ -364,6 +364,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   console.log('🔍 DEBUG getUniqueTopPaisArticles - INICIANDO FUNCIÓN - VERSION FIXED');
   console.log('  Total artículos de entrada:', articles.length);
   console.log('  Artículos ya mostrados:', shownArticles.size);
+  console.log('  Artículos ya mostrados (lista):', Array.from(shownArticles));
   
   // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
   const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
@@ -498,6 +499,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   }
 
   console.log('  🎯 RESULTADO FINAL getUniqueTopPaisArticles:', result.length);
+  console.log('  🎯 META: 50 artículos, RESULTADO:', result.length);
   result.forEach((article, index) => {
     console.log(`    ${index + 1}. ${article.title} | Fuente: ${article.source.name} | SocialEcho: ${article.socialEchoScore} | Engagement: ${article.engagementScore}`);
   });
@@ -507,6 +509,11 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
 
 // Función específica para obtener artículos de redes sociales ordenados por engagement
 function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 50): MeltwaterArticle[] {
+  console.log('🔍 DEBUG getUniqueSocialMediaArticles - INICIANDO FUNCIÓN');
+  console.log('  Total artículos de entrada:', articles.length);
+  console.log('  Artículos ya mostrados:', shownArticles.size);
+  console.log('  Artículos ya mostrados (lista):', Array.from(shownArticles));
+  
   // Fuentes de redes sociales permitidas (nombres legibles)
   const allowedSources = ['instagram', 'facebook', 'twitter', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin'];
 
@@ -662,6 +669,12 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
       }
     }
   }
+
+  console.log('  🎯 RESULTADO FINAL getUniqueSocialMediaArticles:', result.length);
+  console.log('  🎯 META: 50 artículos, RESULTADO:', result.length);
+  result.forEach((article, index) => {
+    console.log(`    ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);
+  });
 
   return assignContentScores(result);
 }
