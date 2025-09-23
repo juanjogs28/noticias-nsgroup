@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import NewsList from "../components/ui/newsList";
+import WordCloud, { WordFrequency } from "../components/ui/WordCloud";
 import SectionSkeleton from "../components/ui/SectionSkeleton";
 import { buildApiUrl, API_CONFIG } from "../config/api";
 
@@ -924,6 +925,40 @@ export default function Index() {
             })()} title="Noticias Sectoriales" />
           </div>
         )}
+
+        {/* Nube de Palabras (entre secciones) */}
+        {(sectorArticles.length > 0 || paisArticles.length > 0) && (() => {
+          const freqMap = new Map<string, number>();
+          const addWords = (words?: string[]) => {
+            if (!words) return;
+            for (const w of words) {
+              if (!w) continue;
+              const key = w.toLowerCase();
+              freqMap.set(key, (freqMap.get(key) || 0) + 1);
+            }
+          };
+          // tomar keyphrases de ambos conjuntos
+          sectorArticles.forEach(a => addWords(a.enrichments?.keyphrases));
+          paisArticles.forEach(a => addWords(a.enrichments?.keyphrases));
+          const words: WordFrequency[] = Array.from(freqMap.entries()).map(([word, count]) => ({ word, count }));
+          if (words.length === 0) return null;
+          return (
+            <div className="news-section">
+              <div className="section-header-dashboard">
+                <div className="section-icon-dashboard">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h18M3 12h18M3 19h18" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="section-title-dashboard">Nube de Palabras</h2>
+                  <p className="section-description">Palabras clave más mencionadas; mayor tamaño indica mayor relevancia</p>
+                </div>
+              </div>
+              <WordCloud words={words} maxWords={40} />
+            </div>
+          );
+        })()}
 
         {/* TOP 10 Contenido - País */}
         {paisArticles.length > 0 && (
