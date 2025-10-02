@@ -35,8 +35,8 @@ async function ensureConnection() {
   }
 }
 
-// Aplicar autenticación a todas las rutas
-router.use(requireAuth);
+// Aplicar autenticación solo a rutas que lo requieran
+// Las rutas GET no requieren autenticación para uso público
 
 // GET obtener configuración por defecto
 router.get("/", async (req, res) => {
@@ -62,8 +62,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-// PATCH actualizar configuración por defecto
-router.patch("/", async (req, res) => {
+// PATCH actualizar configuración por defecto (requiere autenticación)
+router.patch("/", requireAuth, async (req, res) => {
   try {
     await ensureConnection();
     

@@ -121,6 +121,8 @@ app.use("/api/admin/manual-newsletter", manualNewsletterRouter);
 
 const defaultConfigRouter = require("./routes/defaultConfig");
 app.use("/api/admin/default-config", defaultConfigRouter);
+// Ruta pública para defaultConfig (sin autenticación)
+app.use("/api/defaultConfig", defaultConfigRouter);
 
 // Ruta de admin principal (protegida)
 const { requireAuth } = require("./middleware/auth.js");
