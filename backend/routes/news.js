@@ -29,7 +29,7 @@ async function getSearchResults(searchId) {
 
   console.log(`🔍 Obteniendo datos de Meltwater para searchId: ${searchId}`);
   console.log(`📅 Rango de fechas: ${start} a ${end}`);
-  console.log(`📊 Límite solicitado: 50 artículos`);
+  console.log(`📊 Límite solicitado: 500 artículos (todas las noticias disponibles)`);
 
   const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
     method: "POST",
@@ -41,7 +41,7 @@ async function getSearchResults(searchId) {
       tz: "America/Montevideo",
       start,
       end,
-      limit: 50,
+      limit: 500, // Aumentar significativamente para obtener todas las noticias disponibles
     }),
   });
 

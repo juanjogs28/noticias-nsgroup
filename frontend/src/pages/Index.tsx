@@ -365,14 +365,27 @@ function markShown(shown: Set<string>, articles: MeltwaterArticle[]): void {
 
 // Función para obtener artículos únicos ordenados por ContentScore
 function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 50): MeltwaterArticle[] {
+  console.log(`🔍 getUniqueTopArticles - INICIANDO:`);
+  console.log(`  📊 Total artículos de entrada: ${articles.length}`);
+  console.log(`  📊 Artículos ya mostrados: ${shownArticles.size}`);
+  console.log(`  📊 Límite solicitado: ${limit}`);
+  
   // Primero ordenar por ContentScore
   const sortedArticles = sortArticlesByContentScore(articles);
+  console.log(`  📊 Artículos ordenados por ContentScore: ${sortedArticles.length}`);
 
   // Luego filtrar duplicados
   const uniqueArticles = filterUniqueArticles(sortedArticles, shownArticles);
+  console.log(`  📊 Artículos únicos después de filtrar duplicados: ${uniqueArticles.length}`);
 
   // Tomar el límite solicitado
   const result = uniqueArticles.slice(0, limit);
+  console.log(`  📊 Resultado final: ${result.length} artículos`);
+  
+  // Log de los primeros 5 artículos para debug
+  result.slice(0, 5).forEach((article, index) => {
+    console.log(`    ${index + 1}. ${article.title} | Fuente: ${article.source.name} | ContentScore: ${article.contentScore?.toFixed(3)}`);
+  });
 
   return assignContentScores(result);
 }
