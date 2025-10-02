@@ -36,7 +36,26 @@ function calculateSimpleContentScore(article: Article, allArticles: Article[]): 
   const reach = engagement * 5;
   const views = engagement * 2;
 
-  return (reach * 0.4) + (engagement * 0.3) + (views * 0.3);
+  // Bonus para fuentes de noticias tradicionales reconocidas
+  const sourceName = article.source?.name?.toLowerCase() || '';
+  const traditionalNewsSources = [
+    'bbc', 'cnn', 'reuters', 'ap', 'associated press', 'bloomberg', 'wall street journal', 'new york times',
+    'washington post', 'guardian', 'telegraph', 'independent', 'times', 'financial times', 'economist',
+    'el país', 'el mundo', 'abc', 'la vanguardia', 'el periódico', 'el confidencial', 'público', 'eldiario',
+    'infolibre', 'el diario', '20minutos', 'el correo', 'la voz de galicia', 'el norte de castilla',
+    'la nueva españa', 'diario de sevilla', 'hoy', 'extremadura', 'la opinión', 'la verdad', 'la provincia',
+    'diario de mallorca', 'el día', 'canarias7', 'la opinión de murcia', 'la voz de cádiz', 'diario de cádiz',
+    'ideal', 'granada hoy', 'málaga hoy', 'sevilla', 'cordópolis', 'europapress', 'efe', 'agencia efe'
+  ];
+  
+  const isTraditionalSource = traditionalNewsSources.some(source => 
+    sourceName.includes(source) || source.includes(sourceName)
+  );
+  
+  // Bonus adicional para fuentes de noticias tradicionales
+  const sourceBonus = isTraditionalSource ? 30 : 0;
+
+  return (reach * 0.35) + (engagement * 0.25) + (views * 0.20) + (sourceBonus * 0.20);
 }
 
 // Función para ordenar artículos por ContentScore

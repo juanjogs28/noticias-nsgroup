@@ -185,17 +185,35 @@ function calculateContentScore(article: MeltwaterArticle, allArticles: Meltwater
   const aveNorm = normalizeValue(ave, minAve, maxAve);
   const viewsNorm = normalizeValue(views, minViews, maxViews);
 
+  // Bonus para fuentes de noticias tradicionales reconocidas
+  const sourceName = article.source?.name?.toLowerCase() || '';
+  const traditionalNewsSources = [
+    'bbc', 'cnn', 'reuters', 'ap', 'associated press', 'bloomberg', 'wall street journal', 'new york times',
+    'washington post', 'guardian', 'telegraph', 'independent', 'times', 'financial times', 'economist',
+    'el país', 'el mundo', 'abc', 'la vanguardia', 'el periódico', 'el confidencial', 'público', 'eldiario',
+    'infolibre', 'el diario', '20minutos', 'el correo', 'la voz de galicia', 'el norte de castilla',
+    'la nueva españa', 'diario de sevilla', 'hoy', 'extremadura', 'la opinión', 'la verdad', 'la provincia',
+    'diario de mallorca', 'el día', 'canarias7', 'la opinión de murcia', 'la voz de cádiz', 'diario de cádiz',
+    'ideal', 'granada hoy', 'málaga hoy', 'sevilla', 'cordópolis', 'europapress', 'efe', 'agencia efe'
+  ];
+  
+  const isTraditionalSource = traditionalNewsSources.some(source => 
+    sourceName.includes(source) || source.includes(sourceName)
+  );
+  
+  // Bonus adicional para fuentes de noticias tradicionales
+  const sourceBonus = isTraditionalSource ? 0.3 : 0;
+
   // Pesos ajustables según estrategia
-  // Estrategia: 40% Visibilidad (Reach), 30% Engagement, 20% Impacto (AVE), 10% Views
-  const w1 = 0.4; // Reach - Visibilidad
-  const w2 = 0.3; // Engagement - Relevancia para usuario
-  const w3 = 0.2; // AVE - Impacto mediático
-  const w4 = 0.1; // Views - Consumo real
+  // Estrategia: 35% Visibilidad (Reach), 25% Engagement, 20% Impacto (AVE), 10% Views, 10% Bonus de fuente
+  const w1 = 0.35; // Reach - Visibilidad
+  const w2 = 0.25; // Engagement - Relevancia para usuario
+  const w3 = 0.20; // AVE - Impacto mediático
+  const w4 = 0.10; // Views - Consumo real
+  const w5 = 0.10; // Source Bonus - Fuentes tradicionales
 
-  // Calcular ContentScore compuesto
-  const contentScore = w1 * reachNorm + w2 * engagementNorm + w3 * aveNorm + w4 * viewsNorm;
-
-  // Logs de debug removidos para limpiar la consola
+  // Calcular ContentScore compuesto con bonus de fuente
+  const contentScore = w1 * reachNorm + w2 * engagementNorm + w3 * aveNorm + w4 * viewsNorm + w5 * sourceBonus;
 
   return contentScore;
 }
@@ -1188,7 +1206,7 @@ export default function Index() {
                 </svg>
               </div>
               <div>
-                <h2 className="section-title-dashboard">TOP 10 Contenido - Sector</h2>
+                <h2 className="section-title-dashboard">TOP 50 Contenido - Sector</h2>
                 <p className="section-description">
                   Las noticias más relevantes ordenadas por ContentScore (alcance, engagement, impacto)
                 </p>
