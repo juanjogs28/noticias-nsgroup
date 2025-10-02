@@ -1,6 +1,28 @@
 // Configuración centralizada de APIs
+const getBaseUrl = () => {
+  // Si hay variable de entorno específica, usarla
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Detectar si estamos en producción (Vercel)
+  if (import.meta.env.PROD) {
+    return 'https://noticias-nsgroup-production.up.railway.app';
+  }
+  
+  // Desarrollo local
+  return 'http://localhost:3001';
+};
+
+const baseUrl = getBaseUrl();
+console.log('🔧 Configuración API:', {
+  baseUrl,
+  isProduction: import.meta.env.PROD,
+  hasCustomUrl: !!import.meta.env.VITE_API_BASE_URL
+});
+
 export const API_CONFIG = {
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001',
+  BASE_URL: baseUrl,
   ENDPOINTS: {
     NEWS: '/api/news',
     NEWS_PERSONALIZED: '/api/news/personalized',
