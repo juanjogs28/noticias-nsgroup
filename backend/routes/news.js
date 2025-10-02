@@ -27,6 +27,10 @@ async function getSearchResults(searchId) {
   const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
   const start = startDate.toISOString().slice(0, 19);
 
+  console.log(`🔍 Obteniendo datos de Meltwater para searchId: ${searchId}`);
+  console.log(`📅 Rango de fechas: ${start} a ${end}`);
+  console.log(`📊 Límite solicitado: 50 artículos`);
+
   const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
     method: "POST",
     headers: {
@@ -37,7 +41,7 @@ async function getSearchResults(searchId) {
       tz: "America/Montevideo",
       start,
       end,
-      limit: 20,
+      limit: 50,
     }),
   });
 
@@ -46,7 +50,12 @@ async function getSearchResults(searchId) {
     throw new Error(`Error Meltwater: ${res.status} - ${errorText}`);
   }
 
-  return res.json();
+  const data = await res.json();
+  console.log(`📈 Resultados obtenidos de Meltwater para ${searchId}:`);
+  console.log(`   - Total documentos: ${data.result?.documents?.length || 0}`);
+  console.log(`   - Estado de la petición: ${data.request?.status || 'desconocido'}`);
+  
+  return data;
 }
 
 // POST /api/news/personalized
@@ -67,10 +76,18 @@ router.post("/personalized", async (req, res) => {
         ? await getSearchResults(sectorId)
         : { result: { documents: [] } };
 
+      const paisDocs = resultsPais.result?.documents || [];
+      const sectorDocs = resultsSector.result?.documents || [];
+      
+      console.log(`📊 RESUMEN DE DATOS OBTENIDOS (IDs directos):`);
+      console.log(`   - Noticias del país: ${paisDocs.length}`);
+      console.log(`   - Noticias del sector: ${sectorDocs.length}`);
+      console.log(`   - Total noticias: ${paisDocs.length + sectorDocs.length}`);
+
       return res.json({
         success: true,
-        pais: resultsPais.result?.documents || [],
-        sector: resultsSector.result?.documents || [],
+        pais: paisDocs,
+        sector: sectorDocs,
         source: "direct_ids"
       });
     }
@@ -95,10 +112,18 @@ router.post("/personalized", async (req, res) => {
         ? await getSearchResults(subscriber.sectorSearchId)
         : { result: { documents: [] } };
 
+      const paisDocs = resultsPais.result?.documents || [];
+      const sectorDocs = resultsSector.result?.documents || [];
+      
+      console.log(`📊 RESUMEN DE DATOS OBTENIDOS (email suscriptor):`);
+      console.log(`   - Noticias del país: ${paisDocs.length}`);
+      console.log(`   - Noticias del sector: ${sectorDocs.length}`);
+      console.log(`   - Total noticias: ${paisDocs.length + sectorDocs.length}`);
+
       return res.json({
         success: true,
-        pais: resultsPais.result?.documents || [],
-        sector: resultsSector.result?.documents || [],
+        pais: paisDocs,
+        sector: sectorDocs,
         source: "subscriber_email"
       });
     }
@@ -119,10 +144,18 @@ router.post("/personalized", async (req, res) => {
         ? await getSearchResults(defaultConfig.defaultSectorSearchId)
         : { result: { documents: [] } };
 
+      const paisDocs = resultsPais.result?.documents || [];
+      const sectorDocs = resultsSector.result?.documents || [];
+      
+      console.log(`📊 RESUMEN DE DATOS OBTENIDOS (configuración por defecto):`);
+      console.log(`   - Noticias del país: ${paisDocs.length}`);
+      console.log(`   - Noticias del sector: ${sectorDocs.length}`);
+      console.log(`   - Total noticias: ${paisDocs.length + sectorDocs.length}`);
+
       return res.json({
         success: true,
-        pais: resultsPais.result?.documents || [],
-        sector: resultsSector.result?.documents || [],
+        pais: paisDocs,
+        sector: sectorDocs,
         source: "system_default_config",
         defaults: {
           country: defaultConfig.defaultCountrySearchId || null,
