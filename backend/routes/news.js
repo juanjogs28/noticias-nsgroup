@@ -55,6 +55,14 @@ async function getSearchResults(searchId) {
   console.log(`📈 Resultados obtenidos de Meltwater para ${searchId}:`);
   console.log(`   - Total documentos: ${data.result?.documents?.length || 0}`);
   console.log(`   - Estado de la petición: ${data.request?.status || 'desconocido'}`);
+  console.log(`   - Límite solicitado: 500`);
+  console.log(`   - Límite devuelto: ${data.result?.documents?.length || 0}`);
+  
+  // Si devuelve menos de 500, podría ser un límite de la API
+  if ((data.result?.documents?.length || 0) < 500) {
+    console.log(`⚠️  ADVERTENCIA: Solo se obtuvieron ${data.result?.documents?.length || 0} artículos de 500 solicitados`);
+    console.log(`   Esto podría indicar un límite de la API de Meltwater`);
+  }
   
   return data;
 }
