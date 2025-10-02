@@ -30,6 +30,7 @@ async function getSearchResults(searchId) {
   console.log(`🔍 Obteniendo datos de Meltwater para searchId: ${searchId}`);
   console.log(`📅 Rango de fechas: ${start} a ${end}`);
   console.log(`📊 Límite solicitado: 500 artículos (todas las noticias disponibles)`);
+  console.log(`🚀 BACKEND ACTUALIZADO - Límite aumentado a 500 artículos`);
 
   const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
     method: "POST",
