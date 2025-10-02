@@ -267,6 +267,16 @@ app.post("/api/test-email", async (req, res) => {
   }
 });
 
+// Endpoint de verificación de versión
+app.get("/api/version", (req, res) => {
+  res.json({
+    version: "2.0.0",
+    timestamp: new Date().toISOString(),
+    changes: "Límite aumentado a 500 artículos - Logging mejorado",
+    status: "ACTUALIZADO"
+  });
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
@@ -276,4 +286,5 @@ app.listen(PORT, () => {
   console.log(`   - Frontend: http://localhost:5173`);
   console.log(`   - Vercel: https://noticias-nsgroup-newsroom.vercel.app`);
   console.log(`   - Railway: https://noticias-nsgroup-production.up.railway.app`);
+  console.log(`📊 VERSIÓN: 2.0.0 - Límite de API aumentado a 500 artículos`);
 });
