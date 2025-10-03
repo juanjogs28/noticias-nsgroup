@@ -253,7 +253,7 @@ export default function PersonalizedNews() {
                 Información especializada y análisis del sector empresarial
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(sectorArticles, shownArticles, 5)} title="Noticias Sectoriales" />
+            <NewsList articles={getUniqueTopArticles(sectorArticles, shownArticles, 20)} title="Noticias Sectoriales" />
           </section>
         )}
 
@@ -273,7 +273,7 @@ export default function PersonalizedNews() {
                 Análisis y reportes de la situación económica y empresarial nacional
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(ecosocialArticles, shownArticles, 5)} title="Impacto Social" />
+            <NewsList articles={getUniqueTopArticles(ecosocialArticles, shownArticles, 20)} title="Impacto Social" />
           </section>
         )}
 
@@ -293,7 +293,7 @@ export default function PersonalizedNews() {
                 Contenido con mayor impacto y participación de la audiencia
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(engagementArticles, shownArticles, 5)} title="Alto Engagement" />
+            <NewsList articles={getUniqueTopArticles(engagementArticles, shownArticles, 20)} title="Alto Engagement" />
           </section>
         )}
       </main>
