@@ -29,95 +29,53 @@ async function getSearchResults(searchId) {
   console.log(`📊 Estrategia: Múltiples requests para obtener más noticias`);
   
   const allDocuments = [];
+  // Estrategia simplificada: 1 solo request con rango amplio
   const dateRanges = [
-    // Último día
     {
-      start: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19), // Última semana
       end: end,
-      name: "Último día"
-    },
-    // Últimas 6 horas
-    {
-      start: new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: end,
-      name: "Últimas 6 horas"
-    },
-    // Días 2-3 atrás
-    {
-      start: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Días 2-3 atrás"
-    },
-    // Días 4-7 atrás
-    {
-      start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Días 4-7 atrás"
+      name: "Última semana"
     }
   ];
 
   for (const range of dateRanges) {
-    let retryCount = 0;
-    const maxRetries = 3;
-    
-    while (retryCount < maxRetries) {
-      try {
-        console.log(`📅 Consultando: ${range.name} (${range.start} a ${range.end})`);
-        
-        const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
-          method: "POST",
-          headers: {
-            apikey: MELTWATER_TOKEN,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            tz: "America/Montevideo",
-            start: range.start,
-            end: range.end,
-            limit: 200, // Aumentado para compensar menos requests
-          }),
-        });
+    try {
+      console.log(`📅 Consultando: ${range.name} (${range.start} a ${range.end})`);
+      
+      const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
+        method: "POST",
+        headers: {
+          apikey: MELTWATER_TOKEN,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tz: "America/Montevideo",
+          start: range.start,
+          end: range.end,
+          limit: 500, // Límite máximo en un solo request
+        }),
+      });
 
-        if (res.status === 429) {
-          // Rate limiting - esperar más tiempo
-          const waitTime = Math.pow(2, retryCount) * 2000; // 2s, 4s, 8s
-          console.log(`⚠️  Rate limit en ${range.name}, esperando ${waitTime}ms...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-          retryCount++;
-          continue;
-        }
+      if (!res.ok) {
+        console.log(`⚠️  Error en ${range.name}: ${res.status}`);
+        continue;
+      }
 
-        if (!res.ok) {
-          console.log(`⚠️  Error en ${range.name}: ${res.status}`);
-          break;
-        }
-
-        const data = await res.json();
-        const documents = data.result?.documents || [];
-        
-        console.log(`   ✅ ${range.name}: ${documents.length} artículos`);
-        
-        // Agregar documentos únicos
-        for (const doc of documents) {
-          if (!allDocuments.find(existing => existing.id === doc.id)) {
-            allDocuments.push(doc);
-          }
-        }
-        
-        break; // Éxito, salir del retry loop
-        
-      } catch (error) {
-        console.log(`⚠️  Error en ${range.name}: ${error.message}`);
-        retryCount++;
-        if (retryCount < maxRetries) {
-          const waitTime = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
-          await new Promise(resolve => setTimeout(resolve, waitTime));
+      const data = await res.json();
+      const documents = data.result?.documents || [];
+      
+      console.log(`   ✅ ${range.name}: ${documents.length} artículos`);
+      
+      // Agregar documentos únicos
+      for (const doc of documents) {
+        if (!allDocuments.find(existing => existing.id === doc.id)) {
+          allDocuments.push(doc);
         }
       }
+      
+    } catch (error) {
+      console.log(`⚠️  Error en ${range.name}: ${error.message}`);
     }
-    
-    // Pausa más larga entre requests para evitar rate limiting
-    await new Promise(resolve => setTimeout(resolve, 2000)); // 2 segundos
   }
 
   console.log(`📈 Resultados totales obtenidos para ${searchId}:`);
