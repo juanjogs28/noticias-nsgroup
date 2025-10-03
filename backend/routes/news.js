@@ -30,23 +30,29 @@ async function getSearchResults(searchId) {
   
   const allDocuments = [];
   const dateRanges = [
-    // Últimos 2 días
+    // Último día
     {
-      start: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      start: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       end: end,
-      name: "Últimos 2 días"
+      name: "Último día"
     },
-    // Días 3-4 atrás
+    // Días 2-3 atrás
     {
-      start: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Días 3-4 atrás"
+      start: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Días 2-3 atrás"
     },
-    // Días 5-7 atrás
+    // Días 4-5 atrás
+    {
+      start: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Días 4-5 atrás"
+    },
+    // Días 6-7 atrás
     {
       start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Días 5-7 atrás"
+      end: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Días 6-7 atrás"
     },
     // Semana 2 atrás
     {
@@ -59,6 +65,12 @@ async function getSearchResults(searchId) {
       start: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       end: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       name: "Semana 3 atrás"
+    },
+    // Semana 4 atrás
+    {
+      start: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Semana 4 atrás"
     },
     // Mes anterior
     {
@@ -82,7 +94,7 @@ async function getSearchResults(searchId) {
           tz: "America/Montevideo",
           start: range.start,
           end: range.end,
-          limit: 50, // Límite por request (reducido para mejor distribución)
+          limit: 200, // Límite por request aumentado para compensar filtrado del frontend
         }),
       });
 
