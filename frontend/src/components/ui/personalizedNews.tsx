@@ -129,6 +129,11 @@ export default function PersonalizedNews() {
   const [sectorArticles, setSectorArticles] = useState<Article[]>([]);
   const [error, setError] = useState(false);
   const [shownArticles, setShownArticles] = useState<Set<string>>(new Set());
+  
+  // Sets separados para cada sección
+  const [shownSectorArticles, setShownSectorArticles] = useState<Set<string>>(new Set());
+  const [shownEcosocialArticles, setShownEcosocialArticles] = useState<Set<string>>(new Set());
+  const [shownEngagementArticles, setShownEngagementArticles] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const email = localStorage.getItem("userEmail");
@@ -164,6 +169,17 @@ export default function PersonalizedNews() {
 
         // Resetear artículos mostrados para nueva carga
         setShownArticles(new Set());
+        setShownSectorArticles(new Set());
+        setShownEcosocialArticles(new Set());
+        setShownEngagementArticles(new Set());
+        
+        // Debug logging
+        console.log('📊 Artículos cargados:', {
+          sector: adaptResults(res.data.sector || []).length,
+          ecosocial: ecosocial.length,
+          engagement: engagement.length,
+          total: adaptResults(res.data.sector || []).length + ecosocial.length + engagement.length
+        });
       } catch (err) {
         console.error("Error cargando noticias:", err);
         setError(true);
@@ -253,7 +269,7 @@ export default function PersonalizedNews() {
                 Información especializada y análisis del sector empresarial
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(sectorArticles, shownArticles, 20)} title="Noticias Sectoriales" />
+            <NewsList articles={getUniqueTopArticles(sectorArticles, shownSectorArticles, 20)} title="Noticias Sectoriales" />
           </section>
         )}
 
@@ -273,7 +289,7 @@ export default function PersonalizedNews() {
                 Análisis y reportes de la situación económica y empresarial nacional
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(ecosocialArticles, shownArticles, 20)} title="Impacto Social" />
+            <NewsList articles={getUniqueTopArticles(ecosocialArticles, shownEcosocialArticles, 20)} title="Impacto Social" />
           </section>
         )}
 
@@ -293,7 +309,7 @@ export default function PersonalizedNews() {
                 Contenido con mayor impacto y participación de la audiencia
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(engagementArticles, shownArticles, 20)} title="Alto Engagement" />
+            <NewsList articles={getUniqueTopArticles(engagementArticles, shownEngagementArticles, 20)} title="Alto Engagement" />
           </section>
         )}
       </main>
