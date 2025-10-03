@@ -36,6 +36,24 @@ async function getSearchResults(searchId) {
       end: end,
       name: "Último día"
     },
+    // Últimas 2 horas
+    {
+      start: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: end,
+      name: "Últimas 2 horas"
+    },
+    // Últimas 6 horas
+    {
+      start: new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: end,
+      name: "Últimas 6 horas"
+    },
+    // Últimas 12 horas
+    {
+      start: new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: end,
+      name: "Últimas 12 horas"
+    },
     // Días 2-3 atrás
     {
       start: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
@@ -66,11 +84,11 @@ async function getSearchResults(searchId) {
       end: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       name: "Días 11-14 atrás"
     },
-    // Semana 3 atrás
+    // Días 15-21 atrás
     {
       start: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       end: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Semana 3 atrás"
+      name: "Días 15-21 atrás"
     },
     // Semana 4 atrás
     {
@@ -96,6 +114,24 @@ async function getSearchResults(searchId) {
       end: new Date(now.getTime() - 42 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       name: "Semana 7 atrás"
     },
+    // Semana 8 atrás
+    {
+      start: new Date(now.getTime() - 56 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 49 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Semana 8 atrás"
+    },
+    // Semana 9 atrás
+    {
+      start: new Date(now.getTime() - 63 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 56 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Semana 9 atrás"
+    },
+    // Semana 10 atrás
+    {
+      start: new Date(now.getTime() - 70 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 63 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Semana 10 atrás"
+    },
     // Mes anterior
     {
       start: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().slice(0, 19),
@@ -118,7 +154,7 @@ async function getSearchResults(searchId) {
           tz: "America/Montevideo",
           start: range.start,
           end: range.end,
-          limit: 200, // Límite por request aumentado para compensar filtrado del frontend
+          limit: 500, // Límite máximo para obtener más artículos
         }),
       });
 
