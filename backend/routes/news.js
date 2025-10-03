@@ -36,23 +36,11 @@ async function getSearchResults(searchId) {
       end: end,
       name: "Último día"
     },
-    // Últimas 2 horas
-    {
-      start: new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: end,
-      name: "Últimas 2 horas"
-    },
     // Últimas 6 horas
     {
       start: new Date(now.getTime() - 6 * 60 * 60 * 1000).toISOString().slice(0, 19),
       end: end,
       name: "Últimas 6 horas"
-    },
-    // Últimas 12 horas
-    {
-      start: new Date(now.getTime() - 12 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: end,
-      name: "Últimas 12 horas"
     },
     // Días 2-3 atrás
     {
@@ -60,77 +48,29 @@ async function getSearchResults(searchId) {
       end: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       name: "Días 2-3 atrás"
     },
-    // Días 4-5 atrás
-    {
-      start: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Días 4-5 atrás"
-    },
-    // Días 6-7 atrás
+    // Días 4-7 atrás
     {
       start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Días 6-7 atrás"
+      end: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Días 4-7 atrás"
     },
-    // Días 8-10 atrás
-    {
-      start: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Días 8-10 atrás"
-    },
-    // Días 11-14 atrás
+    // Semana 2 atrás
     {
       start: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Días 11-14 atrás"
+      end: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Semana 2 atrás"
     },
-    // Días 15-21 atrás
+    // Semana 3 atrás
     {
       start: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       end: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Días 15-21 atrás"
+      name: "Semana 3 atrás"
     },
     // Semana 4 atrás
     {
       start: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       end: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       name: "Semana 4 atrás"
-    },
-    // Semana 5 atrás
-    {
-      start: new Date(now.getTime() - 35 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Semana 5 atrás"
-    },
-    // Semana 6 atrás
-    {
-      start: new Date(now.getTime() - 42 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 35 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Semana 6 atrás"
-    },
-    // Semana 7 atrás
-    {
-      start: new Date(now.getTime() - 49 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 42 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Semana 7 atrás"
-    },
-    // Semana 8 atrás
-    {
-      start: new Date(now.getTime() - 56 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 49 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Semana 8 atrás"
-    },
-    // Semana 9 atrás
-    {
-      start: new Date(now.getTime() - 63 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 56 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Semana 9 atrás"
-    },
-    // Semana 10 atrás
-    {
-      start: new Date(now.getTime() - 70 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 63 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Semana 10 atrás"
     },
     // Mes anterior
     {
@@ -154,7 +94,7 @@ async function getSearchResults(searchId) {
           tz: "America/Montevideo",
           start: range.start,
           end: range.end,
-          limit: 500, // Límite máximo para obtener más artículos
+          limit: 100, // Límite balanceado para evitar timeouts
         }),
       });
 
@@ -175,8 +115,8 @@ async function getSearchResults(searchId) {
         }
       }
       
-      // Pequeña pausa entre requests para evitar rate limiting
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Pausa entre requests para evitar rate limiting y timeouts
+      await new Promise(resolve => setTimeout(resolve, 500));
       
     } catch (error) {
       console.log(`⚠️  Error en ${range.name}: ${error.message}`);
