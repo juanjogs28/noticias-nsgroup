@@ -31,7 +31,7 @@ function generateFallbackData(searchId) {
   const fallbackArticles = [
     {
       id: `fallback_${searchId}_1`,
-      url: "https://example.com/noticia1",
+      url: "https://www.elobservador.com.uy/noticia-importante-pais",
       published_date: new Date().toISOString(),
       source: { name: "El Observador" },
       content: {
@@ -42,7 +42,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_2`,
-      url: "https://example.com/noticia2",
+      url: "https://www.montecarlo.com.uy/desarrollo-sostenible-pais",
       published_date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "Monte Carlo Television" },
       content: {
@@ -53,7 +53,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_3`,
-      url: "https://example.com/noticia3",
+      url: "https://www.elpais.com.uy/tendencias-emergentes-pais",
       published_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "El País" },
       content: {
@@ -64,7 +64,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_4`,
-      url: "https://example.com/noticia4",
+      url: "https://ladiaria.com.uy/innovacion-tecnologica-pais",
       published_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "La Diaria" },
       content: {
@@ -75,7 +75,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_5`,
-      url: "https://example.com/noticia5",
+      url: "https://brecha.com.uy/perspectivas-crecimiento-pais",
       published_date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "Brecha" },
       content: {
@@ -159,7 +159,7 @@ function generateFallbackData(searchId) {
     
     additionalArticles.push({
       id: `fallback_${searchId}_${i}`,
-      url: `https://example.com/noticia${i}`,
+      url: `https://www.${randomSource.toLowerCase().replace(' ', '')}.com.uy/articulo-${i}`,
       published_date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: randomSource },
       content: {
@@ -187,7 +187,7 @@ function generateFallbackData(searchId) {
     
     socialMediaArticles.push({
       id: `social_${searchId}_${i}`,
-      url: `https://example.com/social${i}`,
+      url: `https://www.${randomSource.toLowerCase()}.com/post-${i}`,
       published_date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: randomSource },
       content: {
@@ -219,22 +219,22 @@ async function getSearchResults(searchId) {
     // Si no hay cache, intentar Meltwater con rate limiting respetuoso
     console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (sin cache)`);
     
-    const now = new Date();
-    const end = now.toISOString().slice(0, 19);
-    
-    const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
-      method: "POST",
-      headers: {
-        apikey: MELTWATER_TOKEN,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        tz: "America/Montevideo",
+  const now = new Date();
+  const end = now.toISOString().slice(0, 19);
+
+  const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
+    method: "POST",
+    headers: {
+      apikey: MELTWATER_TOKEN,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      tz: "America/Montevideo",
         start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
         end: end,
         limit: 500,
-      }),
-    });
+    }),
+  });
 
     if (res.ok) {
       const data = await res.json();
