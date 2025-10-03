@@ -146,7 +146,19 @@ app.get("/", (req, res) => {
   res.json({
     message: "NS News Group Backend funcionando",
     timestamp: new Date().toISOString(),
-    status: "OK"
+    status: "OK",
+    port: PORT,
+    host: "0.0.0.0"
+  });
+});
+
+// Endpoint de prueba adicional
+app.get("/test", (req, res) => {
+  res.json({
+    message: "Test endpoint funcionando",
+    timestamp: new Date().toISOString(),
+    headers: req.headers,
+    port: PORT
   });
 });
 
@@ -291,7 +303,7 @@ app.get("/api/version", (req, res) => {
 });
 
 // Iniciar servidor
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
   console.log(`🌐 CORS: Permitidos todos los orígenes (*)`);
   console.log(`🔗 URLs permitidas:`);
@@ -300,4 +312,5 @@ app.listen(PORT, () => {
   console.log(`   - Vercel: https://noticias-nsgroup-newsroom.vercel.app`);
   console.log(`   - Railway: https://noticias-nsgroup-production.up.railway.app`);
   console.log(`📊 VERSIÓN: 2.0.0 - Límite de API aumentado a 500 artículos`);
+  console.log(`🔧 Servidor escuchando en 0.0.0.0:${PORT} para Railway`);
 });
