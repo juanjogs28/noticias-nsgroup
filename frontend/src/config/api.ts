@@ -1,11 +1,6 @@
 // Configuración centralizada de APIs
 const getBaseUrl = () => {
-  // Si hay variable de entorno específica, usarla
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
-  }
-  
-  // Detectar si estamos en producción (Vercel)
+  // FORZAR URL CORRECTA - Temporal para solucionar el problema
   if (import.meta.env.PROD) {
     return 'https://noticias-nsgroup-production-acff.up.railway.app';
   }
