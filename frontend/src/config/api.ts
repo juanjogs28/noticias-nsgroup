@@ -7,7 +7,7 @@ const getBaseUrl = () => {
   
   // Detectar si estamos en producción (Vercel)
   if (import.meta.env.PROD) {
-    return 'https://noticias-nsgroup-production.up.railway.app';
+    return 'https://noticias-nsgroup-production-acff.up.railway.app';
   }
   
   // Desarrollo local
