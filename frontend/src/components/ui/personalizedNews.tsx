@@ -146,20 +146,14 @@ export default function PersonalizedNews() {
           { email }
         );
 
-        // Separar país en ecosocial y engagement
+        // Mostrar todas las noticias del país en una sola sección
         const paisRaw = res.data.pais || [];
         const paisArticles = adaptResults(paisRaw);
 
-        const ecosocial: Article[] = [];
-        const engagement: Article[] = [];
-
-        paisRaw.forEach((doc, idx) => {
-          if (doc.metrics?.engagement?.total && doc.metrics.engagement.total > 0) {
-            engagement.push(paisArticles[idx]);
-          } else {
-            ecosocial.push(paisArticles[idx]);
-          }
-        });
+        // Dividir en dos grupos: mitad para ecosocial, mitad para engagement
+        const mitad = Math.ceil(paisArticles.length / 2);
+        const ecosocial = paisArticles.slice(0, mitad);
+        const engagement = paisArticles.slice(mitad);
 
         setEcosocialArticles(ecosocial);
         setEngagementArticles(engagement);
@@ -269,7 +263,7 @@ export default function PersonalizedNews() {
                 Información especializada y análisis del sector empresarial
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(sectorArticles, shownSectorArticles, 20)} title="Noticias Sectoriales" />
+            <NewsList articles={getUniqueTopArticles(sectorArticles, shownSectorArticles, 50)} title="Noticias Sectoriales" />
           </section>
         )}
 
@@ -289,7 +283,7 @@ export default function PersonalizedNews() {
                 Análisis y reportes de la situación económica y empresarial nacional
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(ecosocialArticles, shownEcosocialArticles, 20)} title="Impacto Social" />
+            <NewsList articles={getUniqueTopArticles(ecosocialArticles, shownEcosocialArticles, 50)} title="Impacto Social" />
           </section>
         )}
 
@@ -309,7 +303,7 @@ export default function PersonalizedNews() {
                 Contenido con mayor impacto y participación de la audiencia
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(engagementArticles, shownEngagementArticles, 20)} title="Alto Engagement" />
+            <NewsList articles={getUniqueTopArticles(engagementArticles, shownEngagementArticles, 50)} title="Alto Engagement" />
           </section>
         )}
       </main>
