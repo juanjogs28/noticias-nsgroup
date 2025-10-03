@@ -38,6 +38,19 @@ function createCronJob(time) {
 async function initializeScheduledJobs() {
   try {
     await ensureConnection();
+    
+    // Esperar a que la conexión esté completamente establecida
+    if (mongoose.connection.readyState !== 1) {
+      console.log('⏳ Esperando conexión completa a MongoDB...');
+      await new Promise((resolve) => {
+        if (mongoose.connection.readyState === 1) {
+          resolve();
+        } else {
+          mongoose.connection.once('open', resolve);
+        }
+      });
+    }
+    
     const scheduleTimes = await ScheduleTime.find({ isActive: true });
     console.log(`📋 Inicializando ${scheduleTimes.length} horarios programados...`);
     

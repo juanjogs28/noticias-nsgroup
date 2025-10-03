@@ -64,8 +64,6 @@ if (process.env.NODE_ENV === 'production' && MONGODB_URI.includes('localhost')) 
 
 mongoose
   .connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
     serverSelectionTimeoutMS: 15000, // Aumentar timeout para Railway
     socketTimeoutMS: 45000,
     bufferCommands: false, // Deshabilitar buffering para evitar timeouts
