@@ -83,6 +83,61 @@ function generateFallbackData(searchId) {
         summary: `Análisis de las oportunidades de crecimiento y desarrollo en el ${category} para los próximos meses.`,
         image: "https://via.placeholder.com/400x300?text=Perspectivas+Crecimiento"
       }
+    },
+    {
+      id: `fallback_${searchId}_6`,
+      url: "https://example.com/noticia6",
+      published_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+      source: { name: "El Telégrafo" },
+      content: {
+        title: `Reformas estructurales en el ${category} - Nuevo enfoque`,
+        summary: `Cambios fundamentales que están redefiniendo las bases del ${category} en el contexto nacional.`,
+        image: "https://via.placeholder.com/400x300?text=Reformas+Estructurales"
+      }
+    },
+    {
+      id: `fallback_${searchId}_7`,
+      url: "https://example.com/noticia7",
+      published_date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+      source: { name: "Busqueda" },
+      content: {
+        title: `Inversión pública en el ${category} - Presupuesto 2025`,
+        summary: `Análisis de las asignaciones presupuestarias destinadas al fortalecimiento del ${category} en el próximo año.`,
+        image: "https://via.placeholder.com/400x300?text=Inversion+Publica"
+      }
+    },
+    {
+      id: `fallback_${searchId}_8`,
+      url: "https://example.com/noticia8",
+      published_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      source: { name: "El Espectador" },
+      content: {
+        title: `Cooperación internacional en el ${category} - Alianzas estratégicas`,
+        summary: `Acuerdos y colaboraciones que están potenciando el desarrollo del ${category} a nivel regional.`,
+        image: "https://via.placeholder.com/400x300?text=Cooperacion+Internacional"
+      }
+    },
+    {
+      id: `fallback_${searchId}_9`,
+      url: "https://example.com/noticia9",
+      published_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+      source: { name: "Ovación" },
+      content: {
+        title: `Capacitación y formación en el ${category} - Recursos humanos`,
+        summary: `Programas de desarrollo profesional que están elevando la calidad del ${category} en Uruguay.`,
+        image: "https://via.placeholder.com/400x300?text=Capacitacion+Formacion"
+      }
+    },
+    {
+      id: `fallback_${searchId}_10`,
+      url: "https://example.com/noticia10",
+      published_date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+      source: { name: "El Observador" },
+      content: {
+        title: `Sostenibilidad ambiental en el ${category} - Compromiso verde`,
+        summary: `Iniciativas ecológicas que están transformando las prácticas del ${category} hacia un futuro más sostenible.`,
+        image: "https://via.placeholder.com/400x300?text=Sostenibilidad+Ambiental"
+      }
     }
   ];
   
