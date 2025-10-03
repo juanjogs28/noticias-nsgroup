@@ -4,9 +4,13 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+// Railway asigna automáticamente un puerto, pero si no está disponible, usar 3001
+const PORT = process.env.PORT || process.env.RAILWAY_STATIC_PORT || 3001;
 console.log('🔧 Puerto configurado:', PORT);
 console.log('🔧 Variables de entorno PORT:', process.env.PORT);
+console.log('🔧 Variables de entorno RAILWAY_STATIC_PORT:', process.env.RAILWAY_STATIC_PORT);
+console.log('🔧 Todas las variables de entorno relacionadas con puerto:', 
+  Object.keys(process.env).filter(key => key.includes('PORT')));
 
 // Configuración CORS - Permitir todos los orígenes (*)
 const corsOptions = {
