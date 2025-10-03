@@ -14,5 +14,5 @@ COPY backend/ .
 # Exponer puerto
 EXPOSE 3001
 
-# Comando de inicio
+# Comando de inicio (sin cd porque ya estamos en /app)
 CMD ["npm", "start"]
