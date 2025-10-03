@@ -4,7 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Configuración CORS - Permitir todos los orígenes (*)
 const corsOptions = {
@@ -134,6 +134,15 @@ app.get("/api/admin", requireAuth, (req, res) => {
       subscribers: "/api/admin/subscribers",
       news: "/api/news"
     }
+  });
+});
+
+// Endpoint de prueba simple
+app.get("/", (req, res) => {
+  res.json({
+    message: "NS News Group Backend funcionando",
+    timestamp: new Date().toISOString(),
+    status: "OK"
   });
 });
 
