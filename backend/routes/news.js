@@ -54,11 +54,17 @@ async function getSearchResults(searchId) {
       end: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       name: "Días 6-7 atrás"
     },
-    // Semana 2 atrás
+    // Días 8-10 atrás
+    {
+      start: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Días 8-10 atrás"
+    },
+    // Días 11-14 atrás
     {
       start: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Semana 2 atrás"
+      end: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Días 11-14 atrás"
     },
     // Semana 3 atrás
     {
@@ -71,6 +77,24 @@ async function getSearchResults(searchId) {
       start: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       end: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       name: "Semana 4 atrás"
+    },
+    // Semana 5 atrás
+    {
+      start: new Date(now.getTime() - 35 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Semana 5 atrás"
+    },
+    // Semana 6 atrás
+    {
+      start: new Date(now.getTime() - 42 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 35 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Semana 6 atrás"
+    },
+    // Semana 7 atrás
+    {
+      start: new Date(now.getTime() - 49 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 42 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Semana 7 atrás"
     },
     // Mes anterior
     {
