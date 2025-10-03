@@ -53,75 +53,71 @@ async function getSearchResults(searchId) {
       start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       end: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       name: "Días 4-7 atrás"
-    },
-    // Semana 2 atrás
-    {
-      start: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Semana 2 atrás"
-    },
-    // Semana 3 atrás
-    {
-      start: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Semana 3 atrás"
-    },
-    // Semana 4 atrás
-    {
-      start: new Date(now.getTime() - 28 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Semana 4 atrás"
-    },
-    // Mes anterior
-    {
-      start: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().slice(0, 19),
-      end: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 19),
-      name: "Mes anterior"
     }
   ];
 
   for (const range of dateRanges) {
-    try {
-      console.log(`📅 Consultando: ${range.name} (${range.start} a ${range.end})`);
-      
-      const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
-        method: "POST",
-        headers: {
-          apikey: MELTWATER_TOKEN,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tz: "America/Montevideo",
-          start: range.start,
-          end: range.end,
-          limit: 100, // Límite balanceado para evitar timeouts
-        }),
-      });
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      try {
+        console.log(`📅 Consultando: ${range.name} (${range.start} a ${range.end})`);
+        
+        const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
+          method: "POST",
+          headers: {
+            apikey: MELTWATER_TOKEN,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tz: "America/Montevideo",
+            start: range.start,
+            end: range.end,
+            limit: 200, // Aumentado para compensar menos requests
+          }),
+        });
 
-      if (!res.ok) {
-        console.log(`⚠️  Error en ${range.name}: ${res.status}`);
-        continue;
-      }
+        if (res.status === 429) {
+          // Rate limiting - esperar más tiempo
+          const waitTime = Math.pow(2, retryCount) * 2000; // 2s, 4s, 8s
+          console.log(`⚠️  Rate limit en ${range.name}, esperando ${waitTime}ms...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          retryCount++;
+          continue;
+        }
 
-      const data = await res.json();
-      const documents = data.result?.documents || [];
-      
-      console.log(`   ✅ ${range.name}: ${documents.length} artículos`);
-      
-      // Agregar documentos únicos
-      for (const doc of documents) {
-        if (!allDocuments.find(existing => existing.id === doc.id)) {
-          allDocuments.push(doc);
+        if (!res.ok) {
+          console.log(`⚠️  Error en ${range.name}: ${res.status}`);
+          break;
+        }
+
+        const data = await res.json();
+        const documents = data.result?.documents || [];
+        
+        console.log(`   ✅ ${range.name}: ${documents.length} artículos`);
+        
+        // Agregar documentos únicos
+        for (const doc of documents) {
+          if (!allDocuments.find(existing => existing.id === doc.id)) {
+            allDocuments.push(doc);
+          }
+        }
+        
+        break; // Éxito, salir del retry loop
+        
+      } catch (error) {
+        console.log(`⚠️  Error en ${range.name}: ${error.message}`);
+        retryCount++;
+        if (retryCount < maxRetries) {
+          const waitTime = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+          await new Promise(resolve => setTimeout(resolve, waitTime));
         }
       }
-      
-      // Pausa entre requests para evitar rate limiting y timeouts
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-    } catch (error) {
-      console.log(`⚠️  Error en ${range.name}: ${error.message}`);
-      continue;
     }
+    
+    // Pausa más larga entre requests para evitar rate limiting
+    await new Promise(resolve => setTimeout(resolve, 2000)); // 2 segundos
   }
 
   console.log(`📈 Resultados totales obtenidos para ${searchId}:`);
