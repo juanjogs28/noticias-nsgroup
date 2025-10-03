@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+console.log('🔧 Puerto configurado:', PORT);
+console.log('🔧 Variables de entorno PORT:', process.env.PORT);
 
 // Configuración CORS - Permitir todos los orígenes (*)
 const corsOptions = {
