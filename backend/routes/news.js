@@ -30,17 +30,35 @@ async function getSearchResults(searchId) {
   
   const allDocuments = [];
   const dateRanges = [
-    // Últimos 3 días
+    // Últimos 2 días
     {
-      start: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      start: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
       end: end,
-      name: "Últimos 3 días"
+      name: "Últimos 2 días"
     },
-    // Semana anterior
+    // Días 3-4 atrás
     {
-      start: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      end: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-      name: "Semana anterior"
+      start: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Días 3-4 atrás"
+    },
+    // Días 5-7 atrás
+    {
+      start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Días 5-7 atrás"
+    },
+    // Semana 2 atrás
+    {
+      start: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Semana 2 atrás"
+    },
+    // Semana 3 atrás
+    {
+      start: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Semana 3 atrás"
     },
     // Mes anterior
     {
@@ -64,7 +82,7 @@ async function getSearchResults(searchId) {
           tz: "America/Montevideo",
           start: range.start,
           end: range.end,
-          limit: 100, // Límite por request
+          limit: 50, // Límite por request (reducido para mejor distribución)
         }),
       });
 
