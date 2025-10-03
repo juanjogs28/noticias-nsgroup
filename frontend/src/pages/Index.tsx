@@ -491,7 +491,8 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       sourceName.includes('pilot')
     );
     
-    const isIncluded = !isSocialMedia && (isTraditional || hasTraditionalCharacteristics);
+    // Incluir TODAS las fuentes para obtener más artículos
+    const isIncluded = true;
     
     if (isSocialMedia) {
       console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
