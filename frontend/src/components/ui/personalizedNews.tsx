@@ -102,25 +102,75 @@ function getUniqueTopArticles(articles: Article[], shownArticles: Set<string>, l
   return uniqueArticles.slice(0, limit);
 }
 
-// Convierte los documentos raw a objetos Article
+// Función para detectar si es red social
+function isSocialMedia(sourceName: string): boolean {
+  const socialMediaSources = [
+    'facebook', 'twitter', 'instagram', 'tiktok', 'youtube', 'linkedin',
+    'snapchat', 'pinterest', 'reddit', 'telegram', 'whatsapp', 'discord',
+    'twitch', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora'
+  ];
+  
+  const lowerSource = sourceName.toLowerCase();
+  return socialMediaSources.some(social => lowerSource.includes(social));
+}
+
+// Función para detectar medios tradicionales
+function isTraditionalMedia(sourceName: string): boolean {
+  const traditionalSources = [
+    'bbc', 'cnn', 'reuters', 'ap', 'associated press', 'bloomberg', 'wall street journal', 
+    'new york times', 'washington post', 'guardian', 'telegraph', 'independent', 'times', 
+    'financial times', 'economist', 'el país', 'el mundo', 'abc', 'la vanguardia', 
+    'el periódico', 'el confidencial', 'público', 'eldiario', 'infolibre', 'el diario', 
+    '20minutos', 'el correo', 'la voz de galicia', 'el norte de castilla', 'la nueva españa', 
+    'diario de sevilla', 'hoy', 'extremadura', 'la opinión', 'la verdad', 'la provincia', 
+    'diario de mallorca', 'el día', 'canarias7', 'la opinión de murcia', 'la voz de cádiz', 
+    'diario de cádiz', 'ideal', 'granada hoy', 'málaga hoy', 'sevilla', 'cordópolis', 
+    'europapress', 'efe', 'agencia efe', 'monte carlo', 'el observador', 'el país', 
+    'brecha', 'la diaria', 'busqueda', 'el espectador', 'ovación', 'el telégrafo'
+  ];
+  
+  const lowerSource = sourceName.toLowerCase();
+  return traditionalSources.some(traditional => lowerSource.includes(traditional));
+}
+
+// Convierte los documentos raw a objetos Article con filtrado de redes sociales
 function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
-  return raw.map((doc) => {
-    let title = "Sin título";
-    if (typeof doc.content === "object" && doc.content) title = doc.content.title ?? title;
+  return raw
+    .map((doc) => {
+      let title = "Sin título";
+      if (typeof doc.content === "object" && doc.content) title = doc.content.title ?? title;
 
-    let description = "";
-    if (typeof doc.content === "string") description = doc.content;
-    else if (typeof doc.content === "object" && doc.content) description = doc.content.summary || "";
+      let description = "";
+      if (typeof doc.content === "string") description = doc.content;
+      else if (typeof doc.content === "object" && doc.content) description = doc.content.summary || "";
 
-    return {
-      title,
-      url: doc.url,
-      urlToImage: typeof doc.content === "object" && doc.content?.image ? doc.content.image : "/placeholder.svg",
-      description,
-      publishedAt: doc.published_date,
-      source: { name: doc.source?.name || "Fuente desconocida" },
-    };
-  });
+      return {
+        title,
+        url: doc.url,
+        urlToImage: typeof doc.content === "object" && doc.content?.image ? doc.content.image : "/placeholder.svg",
+        description,
+        publishedAt: doc.published_date,
+        source: { name: doc.source?.name || "Fuente desconocida" },
+      };
+    })
+    .filter(article => {
+      const sourceName = article.source?.name || '';
+      const isSocial = isSocialMedia(sourceName);
+      const isTraditional = isTraditionalMedia(sourceName);
+      
+      // Incluir solo medios tradicionales o fuentes no reconocidas como redes sociales
+      const shouldInclude = !isSocial && (isTraditional || !isSocialMedia(sourceName));
+      
+      if (isSocial) {
+        console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
+      } else if (shouldInclude) {
+        console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
+      } else {
+        console.log(`  ❌ Excluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`);
+      }
+      
+      return shouldInclude;
+    });
 }
 
 export default function PersonalizedNews() {
@@ -148,18 +198,9 @@ export default function PersonalizedNews() {
 
         // Mostrar todas las noticias del país en una sola sección
         const paisRaw = res.data.pais || [];
-        const paisArticles = adaptResults(paisRaw);
-
+        
         // Dividir en dos grupos: mitad para ecosocial, mitad para engagement
-        const mitad = Math.ceil(paisArticles.length / 2);
-        const ecosocial = paisArticles.slice(0, mitad);
-        const engagement = paisArticles.slice(mitad);
-
-        setEcosocialArticles(ecosocial);
-        setEngagementArticles(engagement);
-
-        // Sector
-        setSectorArticles(adaptResults(res.data.sector || []));
+        const mitad = Math.ceil(paisRaw.length / 2);
 
         // Resetear artículos mostrados para nueva carga
         setShownArticles(new Set());
@@ -168,12 +209,22 @@ export default function PersonalizedNews() {
         setShownEngagementArticles(new Set());
         
         // Debug logging
-        console.log('📊 Artículos cargados:', {
-          sector: adaptResults(res.data.sector || []).length,
-          ecosocial: ecosocial.length,
-          engagement: engagement.length,
-          total: adaptResults(res.data.sector || []).length + ecosocial.length + engagement.length
-        });
+        const sectorFiltered = adaptResults(res.data.sector || []);
+        const paisFiltered = adaptResults(paisRaw);
+        const ecosocialFiltered = paisFiltered.slice(0, mitad);
+        const engagementFiltered = paisFiltered.slice(mitad);
+        
+        console.log('📊 Artículos cargados (DESPUÉS del filtrado):');
+        console.log(`  🔹 Sector: ${sectorFiltered.length} artículos`);
+        console.log(`  🔹 País total: ${paisFiltered.length} artículos`);
+        console.log(`  🔹 Ecosocial: ${ecosocialFiltered.length} artículos`);
+        console.log(`  🔹 Engagement: ${engagementFiltered.length} artículos`);
+        console.log(`  🔹 Total: ${sectorFiltered.length + ecosocialFiltered.length + engagementFiltered.length} artículos`);
+        
+        // Actualizar con artículos filtrados
+        setEcosocialArticles(ecosocialFiltered);
+        setEngagementArticles(engagementFiltered);
+        setSectorArticles(sectorFiltered);
       } catch (err) {
         console.error("Error cargando noticias:", err);
         setError(true);
