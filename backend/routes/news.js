@@ -20,51 +20,90 @@ async function ensureConnection() {
   }
 }
 
-// Función para traer resultados de Meltwater dado un searchId
+// Función para traer resultados de Meltwater dado un searchId con múltiples requests
 async function getSearchResults(searchId) {
   const now = new Date();
   const end = now.toISOString().slice(0, 19);
-  const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-  const start = startDate.toISOString().slice(0, 19);
-
+  
   console.log(`🔍 Obteniendo datos de Meltwater para searchId: ${searchId}`);
-  console.log(`📅 Rango de fechas: ${start} a ${end}`);
-  console.log(`📊 Límite solicitado: 500 artículos (todas las noticias disponibles)`);
-  console.log(`🚀 BACKEND ACTUALIZADO - Límite aumentado a 500 artículos`);
-
-  const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
-    method: "POST",
-    headers: {
-      apikey: MELTWATER_TOKEN,
-      "Content-Type": "application/json",
+  console.log(`📊 Estrategia: Múltiples requests para obtener más noticias`);
+  
+  const allDocuments = [];
+  const dateRanges = [
+    // Últimos 3 días
+    {
+      start: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: end,
+      name: "Últimos 3 días"
     },
-    body: JSON.stringify({
-      tz: "America/Montevideo",
-      start,
-      end,
-      limit: 500, // Aumentar significativamente para obtener todas las noticias disponibles
-    }),
-  });
+    // Semana anterior
+    {
+      start: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      end: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+      name: "Semana anterior"
+    },
+    // Mes anterior
+    {
+      start: new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().slice(0, 19),
+      end: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 19),
+      name: "Mes anterior"
+    }
+  ];
 
-  if (!res.ok) {
-    const errorText = await res.text();
-    throw new Error(`Error Meltwater: ${res.status} - ${errorText}`);
+  for (const range of dateRanges) {
+    try {
+      console.log(`📅 Consultando: ${range.name} (${range.start} a ${range.end})`);
+      
+      const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
+        method: "POST",
+        headers: {
+          apikey: MELTWATER_TOKEN,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tz: "America/Montevideo",
+          start: range.start,
+          end: range.end,
+          limit: 100, // Límite por request
+        }),
+      });
+
+      if (!res.ok) {
+        console.log(`⚠️  Error en ${range.name}: ${res.status}`);
+        continue;
+      }
+
+      const data = await res.json();
+      const documents = data.result?.documents || [];
+      
+      console.log(`   ✅ ${range.name}: ${documents.length} artículos`);
+      
+      // Agregar documentos únicos
+      for (const doc of documents) {
+        if (!allDocuments.find(existing => existing.id === doc.id)) {
+          allDocuments.push(doc);
+        }
+      }
+      
+      // Pequeña pausa entre requests para evitar rate limiting
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+    } catch (error) {
+      console.log(`⚠️  Error en ${range.name}: ${error.message}`);
+      continue;
+    }
   }
 
-  const data = await res.json();
-  console.log(`📈 Resultados obtenidos de Meltwater para ${searchId}:`);
-  console.log(`   - Total documentos: ${data.result?.documents?.length || 0}`);
-  console.log(`   - Estado de la petición: ${data.request?.status || 'desconocido'}`);
-  console.log(`   - Límite solicitado: 500`);
-  console.log(`   - Límite devuelto: ${data.result?.documents?.length || 0}`);
+  console.log(`📈 Resultados totales obtenidos para ${searchId}:`);
+  console.log(`   - Total documentos únicos: ${allDocuments.length}`);
+  console.log(`   - Estrategia: Múltiples rangos de fechas`);
   
-  // Si devuelve menos de 500, podría ser un límite de la API
-  if ((data.result?.documents?.length || 0) < 500) {
-    console.log(`⚠️  ADVERTENCIA: Solo se obtuvieron ${data.result?.documents?.length || 0} artículos de 500 solicitados`);
-    console.log(`   Esto podría indicar un límite de la API de Meltwater`);
+  if (allDocuments.length < 20) {
+    console.log(`⚠️  ADVERTENCIA: Solo se obtuvieron ${allDocuments.length} artículos únicos`);
+    console.log(`   Esto podría indicar un límite de la API de Meltwater o falta de contenido`);
   }
-  
-  return data;
+
+  return { result: { documents: allDocuments } };
 }
 
 // POST /api/news/personalized
