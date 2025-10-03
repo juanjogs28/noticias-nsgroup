@@ -11,7 +11,8 @@
     "scheduler": "node scheduler.js",
     "test-resend": "node testResend.js",
     "test-scheduler": "node testScheduler.js",
-    "test-auth": "node testAuth.js"
+    "test-auth": "node testAuth.js",
+    "build": "echo 'No build step required for Node.js backend'"
   },
   "dependencies": {
     "cors": "^2.8.5",

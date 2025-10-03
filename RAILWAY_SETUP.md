@@ -1,6 +1,27 @@
 # 🚂 Configuración de Railway para NS News Group
 
-## 🚨 Problema Actual: MongoDB Connection Refused
+## 🚨 Problemas Comunes y Soluciones
+
+### Problema 1: "npm: not found" durante el build
+Si ves errores como:
+```
+sh: 1: npm: not found
+ERROR: failed to build: failed to solve: process "sh -c cd backend && npm install" did not complete successfully: exit code: 127
+```
+
+**Solución:** Railway no detecta correctamente el proyecto Node.js. Se han creado archivos de configuración:
+- `railway.json` - Configuración principal de Railway
+- `nixpacks.toml` - Configuración de build con Node.js
+- `Procfile` - Comando de inicio
+- `.railwayignore` - Archivos a ignorar
+
+#### Pasos para resolver:
+1. **Commit y push** los nuevos archivos de configuración
+2. **Reinicia el deploy** en Railway
+3. **Verifica** que Railway detecte Node.js correctamente
+4. Si persiste, **elimina el servicio** y **crea uno nuevo** con los archivos de configuración
+
+### Problema 2: MongoDB Connection Refused
 
 Si ves errores como:
 ```
