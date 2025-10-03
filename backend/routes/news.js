@@ -37,7 +37,7 @@ function generateFallbackData(searchId) {
       content: {
         title: `Noticia importante del ${category} - Impacto económico y social`,
         summary: `Análisis detallado de la situación actual del ${category} y sus implicaciones para el desarrollo nacional.`,
-        image: "https://via.placeholder.com/400x300?text=Noticia+Importante"
+        image: "https://picsum.photos/400/300?random=1"
       }
     },
     {
@@ -48,7 +48,7 @@ function generateFallbackData(searchId) {
       content: {
         title: `Desarrollo sostenible en el ${category} - Nuevas oportunidades`,
         summary: `Iniciativas innovadoras que están transformando el panorama del ${category} en Uruguay.`,
-        image: "https://via.placeholder.com/400x300?text=Desarrollo+Sostenible"
+        image: "https://picsum.photos/400/300?random=2"
       }
     },
     {
@@ -59,7 +59,7 @@ function generateFallbackData(searchId) {
       content: {
         title: `Tendencias emergentes en el ${category} - Análisis 2025`,
         summary: `Expertos analizan las principales tendencias que marcarán el futuro del ${category} en el próximo año.`,
-        image: "https://via.placeholder.com/400x300?text=Tendencias+2025"
+        image: "https://picsum.photos/400/300?random=3"
       }
     },
     {
@@ -70,7 +70,7 @@ function generateFallbackData(searchId) {
       content: {
         title: `Innovación tecnológica en el ${category} - Casos de éxito`,
         summary: `Cómo la tecnología está revolucionando las prácticas tradicionales del ${category} en Uruguay.`,
-        image: "https://via.placeholder.com/400x300?text=Innovacion+Tecnologica"
+        image: "https://picsum.photos/400/300?random=4"
       }
     },
     {
@@ -81,7 +81,7 @@ function generateFallbackData(searchId) {
       content: {
         title: `Perspectivas de crecimiento en el ${category} - Proyecciones`,
         summary: `Análisis de las oportunidades de crecimiento y desarrollo en el ${category} para los próximos meses.`,
-        image: "https://via.placeholder.com/400x300?text=Perspectivas+Crecimiento"
+        image: "https://picsum.photos/400/300?random=5"
       }
     },
     {
@@ -165,13 +165,41 @@ function generateFallbackData(searchId) {
       content: {
         title: `${randomTopic} en el ${category} - Perspectivas y análisis`,
         summary: `Análisis detallado sobre ${randomTopic.toLowerCase()} y su impacto en el desarrollo del ${category} en Uruguay.`,
-        image: `https://via.placeholder.com/400x300?text=${encodeURIComponent(randomTopic)}`
+        image: `https://picsum.photos/400/300?random=${i}`
       }
     });
   }
   
-  const allFallbackArticles = [...fallbackArticles, ...additionalArticles];
-  console.log(`✅ Generados ${allFallbackArticles.length} artículos de fallback para ${category}`);
+  // Agregar artículos de redes sociales para la sección de redes sociales
+  const socialMediaArticles = [];
+  const socialSources = ["Facebook", "Twitter", "Instagram", "LinkedIn", "TikTok"];
+  const socialTopics = [
+    "Tendencias virales", "Opinión pública", "Debate social", "Movimientos ciudadanos",
+    "Campañas digitales", "Influencers", "Comunidad online", "Redes sociales",
+    "Engagement", "Viral", "Hashtags", "Trending", "Social media"
+  ];
+  
+  // Generar 20 artículos de redes sociales
+  for (let i = 1; i <= 20; i++) {
+    const randomSource = socialSources[Math.floor(Math.random() * socialSources.length)];
+    const randomTopic = socialTopics[Math.floor(Math.random() * socialTopics.length)];
+    const daysAgo = Math.floor(Math.random() * 7); // Últimos 7 días
+    
+    socialMediaArticles.push({
+      id: `social_${searchId}_${i}`,
+      url: `https://example.com/social${i}`,
+      published_date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
+      source: { name: randomSource },
+      content: {
+        title: `${randomTopic} - ${category} en redes sociales`,
+        summary: `Discusión y análisis sobre ${randomTopic.toLowerCase()} relacionado con el ${category} en las redes sociales.`,
+        image: `https://picsum.photos/400/300?random=${i + 100}`
+      }
+    });
+  }
+  
+  const allFallbackArticles = [...fallbackArticles, ...additionalArticles, ...socialMediaArticles];
+  console.log(`✅ Generados ${allFallbackArticles.length} artículos de fallback para ${category} (incluyendo ${socialMediaArticles.length} de redes sociales)`);
   return allFallbackArticles;
 }
 
