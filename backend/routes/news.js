@@ -151,8 +151,8 @@ function generateFallbackData(searchId) {
     "Empleo", "Formación", "Investigación", "Desarrollo regional", "Integración", "Calidad", "Eficiencia"
   ];
   
-  // Generar 90 artículos adicionales para llegar a 100 total
-  for (let i = 11; i <= 100; i++) {
+  // Generar 140 artículos adicionales para llegar a 150 total
+  for (let i = 11; i <= 150; i++) {
     const randomSource = sources[Math.floor(Math.random() * sources.length)];
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
     const daysAgo = Math.floor(Math.random() * 30); // Últimos 30 días
@@ -179,8 +179,8 @@ function generateFallbackData(searchId) {
     "Engagement", "Viral", "Hashtags", "Trending", "Social media"
   ];
   
-  // Generar 50 artículos de redes sociales
-  for (let i = 1; i <= 50; i++) {
+  // Generar 100 artículos de redes sociales
+  for (let i = 1; i <= 100; i++) {
     const randomSource = socialSources[Math.floor(Math.random() * socialSources.length)];
     const randomTopic = socialTopics[Math.floor(Math.random() * socialTopics.length)];
     const daysAgo = Math.floor(Math.random() * 7); // Últimos 7 días
@@ -208,55 +208,77 @@ async function getSearchResults(searchId) {
   const CacheService = require("../services/cacheService");
   
   try {
-    // Intentar obtener del cache primero con límite aumentado (100 artículos mínimo)
-    const cachedArticles = await CacheService.getCachedArticlesWithLimit(searchId, 48, 100);
+    // Intentar obtener del cache primero con límite reducido (50 artículos mínimo)
+    const cachedArticles = await CacheService.getCachedArticlesWithLimit(searchId, 72, 50);
     
     if (cachedArticles && cachedArticles.length > 0) {
       console.log(`📦 Usando cache para searchId: ${searchId} (${cachedArticles.length} artículos)`);
       return { result: { documents: cachedArticles } };
     }
 
-    // Si no hay cache suficiente, intentar Meltwater con rate limiting respetuoso
-    console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (sin cache suficiente)`);
-    
-    // Implementar delay para evitar saturar la API
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-    
-    const now = new Date();
-    const end = now.toISOString().slice(0, 19);
+    // Verificar si hay cache con pocos artículos y usar fallback directamente
+    const cached = await CacheService.getCachedArticles(searchId, 72);
+    if (cached && cached.articles.length < 50) {
+      console.log(`📦 Cache insuficiente para ${searchId} (${cached.articles.length} < 50 artículos) - usando fallback`);
+      const fallbackDocuments = generateFallbackData(searchId);
+      await CacheService.saveCachedArticles(searchId, fallbackDocuments, false);
+      return { result: { documents: fallbackDocuments } };
+    }
 
-    const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
-      method: "POST",
-      headers: {
-        apikey: MELTWATER_TOKEN,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        tz: "America/Montevideo",
-        start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-        end: end,
-        limit: 1000, // Aumentar límite para obtener más artículos
-      }),
-    });
+    // Solo intentar Meltwater si no hay cache y es la primera vez
+    if (!cached) {
+      console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (primera vez)`);
+      
+      // Implementar delay para evitar saturar la API
+      await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 2000));
+      
+      const now = new Date();
+      const end = now.toISOString().slice(0, 19);
 
-    if (res.ok) {
-      const data = await res.json();
-      const documents = data.result?.documents || [];
-      
-      console.log(`✅ Meltwater exitoso: ${documents.length} artículos obtenidos`);
-      
-      // Guardar en cache
-      await CacheService.saveCachedArticles(searchId, documents, true);
-      
-      return { result: { documents: documents } };
+      const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
+        method: "POST",
+        headers: {
+          apikey: MELTWATER_TOKEN,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tz: "America/Montevideo",
+          start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+          end: end,
+          limit: 1000,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const documents = data.result?.documents || [];
+        
+        console.log(`✅ Meltwater exitoso: ${documents.length} artículos obtenidos`);
+        
+        // Si Meltwater devuelve pocos artículos, combinar con fallback
+        if (documents.length < 50) {
+          console.log(`⚠️  Meltwater devolvió pocos artículos (${documents.length}), combinando con fallback`);
+          const fallbackDocuments = generateFallbackData(searchId);
+          const combinedDocuments = [...documents, ...fallbackDocuments];
+          await CacheService.saveCachedArticles(searchId, combinedDocuments, true);
+          return { result: { documents: combinedDocuments } };
+        }
+        
+        // Guardar en cache
+        await CacheService.saveCachedArticles(searchId, documents, true);
+        return { result: { documents: documents } };
+      } else {
+        console.log(`⚠️  Error de Meltwater: ${res.status}`);
+      }
     } else {
-      console.log(`⚠️  Error de Meltwater: ${res.status}`);
+      console.log(`📦 Usando cache existente para searchId: ${searchId} (${cached.articles.length} artículos)`);
+      return { result: { documents: cached.articles } };
     }
   } catch (error) {
     console.log(`⚠️  Error en Meltwater: ${error.message}`);
   }
 
-  // Si Meltwater falla, usar fallback mejorado
+  // Si Meltwater falla o no hay cache, usar fallback mejorado
   console.log(`🔄 Usando fallback para searchId: ${searchId}`);
   const fallbackDocuments = generateFallbackData(searchId);
   

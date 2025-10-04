@@ -71,7 +71,7 @@ class CacheService {
   }
 
   // Obtener artículos con límite aumentado para más contenido
-  static async getCachedArticlesWithLimit(searchId, maxAgeHours = 48, minArticles = 100) {
+  static async getCachedArticlesWithLimit(searchId, maxAgeHours = 72, minArticles = 50) {
     try {
       const cached = await CachedNews.findOne({ searchId });
       
@@ -110,6 +110,19 @@ class CacheService {
       console.log(`🧹 Cache limpiado: ${result.deletedCount} entradas expiradas eliminadas`);
     } catch (error) {
       console.error("Error limpiando cache:", error);
+    }
+  }
+
+  // Forzar uso de fallback para evitar peticiones a la API
+  static async forceFallbackForSearchId(searchId) {
+    try {
+      // Eliminar cache existente para este searchId
+      await CachedNews.deleteOne({ searchId });
+      console.log(`🔄 Cache eliminado para searchId: ${searchId} - forzando fallback`);
+      return true;
+    } catch (error) {
+      console.error("Error forzando fallback:", error);
+      return false;
     }
   }
 }
