@@ -233,7 +233,7 @@ async function getSearchResults(searchId) {
     // TEMPORAL: Saltar caché para forzar datos reales de Meltwater
     console.log(`🔍 Saltando caché para forzar datos reales de Meltwater (searchId: ${searchId})`);
     
-    // Verificar si el caché tiene datos de Meltwater reales
+    // Verificar si el caché tiene datos de Meltwater reales y suficientes
     const cachedArticles = await CacheService.getCachedArticles(searchId, 24);
     if (cachedArticles && cachedArticles.length > 0) {
       // Verificar si son datos reales de Meltwater
@@ -241,9 +241,12 @@ async function getSearchResults(searchId) {
         article.id && !article.id.startsWith('fallback_') && !article.id.startsWith('social_')
       );
       
-      if (isFromMeltwater) {
+      // Solo usar caché si tiene suficientes artículos (más de 20)
+      if (isFromMeltwater && cachedArticles.length >= 20) {
         console.log(`📦 Usando cache REAL de Meltwater para searchId: ${searchId} (${cachedArticles.length} artículos)`);
         return { result: { documents: cachedArticles } };
+      } else if (isFromMeltwater && cachedArticles.length < 20) {
+        console.log(`⚠️  Cache tiene pocos artículos reales (${cachedArticles.length} < 20), forzando nuevas peticiones`);
       } else {
         console.log(`⚠️  Cache contiene datos ficticios, forzando nueva petición a Meltwater`);
       }

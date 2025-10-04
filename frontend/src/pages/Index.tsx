@@ -1320,8 +1320,30 @@ export default function Index() {
               freqMap.set(key, (freqMap.get(key) || 0) + 1);
             }
           };
-          // tomar keyphrases solo del país
-          paisArticles.forEach(a => addWords(a.enrichments?.keyphrases));
+          
+          // Extraer palabras de títulos y contenido si no hay keyphrases
+          const extractWordsFromText = (text: string) => {
+            if (!text) return [];
+            return text
+              .toLowerCase()
+              .replace(/[^\w\s]/g, ' ')
+              .split(/\s+/)
+              .filter(word => word.length > 3 && !['para', 'con', 'del', 'las', 'los', 'una', 'uno', 'que', 'por', 'sus', 'son', 'más', 'como', 'esta', 'este', 'pero', 'también', 'puede', 'ser', 'hacer', 'tener', 'hacer', 'decir', 'saber', 'ver', 'dar', 'ir', 'venir', 'estar', 'haber', 'poder', 'querer', 'deber', 'parecer', 'quedar', 'hablar', 'llegar', 'pasar', 'seguir', 'encontrar', 'pensar', 'vivir', 'sentir', 'tratar', 'mirar', 'ayudar', 'trabajar', 'jugar', 'mover', 'parar', 'empezar', 'acabar', 'volver', 'entrar', 'salir', 'subir', 'bajar', 'cambiar', 'buscar', 'encontrar', 'perder', 'ganar', 'creer', 'saber', 'conocer', 'entender', 'aprender', 'enseñar', 'estudiar', 'leer', 'escribir', 'hablar', 'escuchar', 'ver', 'mirar', 'sentir', 'tocar', 'oler', 'gustar', 'preferir', 'elegir', 'decidir', 'aceptar', 'rechazar', 'permitir', 'prohibir', 'obligar', 'forzar', 'convencer', 'persuadir', 'intentar', 'lograr', 'conseguir', 'obtener', 'recibir', 'dar', 'ofrecer', 'presentar', 'mostrar', 'explicar', 'describir', 'contar', 'narrar', 'relatar', 'informar', 'comunicar', 'expresar', 'manifestar', 'declarar', 'afirmar', 'negar', 'confirmar', 'desmentir', 'admitir', 'reconocer', 'confesar', 'ocultar', 'esconder', 'mostrar', 'revelar', 'descubrir', 'encontrar', 'buscar', 'investigar', 'estudiar', 'analizar', 'examinar', 'revisar', 'verificar', 'comprobar', 'confirmar', 'validar', 'aprobar', 'rechazar', 'aceptar', 'recibir', 'tomar', 'coger', 'agarrar', 'sostener', 'mantener', 'conservar', 'guardar', 'almacenar', 'depositar', 'colocar', 'poner', 'situar', 'ubicar', 'localizar', 'encontrar', 'buscar', 'hallar', 'descubrir', 'encontrar', 'detectar', 'percibir', 'notar', 'observar', 'ver', 'mirar', 'contemplar', 'admirar', 'apreciar', 'valorar', 'estimar', 'considerar', 'pensar', 'reflexionar', 'meditar', 'contemplar', 'considerar', 'evaluar', 'juzgar', 'valorar', 'apreciar', 'estimar', 'considerar', 'tener', 'poseer', 'disponer', 'contar', 'disponer', 'tener', 'poseer', 'ser', 'estar', 'haber', 'existir', 'vivir', 'morir', 'nacer', 'crecer', 'desarrollar', 'evolucionar', 'cambiar', 'transformar', 'convertir', 'volver', 'regresar', 'retornar', 'volver', 'regresar', 'retornar', 'volver', 'regresar', 'retornar'].includes(word))
+              .slice(0, 10); // Limitar a 10 palabras por artículo
+          };
+          
+          // Intentar usar keyphrases primero, luego extraer de títulos
+          paisArticles.forEach(a => {
+            if (a.enrichments?.keyphrases && a.enrichments.keyphrases.length > 0) {
+              addWords(a.enrichments.keyphrases);
+            } else {
+              // Extraer palabras del título y contenido
+              const titleWords = extractWordsFromText(a.content?.title || '');
+              const contentWords = extractWordsFromText(a.content?.summary || '');
+              addWords([...titleWords, ...contentWords]);
+            }
+          });
+          
           const words: WordFrequency[] = Array.from(freqMap.entries()).map(([word, count]) => ({ word, count }));
           if (words.length === 0) return null;
           return (
