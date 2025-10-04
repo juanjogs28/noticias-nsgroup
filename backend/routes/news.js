@@ -31,7 +31,7 @@ function generateFallbackData(searchId) {
   const fallbackArticles = [
     {
       id: `fallback_${searchId}_1`,
-      url: "#",
+      url: "https://www.elobservador.com.uy/",
       published_date: new Date().toISOString(),
       source: { name: "El Observador" },
       content: {
@@ -42,7 +42,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_2`,
-      url: "#",
+      url: "https://www.montecarlo.com.uy/",
       published_date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "Monte Carlo Television" },
       content: {
@@ -53,7 +53,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_3`,
-      url: "#",
+      url: "https://www.elpais.com.uy/",
       published_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "El País" },
       content: {
@@ -64,7 +64,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_4`,
-      url: "#",
+      url: "https://ladiaria.com.uy/",
       published_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "La Diaria" },
       content: {
@@ -75,7 +75,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_5`,
-      url: "#",
+      url: "https://brecha.com.uy/",
       published_date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "Brecha" },
       content: {
@@ -86,7 +86,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_6`,
-      url: "https://example.com/noticia6",
+      url: "https://www.eltelegrafo.com/",
       published_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "El Telégrafo" },
       content: {
@@ -97,7 +97,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_7`,
-      url: "https://example.com/noticia7",
+      url: "https://www.busqueda.com.uy/",
       published_date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "Busqueda" },
       content: {
@@ -108,7 +108,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_8`,
-      url: "https://example.com/noticia8",
+      url: "https://www.elespectador.com/",
       published_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "El Espectador" },
       content: {
@@ -119,7 +119,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_9`,
-      url: "https://example.com/noticia9",
+      url: "https://www.ovaciondigital.com.uy/",
       published_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "Ovación" },
       content: {
@@ -130,7 +130,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_10`,
-      url: "https://example.com/noticia10",
+      url: "https://www.elobservador.com.uy/",
       published_date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "El Observador" },
       content: {
@@ -151,15 +151,28 @@ function generateFallbackData(searchId) {
     "Empleo", "Formación", "Investigación", "Desarrollo regional", "Integración", "Calidad", "Eficiencia"
   ];
   
-  // Generar 140 artículos adicionales para llegar a 150 total
-  for (let i = 11; i <= 150; i++) {
+  // Generar 20 artículos adicionales para llegar a 30 total (solo para emergencias)
+  for (let i = 11; i <= 30; i++) {
     const randomSource = sources[Math.floor(Math.random() * sources.length)];
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
     const daysAgo = Math.floor(Math.random() * 30); // Últimos 30 días
     
+    // Mapear fuentes a URLs reales
+    const sourceUrls = {
+      "El Observador": "https://www.elobservador.com.uy/",
+      "Monte Carlo Television": "https://www.montecarlo.com.uy/",
+      "El País": "https://www.elpais.com.uy/",
+      "La Diaria": "https://ladiaria.com.uy/",
+      "Brecha": "https://brecha.com.uy/",
+      "El Telégrafo": "https://www.eltelegrafo.com/",
+      "Busqueda": "https://www.busqueda.com.uy/",
+      "El Espectador": "https://www.elespectador.com/",
+      "Ovación": "https://www.ovaciondigital.com.uy/"
+    };
+    
     additionalArticles.push({
       id: `fallback_${searchId}_${i}`,
-      url: "#",
+      url: sourceUrls[randomSource] || "https://www.elobservador.com.uy/",
       published_date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: randomSource },
       content: {
@@ -179,15 +192,24 @@ function generateFallbackData(searchId) {
     "Engagement", "Viral", "Hashtags", "Trending", "Social media"
   ];
   
-  // Generar 100 artículos de redes sociales
-  for (let i = 1; i <= 100; i++) {
+  // Generar 10 artículos de redes sociales (solo para emergencias)
+  for (let i = 1; i <= 10; i++) {
     const randomSource = socialSources[Math.floor(Math.random() * socialSources.length)];
     const randomTopic = socialTopics[Math.floor(Math.random() * socialTopics.length)];
     const daysAgo = Math.floor(Math.random() * 7); // Últimos 7 días
     
+    // URLs para redes sociales
+    const socialUrls = {
+      "Facebook": "https://www.facebook.com/",
+      "Twitter": "https://twitter.com/",
+      "Instagram": "https://www.instagram.com/",
+      "LinkedIn": "https://www.linkedin.com/",
+      "TikTok": "https://www.tiktok.com/"
+    };
+    
     socialMediaArticles.push({
       id: `social_${searchId}_${i}`,
-      url: "#",
+      url: socialUrls[randomSource] || "https://www.facebook.com/",
       published_date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: randomSource },
       content: {
@@ -208,78 +230,60 @@ async function getSearchResults(searchId) {
   const CacheService = require("../services/cacheService");
   
   try {
-    // Intentar obtener del cache primero con límite reducido (50 artículos mínimo)
-    const cachedArticles = await CacheService.getCachedArticlesWithLimit(searchId, 72, 50);
+    // Intentar obtener del cache primero
+    const cachedArticles = await CacheService.getCachedArticles(searchId, 24); // 24 horas de cache
     
     if (cachedArticles && cachedArticles.length > 0) {
       console.log(`📦 Usando cache para searchId: ${searchId} (${cachedArticles.length} artículos)`);
       return { result: { documents: cachedArticles } };
     }
 
-    // Verificar si hay cache con pocos artículos y usar fallback directamente
-    const cached = await CacheService.getCachedArticles(searchId, 72);
-    if (cached && cached.articles.length < 50) {
-      console.log(`📦 Cache insuficiente para ${searchId} (${cached.articles.length} < 50 artículos) - usando fallback`);
-      const fallbackDocuments = generateFallbackData(searchId);
-      await CacheService.saveCachedArticles(searchId, fallbackDocuments, false);
-      return { result: { documents: fallbackDocuments } };
-    }
+    // Si no hay cache, intentar Meltwater
+    console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (sin cache)`);
+    
+    // Implementar delay para evitar saturar la API
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+    
+    const now = new Date();
+    const end = now.toISOString().slice(0, 19);
 
-    // Solo intentar Meltwater si no hay cache y es la primera vez
-    if (!cached) {
-      console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (primera vez)`);
+    const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
+      method: "POST",
+      headers: {
+        apikey: MELTWATER_TOKEN,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tz: "America/Montevideo",
+        start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
+        end: end,
+        limit: 1000,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const documents = data.result?.documents || [];
       
-      // Implementar delay para evitar saturar la API
-      await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 2000));
+      console.log(`✅ Meltwater exitoso: ${documents.length} artículos obtenidos`);
       
-      const now = new Date();
-      const end = now.toISOString().slice(0, 19);
-
-      const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
-        method: "POST",
-        headers: {
-          apikey: MELTWATER_TOKEN,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tz: "America/Montevideo",
-          start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-          end: end,
-          limit: 1000,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const documents = data.result?.documents || [];
-        
-        console.log(`✅ Meltwater exitoso: ${documents.length} artículos obtenidos`);
-        
-        // Si Meltwater devuelve pocos artículos, combinar con fallback
-        if (documents.length < 50) {
-          console.log(`⚠️  Meltwater devolvió pocos artículos (${documents.length}), combinando con fallback`);
-          const fallbackDocuments = generateFallbackData(searchId);
-          const combinedDocuments = [...documents, ...fallbackDocuments];
-          await CacheService.saveCachedArticles(searchId, combinedDocuments, true);
-          return { result: { documents: combinedDocuments } };
-        }
-        
+      // Solo usar datos reales de Meltwater, sin fallback
+      if (documents.length > 0) {
         // Guardar en cache
         await CacheService.saveCachedArticles(searchId, documents, true);
         return { result: { documents: documents } };
       } else {
-        console.log(`⚠️  Error de Meltwater: ${res.status}`);
+        console.log(`⚠️  Meltwater devolvió 0 artículos para searchId: ${searchId}`);
       }
     } else {
-      console.log(`📦 Usando cache existente para searchId: ${searchId} (${cached.articles.length} artículos)`);
-      return { result: { documents: cached.articles } };
+      console.log(`⚠️  Error de Meltwater: ${res.status}`);
     }
   } catch (error) {
     console.log(`⚠️  Error en Meltwater: ${error.message}`);
   }
 
-  // Si Meltwater falla o no hay cache, usar fallback mejorado
-  console.log(`🔄 Usando fallback para searchId: ${searchId}`);
+  // Solo usar fallback si Meltwater falla completamente
+  console.log(`🔄 Meltwater falló, usando fallback para searchId: ${searchId}`);
   const fallbackDocuments = generateFallbackData(searchId);
   
   // Guardar fallback en cache

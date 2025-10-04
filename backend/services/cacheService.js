@@ -2,8 +2,8 @@ const CachedNews = require("../models/cachedNews");
 const { generateFallbackData } = require("../routes/news");
 
 class CacheService {
-  // Obtener artículos del cache con estrategia más agresiva
-  static async getCachedArticles(searchId, maxAgeHours = 48) {
+  // Obtener artículos del cache con estrategia balanceada
+  static async getCachedArticles(searchId, maxAgeHours = 6) {
     try {
       const cached = await CachedNews.findOne({ searchId });
       
@@ -14,7 +14,7 @@ class CacheService {
 
       const ageHours = (Date.now() - cached.lastUpdated) / (1000 * 60 * 60);
       
-      // Estrategia más agresiva: usar cache hasta 48 horas para reducir peticiones
+      // Estrategia balanceada: usar cache por 6 horas para obtener datos frescos
       if (ageHours > maxAgeHours) {
         console.log(`📦 Cache expirado para ${searchId} (${ageHours.toFixed(1)} horas)`);
         return null;
