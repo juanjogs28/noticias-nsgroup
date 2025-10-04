@@ -230,12 +230,23 @@ async function getSearchResults(searchId) {
   const CacheService = require("../services/cacheService");
   
   try {
-    // Intentar obtener del cache primero
-    const cachedArticles = await CacheService.getCachedArticles(searchId, 24); // 24 horas de cache
+    // TEMPORAL: Saltar caché para forzar datos reales de Meltwater
+    console.log(`🔍 Saltando caché para forzar datos reales de Meltwater (searchId: ${searchId})`);
     
+    // Verificar si el caché tiene datos de Meltwater reales
+    const cachedArticles = await CacheService.getCachedArticles(searchId, 24);
     if (cachedArticles && cachedArticles.length > 0) {
-      console.log(`📦 Usando cache para searchId: ${searchId} (${cachedArticles.length} artículos)`);
-      return { result: { documents: cachedArticles } };
+      // Verificar si son datos reales de Meltwater
+      const isFromMeltwater = cachedArticles.some(article => 
+        article.id && !article.id.startsWith('fallback_') && !article.id.startsWith('social_')
+      );
+      
+      if (isFromMeltwater) {
+        console.log(`📦 Usando cache REAL de Meltwater para searchId: ${searchId} (${cachedArticles.length} artículos)`);
+        return { result: { documents: cachedArticles } };
+      } else {
+        console.log(`⚠️  Cache contiene datos ficticios, forzando nueva petición a Meltwater`);
+      }
     }
 
     // Si no hay cache, hacer múltiples peticiones con diferentes rangos de fechas
