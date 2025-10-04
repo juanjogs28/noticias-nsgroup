@@ -2,8 +2,8 @@ const CachedNews = require("../models/cachedNews");
 const { generateFallbackData } = require("../routes/news");
 
 class CacheService {
-  // Obtener artículos del cache
-  static async getCachedArticles(searchId, maxAgeHours = 24) {
+  // Obtener artículos del cache con estrategia más agresiva
+  static async getCachedArticles(searchId, maxAgeHours = 48) {
     try {
       const cached = await CachedNews.findOne({ searchId });
       
@@ -14,6 +14,7 @@ class CacheService {
 
       const ageHours = (Date.now() - cached.lastUpdated) / (1000 * 60 * 60);
       
+      // Estrategia más agresiva: usar cache hasta 48 horas para reducir peticiones
       if (ageHours > maxAgeHours) {
         console.log(`📦 Cache expirado para ${searchId} (${ageHours.toFixed(1)} horas)`);
         return null;
@@ -67,6 +68,38 @@ class CacheService {
     await this.saveCachedArticles(searchId, fallbackArticles, false);
     
     return fallbackArticles;
+  }
+
+  // Obtener artículos con límite aumentado para más contenido
+  static async getCachedArticlesWithLimit(searchId, maxAgeHours = 48, minArticles = 100) {
+    try {
+      const cached = await CachedNews.findOne({ searchId });
+      
+      if (!cached) {
+        console.log(`📦 No hay cache para searchId: ${searchId}`);
+        return null;
+      }
+
+      const ageHours = (Date.now() - cached.lastUpdated) / (1000 * 60 * 60);
+      
+      if (ageHours > maxAgeHours) {
+        console.log(`📦 Cache expirado para ${searchId} (${ageHours.toFixed(1)} horas)`);
+        return null;
+      }
+
+      // Si tenemos suficientes artículos en cache, devolverlos
+      if (cached.articles && cached.articles.length >= minArticles) {
+        console.log(`📦 Cache válido para ${searchId} (${ageHours.toFixed(1)} horas, ${cached.totalArticles} artículos)`);
+        return cached.articles;
+      }
+
+      // Si no hay suficientes artículos, devolver null para forzar actualización
+      console.log(`📦 Cache insuficiente para ${searchId} (${cached.totalArticles} < ${minArticles} artículos)`);
+      return null;
+    } catch (error) {
+      console.error("Error obteniendo cache:", error);
+      return null;
+    }
   }
 
   // Limpiar cache expirado

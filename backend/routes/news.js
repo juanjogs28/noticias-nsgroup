@@ -31,7 +31,7 @@ function generateFallbackData(searchId) {
   const fallbackArticles = [
     {
       id: `fallback_${searchId}_1`,
-      url: "https://www.elobservador.com.uy/noticia-importante-pais",
+      url: "#",
       published_date: new Date().toISOString(),
       source: { name: "El Observador" },
       content: {
@@ -42,7 +42,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_2`,
-      url: "https://www.montecarlo.com.uy/desarrollo-sostenible-pais",
+      url: "#",
       published_date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "Monte Carlo Television" },
       content: {
@@ -53,7 +53,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_3`,
-      url: "https://www.elpais.com.uy/tendencias-emergentes-pais",
+      url: "#",
       published_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "El País" },
       content: {
@@ -64,7 +64,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_4`,
-      url: "https://ladiaria.com.uy/innovacion-tecnologica-pais",
+      url: "#",
       published_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "La Diaria" },
       content: {
@@ -75,7 +75,7 @@ function generateFallbackData(searchId) {
     },
     {
       id: `fallback_${searchId}_5`,
-      url: "https://brecha.com.uy/perspectivas-crecimiento-pais",
+      url: "#",
       published_date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: "Brecha" },
       content: {
@@ -151,15 +151,15 @@ function generateFallbackData(searchId) {
     "Empleo", "Formación", "Investigación", "Desarrollo regional", "Integración", "Calidad", "Eficiencia"
   ];
   
-  // Generar 40 artículos adicionales para llegar a 50 total
-  for (let i = 11; i <= 50; i++) {
+  // Generar 90 artículos adicionales para llegar a 100 total
+  for (let i = 11; i <= 100; i++) {
     const randomSource = sources[Math.floor(Math.random() * sources.length)];
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
     const daysAgo = Math.floor(Math.random() * 30); // Últimos 30 días
     
     additionalArticles.push({
       id: `fallback_${searchId}_${i}`,
-      url: `https://www.${randomSource.toLowerCase().replace(' ', '')}.com.uy/articulo-${i}`,
+      url: "#",
       published_date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: randomSource },
       content: {
@@ -179,15 +179,15 @@ function generateFallbackData(searchId) {
     "Engagement", "Viral", "Hashtags", "Trending", "Social media"
   ];
   
-  // Generar 20 artículos de redes sociales
-  for (let i = 1; i <= 20; i++) {
+  // Generar 50 artículos de redes sociales
+  for (let i = 1; i <= 50; i++) {
     const randomSource = socialSources[Math.floor(Math.random() * socialSources.length)];
     const randomTopic = socialTopics[Math.floor(Math.random() * socialTopics.length)];
     const daysAgo = Math.floor(Math.random() * 7); // Últimos 7 días
     
     socialMediaArticles.push({
       id: `social_${searchId}_${i}`,
-      url: `https://www.${randomSource.toLowerCase()}.com/post-${i}`,
+      url: "#",
       published_date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
       source: { name: randomSource },
       content: {
@@ -208,33 +208,36 @@ async function getSearchResults(searchId) {
   const CacheService = require("../services/cacheService");
   
   try {
-    // Intentar obtener del cache primero
-    const cachedArticles = await CacheService.getCachedArticles(searchId, 24); // 24 horas de cache
+    // Intentar obtener del cache primero con límite aumentado (100 artículos mínimo)
+    const cachedArticles = await CacheService.getCachedArticlesWithLimit(searchId, 48, 100);
     
     if (cachedArticles && cachedArticles.length > 0) {
       console.log(`📦 Usando cache para searchId: ${searchId} (${cachedArticles.length} artículos)`);
       return { result: { documents: cachedArticles } };
     }
 
-    // Si no hay cache, intentar Meltwater con rate limiting respetuoso
-    console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (sin cache)`);
+    // Si no hay cache suficiente, intentar Meltwater con rate limiting respetuoso
+    console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (sin cache suficiente)`);
     
-  const now = new Date();
-  const end = now.toISOString().slice(0, 19);
+    // Implementar delay para evitar saturar la API
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+    
+    const now = new Date();
+    const end = now.toISOString().slice(0, 19);
 
-  const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
-    method: "POST",
-    headers: {
-      apikey: MELTWATER_TOKEN,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      tz: "America/Montevideo",
+    const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
+      method: "POST",
+      headers: {
+        apikey: MELTWATER_TOKEN,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tz: "America/Montevideo",
         start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
         end: end,
-        limit: 500,
-    }),
-  });
+        limit: 1000, // Aumentar límite para obtener más artículos
+      }),
+    });
 
     if (res.ok) {
       const data = await res.json();
@@ -253,7 +256,7 @@ async function getSearchResults(searchId) {
     console.log(`⚠️  Error en Meltwater: ${error.message}`);
   }
 
-  // Si Meltwater falla, usar fallback
+  // Si Meltwater falla, usar fallback mejorado
   console.log(`🔄 Usando fallback para searchId: ${searchId}`);
   const fallbackDocuments = generateFallbackData(searchId);
   

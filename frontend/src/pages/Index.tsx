@@ -1003,7 +1003,7 @@ export default function Index() {
         if (email) {
           const response = await axios.post<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { 
             email,
-            limit: 50  // Solicitar 50 artículos para cada sección
+            limit: 100  // Solicitar 100 artículos para cada sección
           });
           if (response.data.success) {
             // Log de la respuesta cruda de la API

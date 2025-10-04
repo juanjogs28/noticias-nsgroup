@@ -3,6 +3,8 @@ import axios from "axios";
 import NewsList from "./newsList";
 import SectionSkeleton from "./SectionSkeleton";
 import { buildApiUrl, API_CONFIG } from "../../config/api";
+import { usePagination } from "../../hooks/usePagination";
+import LoadMoreButton from "./LoadMoreButton";
 
 interface RawMeltwaterDocument {
   content: string | { title?: string; summary?: string; image?: string };
@@ -178,12 +180,18 @@ export default function PersonalizedNews() {
   const [engagementArticles, setEngagementArticles] = useState<Article[]>([]);
   const [sectorArticles, setSectorArticles] = useState<Article[]>([]);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [shownArticles, setShownArticles] = useState<Set<string>>(new Set());
   
   // Sets separados para cada sección
   const [shownSectorArticles, setShownSectorArticles] = useState<Set<string>>(new Set());
   const [shownEcosocialArticles, setShownEcosocialArticles] = useState<Set<string>>(new Set());
   const [shownEngagementArticles, setShownEngagementArticles] = useState<Set<string>>(new Set());
+
+  // Paginación para cada sección
+  const ecosocialPagination = usePagination({ initialPageSize: 15, maxPageSize: 50 });
+  const engagementPagination = usePagination({ initialPageSize: 15, maxPageSize: 50 });
+  const sectorPagination = usePagination({ initialPageSize: 15, maxPageSize: 50 });
 
   useEffect(() => {
     const email = localStorage.getItem("userEmail");
@@ -207,6 +215,11 @@ export default function PersonalizedNews() {
         setShownSectorArticles(new Set());
         setShownEcosocialArticles(new Set());
         setShownEngagementArticles(new Set());
+        
+        // Resetear paginación
+        ecosocialPagination.resetPagination();
+        engagementPagination.resetPagination();
+        sectorPagination.resetPagination();
         
         // Debug logging
         const sectorFiltered = adaptResults(res.data.sector || []);
@@ -314,7 +327,12 @@ export default function PersonalizedNews() {
                 Información especializada y análisis del sector empresarial
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(sectorArticles, shownSectorArticles, 50)} title="Noticias Sectoriales" />
+            <NewsList articles={getUniqueTopArticles(sectorPagination.getPaginatedItems(sectorArticles), shownSectorArticles, 50)} title="Noticias Sectoriales" />
+            <LoadMoreButton 
+              onClick={() => sectorPagination.increasePageSize()}
+              loading={loading}
+              hasMore={sectorPagination.hasMore(sectorArticles)}
+            />
           </section>
         )}
 
@@ -334,7 +352,12 @@ export default function PersonalizedNews() {
                 Análisis y reportes de la situación económica y empresarial nacional
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(ecosocialArticles, shownEcosocialArticles, 50)} title="Impacto Social" />
+            <NewsList articles={getUniqueTopArticles(ecosocialPagination.getPaginatedItems(ecosocialArticles), shownEcosocialArticles, 50)} title="Impacto Social" />
+            <LoadMoreButton 
+              onClick={() => ecosocialPagination.increasePageSize()}
+              loading={loading}
+              hasMore={ecosocialPagination.hasMore(ecosocialArticles)}
+            />
           </section>
         )}
 
@@ -354,7 +377,12 @@ export default function PersonalizedNews() {
                 Contenido con mayor impacto y participación de la audiencia
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(engagementArticles, shownEngagementArticles, 50)} title="Alto Engagement" />
+            <NewsList articles={getUniqueTopArticles(engagementPagination.getPaginatedItems(engagementArticles), shownEngagementArticles, 50)} title="Alto Engagement" />
+            <LoadMoreButton 
+              onClick={() => engagementPagination.increasePageSize()}
+              loading={loading}
+              hasMore={engagementPagination.hasMore(engagementArticles)}
+            />
           </section>
         )}
       </main>
