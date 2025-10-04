@@ -125,6 +125,30 @@ class CacheService {
       return false;
     }
   }
+
+  // Limpiar todo el caché para forzar nuevas peticiones a Meltwater
+  static async clearAllCache() {
+    try {
+      const result = await CachedNews.deleteMany({});
+      console.log(`🧹 Cache completamente limpiado: ${result.deletedCount} entradas eliminadas`);
+      return result.deletedCount;
+    } catch (error) {
+      console.error("Error limpiando todo el cache:", error);
+      return 0;
+    }
+  }
+
+  // Limpiar caché de fallback (solo datos ficticios)
+  static async clearFallbackCache() {
+    try {
+      const result = await CachedNews.deleteMany({ isFromMeltwater: false });
+      console.log(`🧹 Cache de fallback limpiado: ${result.deletedCount} entradas eliminadas`);
+      return result.deletedCount;
+    } catch (error) {
+      console.error("Error limpiando cache de fallback:", error);
+      return 0;
+    }
+  }
 }
 
 module.exports = CacheService;

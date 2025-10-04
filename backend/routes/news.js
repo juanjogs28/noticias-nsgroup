@@ -486,4 +486,60 @@ router.post("/personalized", async (req, res) => {
   }
 });
 
+// GET /api/news/clear-cache - Limpiar caché y forzar nuevas peticiones
+router.get("/clear-cache", async (req, res) => {
+  try {
+    await ensureConnection();
+    
+    const CacheService = require("../services/cacheService");
+    
+    // Limpiar todo el caché
+    const deletedCount = await CacheService.clearAllCache();
+    
+    console.log(`🧹 Cache limpiado: ${deletedCount} entradas eliminadas`);
+    
+    res.json({
+      success: true,
+      message: `Cache limpiado exitosamente. ${deletedCount} entradas eliminadas.`,
+      deletedCount: deletedCount,
+      note: "Las próximas peticiones intentarán obtener datos reales de Meltwater"
+    });
+  } catch (error) {
+    console.error("❌ Error limpiando cache:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error limpiando cache",
+      error: error.message
+    });
+  }
+});
+
+// GET /api/news/clear-fallback - Limpiar solo caché de fallback
+router.get("/clear-fallback", async (req, res) => {
+  try {
+    await ensureConnection();
+    
+    const CacheService = require("../services/cacheService");
+    
+    // Limpiar solo caché de fallback
+    const deletedCount = await CacheService.clearFallbackCache();
+    
+    console.log(`🧹 Cache de fallback limpiado: ${deletedCount} entradas eliminadas`);
+    
+    res.json({
+      success: true,
+      message: `Cache de fallback limpiado exitosamente. ${deletedCount} entradas eliminadas.`,
+      deletedCount: deletedCount,
+      note: "Se mantienen los datos reales de Meltwater en caché"
+    });
+  } catch (error) {
+    console.error("❌ Error limpiando cache de fallback:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error limpiando cache de fallback",
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
