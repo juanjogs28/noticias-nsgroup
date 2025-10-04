@@ -256,11 +256,13 @@ async function getSearchResults(searchId) {
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     
-    // Definir rangos de fechas para múltiples peticiones
+    // Definir rangos de fechas más amplios para múltiples peticiones
     const dateRanges = [
+      { days: 3, name: "últimos 3 días" },
       { days: 7, name: "última semana" },
       { days: 14, name: "últimas 2 semanas" },
-      { days: 30, name: "último mes" }
+      { days: 30, name: "último mes" },
+      { days: 60, name: "últimos 2 meses" }
     ];
     
     for (let i = 0; i < dateRanges.length; i++) {
@@ -268,12 +270,12 @@ async function getSearchResults(searchId) {
       
       // Delay progresivo entre peticiones para evitar saturación
       if (i > 0) {
-        const delay = 2000 + (i * 1000) + Math.random() * 2000; // 2-5 segundos entre peticiones
+        const delay = 1500 + (i * 500) + Math.random() * 1500; // 1.5-4 segundos entre peticiones
         console.log(`⏳ Esperando ${Math.round(delay/1000)}s antes de próxima petición...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
       
-      console.log(`🔍 Petición ${i + 1}/3: ${range.name} (${range.days} días)`);
+      console.log(`🔍 Petición ${i + 1}/5: ${range.name} (${range.days} días)`);
       
       try {
         const startDate = new Date(now.getTime() - range.days * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
@@ -288,7 +290,7 @@ async function getSearchResults(searchId) {
             tz: "America/Montevideo",
             start: startDate,
             end: end,
-            limit: 500, // Reducir límite por petición para evitar saturación
+            limit: 800, // Aumentar límite por petición para más artículos
           }),
         });
 
@@ -307,7 +309,7 @@ async function getSearchResults(searchId) {
           console.log(`📊 Total acumulado: ${allDocuments.length} artículos únicos`);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
-          if (allDocuments.length >= 100) {
+          if (allDocuments.length >= 200) {
             console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
             break;
           }
@@ -321,6 +323,49 @@ async function getSearchResults(searchId) {
 
     if (allDocuments.length > 0) {
       console.log(`✅ Meltwater múltiple exitoso: ${allDocuments.length} artículos únicos obtenidos`);
+      
+      // Si tenemos pocos artículos, intentar peticiones adicionales con diferentes parámetros
+      if (allDocuments.length < 50) {
+        console.log(`🔄 Pocos artículos obtenidos (${allDocuments.length}), intentando peticiones adicionales...`);
+        
+        // Petición adicional con rango más amplio
+        try {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          const extendedStart = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
+          console.log(`🔍 Petición adicional: últimos 90 días`);
+          
+          const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
+            method: "POST",
+            headers: {
+              apikey: MELTWATER_TOKEN,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              tz: "America/Montevideo",
+              start: extendedStart,
+              end: end,
+              limit: 1000,
+            }),
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const documents = data.result?.documents || [];
+            
+            console.log(`✅ Petición adicional exitosa: ${documents.length} artículos obtenidos`);
+            
+            const newDocuments = documents.filter(doc => 
+              !allDocuments.some(existing => existing.id === doc.id)
+            );
+            
+            allDocuments.push(...newDocuments);
+            console.log(`📊 Total final: ${allDocuments.length} artículos únicos`);
+          }
+        } catch (error) {
+          console.log(`⚠️  Error en petición adicional: ${error.message}`);
+        }
+      }
       
       // Guardar en cache
       await CacheService.saveCachedArticles(searchId, allDocuments, true);
