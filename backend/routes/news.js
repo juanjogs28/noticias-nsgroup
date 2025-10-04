@@ -238,52 +238,91 @@ async function getSearchResults(searchId) {
       return { result: { documents: cachedArticles } };
     }
 
-    // Si no hay cache, intentar Meltwater
-    console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (sin cache)`);
+    // Si no hay cache, hacer múltiples peticiones con diferentes rangos de fechas
+    console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (sin cache) - estrategia múltiple`);
     
-    // Implementar delay para evitar saturar la API
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
-    
+    const allDocuments = [];
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
-
-    const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
-      method: "POST",
-      headers: {
-        apikey: MELTWATER_TOKEN,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        tz: "America/Montevideo",
-        start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19),
-        end: end,
-        limit: 1000,
-      }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      const documents = data.result?.documents || [];
+    
+    // Definir rangos de fechas para múltiples peticiones
+    const dateRanges = [
+      { days: 7, name: "última semana" },
+      { days: 14, name: "últimas 2 semanas" },
+      { days: 30, name: "último mes" }
+    ];
+    
+    for (let i = 0; i < dateRanges.length; i++) {
+      const range = dateRanges[i];
       
-      console.log(`✅ Meltwater exitoso: ${documents.length} artículos obtenidos`);
-      
-      // Solo usar datos reales de Meltwater, sin fallback
-      if (documents.length > 0) {
-        // Guardar en cache
-        await CacheService.saveCachedArticles(searchId, documents, true);
-        return { result: { documents: documents } };
-      } else {
-        console.log(`⚠️  Meltwater devolvió 0 artículos para searchId: ${searchId}`);
+      // Delay progresivo entre peticiones para evitar saturación
+      if (i > 0) {
+        const delay = 2000 + (i * 1000) + Math.random() * 2000; // 2-5 segundos entre peticiones
+        console.log(`⏳ Esperando ${Math.round(delay/1000)}s antes de próxima petición...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
+      
+      console.log(`🔍 Petición ${i + 1}/3: ${range.name} (${range.days} días)`);
+      
+      try {
+        const startDate = new Date(now.getTime() - range.days * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
+        
+        const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
+          method: "POST",
+          headers: {
+            apikey: MELTWATER_TOKEN,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            tz: "America/Montevideo",
+            start: startDate,
+            end: end,
+            limit: 500, // Reducir límite por petición para evitar saturación
+          }),
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const documents = data.result?.documents || [];
+          
+          console.log(`✅ Petición ${i + 1} exitosa: ${documents.length} artículos obtenidos`);
+          
+          // Agregar documentos únicos (evitar duplicados)
+          const newDocuments = documents.filter(doc => 
+            !allDocuments.some(existing => existing.id === doc.id)
+          );
+          
+          allDocuments.push(...newDocuments);
+          console.log(`📊 Total acumulado: ${allDocuments.length} artículos únicos`);
+          
+          // Si ya tenemos suficientes artículos, no hacer más peticiones
+          if (allDocuments.length >= 100) {
+            console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
+            break;
+          }
+        } else {
+          console.log(`⚠️  Error en petición ${i + 1}: ${res.status}`);
+        }
+      } catch (error) {
+        console.log(`⚠️  Error en petición ${i + 1}: ${error.message}`);
+      }
+    }
+
+    if (allDocuments.length > 0) {
+      console.log(`✅ Meltwater múltiple exitoso: ${allDocuments.length} artículos únicos obtenidos`);
+      
+      // Guardar en cache
+      await CacheService.saveCachedArticles(searchId, allDocuments, true);
+      return { result: { documents: allDocuments } };
     } else {
-      console.log(`⚠️  Error de Meltwater: ${res.status}`);
+      console.log(`⚠️  Todas las peticiones de Meltwater fallaron o devolvieron 0 artículos`);
     }
   } catch (error) {
-    console.log(`⚠️  Error en Meltwater: ${error.message}`);
+    console.log(`⚠️  Error en Meltwater múltiple: ${error.message}`);
   }
 
-  // Solo usar fallback si Meltwater falla completamente
-  console.log(`🔄 Meltwater falló, usando fallback para searchId: ${searchId}`);
+  // Solo usar fallback si todas las peticiones de Meltwater fallan
+  console.log(`🔄 Meltwater múltiple falló, usando fallback para searchId: ${searchId}`);
   const fallbackDocuments = generateFallbackData(searchId);
   
   // Guardar fallback en cache
