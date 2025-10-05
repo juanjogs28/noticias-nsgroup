@@ -1,0 +1,31 @@
+[33m68de2c3[m fix: Arreglar URLs de fallback para que sean realistas
+[33m4da5c52[m fix: Solucionar problemas de imágenes y redes sociales
+[33m885f84c[m feat: Implementar sistema de cache inteligente para prevenir rate limiting
+[33m4249db2[m feat: Aumentar drásticamente artículos de fallback para igualar números anteriores
+[33m528aa2f[m feat: Aumentar artículos de fallback de 5 a 10 por categoría
+[33ma56ff74[m feat: Implementar sistema de fallback para rate limiting de Meltwater
+[33m9215314[m fix: Estrategia ultra-simplificada para evitar rate limiting extremo
+[33m8783423[m fix: Resolver rate limiting de Meltwater API (error 429)
+[33mb3efb12[m fix: Reducir estrategia masiva para evitar timeouts
+[33m8c90aae[m feat: Estrategia masiva x3 para superar límites de Meltwater
+[33m285faaf[m fix: Agregar filtrado de redes sociales en personalizedNews
+[33mad3248d[m feat: Aumentar a 12 rangos de fechas para máxima cobertura
+[33mb0e74b9[m feat: Estrategia masiva para compensar filtrado del frontend
+[33m4d9c8fb[m fix: Eliminar filtro restrictivo de redes sociales
+[33mce830e2[m fix: Simplificar lógica de separación y aumentar límites
+[33m247473a[m fix: Separar deduplicación por sección para mostrar más artículos
+[33m981d488[m fix: Aumentar límite de artículos mostrados en frontend
+[33m9b44dfe[m feat: Expandir estrategia de múltiples requests para 50+ artículos
+[33m34884ce[m feat: Implementar estrategia de múltiples requests para más noticias
+[33medfd681[m fix: Forzar URL correcta de Railway en frontend
+[33ma9e43da[m fix: Corregir Dockerfile para Railway
+[33m1e5a431[m fix: Actualizar URL de API en frontend
+[33m08d18e9[m fix: Agregar Dockerfile y configuración NIXPACKS para Railway
+[33m111af07[m fix: Forzar servidor a escuchar en 0.0.0.0 para Railway
+[33mdcad7e6[m fix: Corregir errores de deployment en Railway
+[33mdcdf0d6[m fix: Mejorar detección de puerto para Railway
+[33mafdb7f2[m fix: Forzar uso del puerto de Railway
+[33m07ec014[m fix: Mejorar configuración Railway y documentar variables
+[33m042d894[m fix: Configurar puerto dinámico y endpoint de prueba
+[33m49f7ce9[m fix: Simplificar configuración Railway
+[33mdac679d[m fix: Configuración Railway para migración entre cuentas

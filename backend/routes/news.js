@@ -259,19 +259,26 @@ async function getSearchResults(searchId) {
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     
-    // Definir rangos de fechas optimizados para menos peticiones
+    // Definir rangos de fechas agresivos para máxima cobertura
     const dateRanges = [
+      { days: 1, name: "último día" },
+      { days: 3, name: "últimos 3 días" },
       { days: 7, name: "última semana" },
+      { days: 14, name: "últimas 2 semanas" },
       { days: 30, name: "último mes" },
-      { days: 60, name: "últimos 2 meses" }
+      { days: 60, name: "últimos 2 meses" },
+      { days: 90, name: "últimos 3 meses" }
     ];
     
     for (let i = 0; i < dateRanges.length; i++) {
       const range = dateRanges[i];
       
-      // Delay mínimo entre peticiones para evitar saturación
+      // Delay inteligente entre peticiones para evitar saturación
       if (i > 0) {
-        const delay = 500 + Math.random() * 1000; // 0.5-1.5 segundos entre peticiones
+        // Delay progresivo: más tiempo entre peticiones conforme avanzamos
+        const baseDelay = 800 + (i * 200); // 0.8s, 1.0s, 1.2s, 1.4s, 1.6s, 1.8s, 2.0s
+        const randomDelay = Math.random() * 400; // 0-0.4s aleatorio
+        const delay = baseDelay + randomDelay;
         console.log(`⏳ Esperando ${Math.round(delay/1000)}s antes de próxima petición...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -291,7 +298,7 @@ async function getSearchResults(searchId) {
             tz: "America/Montevideo",
             start: startDate,
             end: end,
-            limit: 500, // Aumentar límite para compensar menos peticiones
+            limit: 800, // Límite alto para máxima cobertura
           }),
         });
 
@@ -310,7 +317,7 @@ async function getSearchResults(searchId) {
           console.log(`📊 Total acumulado: ${allDocuments.length} artículos únicos`);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
-          if (allDocuments.length >= 100) {
+          if (allDocuments.length >= 200) {
             console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
             break;
           }
@@ -378,14 +385,24 @@ async function getSearchResults(searchId) {
     console.log(`⚠️  Error en Meltwater múltiple: ${error.message}`);
   }
 
-  // Solo usar fallback si todas las peticiones de Meltwater fallan
-  console.log(`🔄 Meltwater múltiple falló, usando fallback para searchId: ${searchId}`);
-  const fallbackDocuments = generateFallbackData(searchId);
-  
-  // Guardar fallback en cache
-  await CacheService.saveCachedArticles(searchId, fallbackDocuments, false);
-  
-  return { result: { documents: fallbackDocuments } };
+    // Solo usar fallback si todas las peticiones de Meltwater fallan completamente
+    if (allDocuments.length === 0) {
+      console.log(`🔄 Meltwater falló completamente, usando fallback para searchId: ${searchId}`);
+      const fallbackDocuments = generateFallbackData(searchId);
+      
+      // Guardar fallback en cache
+      await CacheService.saveCachedArticles(searchId, fallbackDocuments, false);
+      
+      return { result: { documents: fallbackDocuments } };
+    } else {
+      // Si tenemos algunos artículos reales, usarlos y no usar fallback
+      console.log(`✅ Usando ${allDocuments.length} artículos reales de Meltwater (sin fallback)`);
+      
+      // Guardar artículos reales en cache
+      await CacheService.saveCachedArticles(searchId, allDocuments, true);
+      
+      return { result: { documents: allDocuments } };
+    }
 }
 
 // POST /api/news/personalized
