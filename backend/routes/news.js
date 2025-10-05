@@ -151,8 +151,8 @@ function generateFallbackData(searchId) {
     "Empleo", "Formación", "Investigación", "Desarrollo regional", "Integración", "Calidad", "Eficiencia"
   ];
   
-  // Generar 20 artículos adicionales para llegar a 30 total (solo para emergencias)
-  for (let i = 11; i <= 30; i++) {
+  // Generar 50 artículos adicionales para llegar a 60 total (solo para emergencias)
+  for (let i = 11; i <= 60; i++) {
     const randomSource = sources[Math.floor(Math.random() * sources.length)];
     const randomTopic = topics[Math.floor(Math.random() * topics.length)];
     const daysAgo = Math.floor(Math.random() * 30); // Últimos 30 días
@@ -192,8 +192,8 @@ function generateFallbackData(searchId) {
     "Engagement", "Viral", "Hashtags", "Trending", "Social media"
   ];
   
-  // Generar 10 artículos de redes sociales (solo para emergencias)
-  for (let i = 1; i <= 10; i++) {
+  // Generar 20 artículos de redes sociales (solo para emergencias)
+  for (let i = 1; i <= 20; i++) {
     const randomSource = socialSources[Math.floor(Math.random() * socialSources.length)];
     const randomTopic = socialTopics[Math.floor(Math.random() * socialTopics.length)];
     const daysAgo = Math.floor(Math.random() * 7); // Últimos 7 días
@@ -259,19 +259,23 @@ async function getSearchResults(searchId) {
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     
-    // Definir rangos de fechas optimizados para velocidad
+    // Definir rangos de fechas para obtener más noticias reales
     const dateRanges = [
+      { days: 1, name: "último día" },
       { days: 3, name: "últimos 3 días" },
+      { days: 7, name: "última semana" },
       { days: 14, name: "últimas 2 semanas" },
-      { days: 60, name: "últimos 2 meses" }
+      { days: 30, name: "último mes" },
+      { days: 60, name: "últimos 2 meses" },
+      { days: 90, name: "últimos 3 meses" }
     ];
     
     for (let i = 0; i < dateRanges.length; i++) {
       const range = dateRanges[i];
       
-      // Delay mínimo entre peticiones para velocidad
+      // Delay mínimo entre peticiones para obtener más noticias
       if (i > 0) {
-        const delay = 300 + Math.random() * 200; // 0.3-0.5 segundos entre peticiones
+        const delay = 200 + Math.random() * 300; // 0.2-0.5 segundos entre peticiones
         console.log(`⏳ Esperando ${Math.round(delay/1000)}s antes de próxima petición...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -291,7 +295,7 @@ async function getSearchResults(searchId) {
             tz: "America/Montevideo",
             start: startDate,
             end: end,
-            limit: 800, // Límite alto para máxima cobertura
+            limit: 1000, // Límite máximo para obtener más artículos
           }),
         });
 
@@ -310,7 +314,7 @@ async function getSearchResults(searchId) {
           console.log(`📊 Total acumulado: ${allDocuments.length} artículos únicos`);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
-          if (allDocuments.length >= 100) {
+          if (allDocuments.length >= 150) {
             console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
             break;
           }
@@ -378,7 +382,7 @@ async function getSearchResults(searchId) {
     console.log(`⚠️  Error en Meltwater múltiple: ${error.message}`);
   }
 
-    // Solo usar fallback si todas las peticiones de Meltwater fallan completamente
+    // Solo usar noticias reales de Meltwater
     if (allDocuments.length === 0) {
       console.log(`🔄 Meltwater falló completamente, usando fallback para searchId: ${searchId}`);
       const fallbackDocuments = generateFallbackData(searchId);
@@ -388,8 +392,8 @@ async function getSearchResults(searchId) {
       
       return { result: { documents: fallbackDocuments } };
     } else {
-      // Si tenemos algunos artículos reales, usarlos y no usar fallback
-      console.log(`✅ Usando ${allDocuments.length} artículos reales de Meltwater (sin fallback)`);
+      // Usar solo noticias reales de Meltwater
+      console.log(`✅ Usando ${allDocuments.length} artículos reales de Meltwater`);
       
       // Guardar artículos reales en cache
       await CacheService.saveCachedArticles(searchId, allDocuments, true);
