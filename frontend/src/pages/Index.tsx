@@ -403,103 +403,21 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   // Fuentes de medios tradicionales permitidas
   const allowedTraditionalSources = ['diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion', 'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'chicagotribune', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'];
   
-  // Filtrar artículos - SOLO medios tradicionales
+  // Filtrar artículos - Excluir solo redes sociales, incluir todo lo demás
   const filteredArticles = articles.filter(article => {
     const sourceName = article.source?.name?.toLowerCase() || '';
     
-    // Excluir redes sociales
+    // Solo excluir redes sociales explícitas
     const isSocialMedia = excludedSources.some(excludedSource => 
       sourceName.includes(excludedSource)
     );
     
-    // Incluir solo medios tradicionales
-    const isTraditional = allowedTraditionalSources.some(traditionalSource => 
-      sourceName.includes(traditionalSource)
-    );
-    
-    // También incluir si NO es red social y tiene características de medio tradicional
-    const hasTraditionalCharacteristics = !isSocialMedia && (
-      sourceName.includes('diario') || 
-      sourceName.includes('newspaper') || 
-      sourceName.includes('news') || 
-      sourceName.includes('radio') || 
-      sourceName.includes('tv') || 
-      sourceName.includes('television') || 
-      sourceName.includes('magazine') || 
-      sourceName.includes('journal') || 
-      sourceName.includes('press') || 
-      sourceName.includes('media') ||
-      sourceName.includes('pais') ||
-      sourceName.includes('nacion') ||
-      sourceName.includes('clarin') ||
-      sourceName.includes('lanacion') ||
-      sourceName.includes('infobae') ||
-      sourceName.includes('pagina12') ||
-      sourceName.includes('ambito') ||
-      sourceName.includes('cronista') ||
-      sourceName.includes('perfil') ||
-      sourceName.includes('telesur') ||
-      sourceName.includes('rt') ||
-      sourceName.includes('bbc') ||
-      sourceName.includes('cnn') ||
-      sourceName.includes('reuters') ||
-      sourceName.includes('ap') ||
-      sourceName.includes('afp') ||
-      sourceName.includes('efe') ||
-      sourceName.includes('ansa') ||
-      sourceName.includes('dpa') ||
-      sourceName.includes('xinhua') ||
-      sourceName.includes('ria') ||
-      sourceName.includes('itar') ||
-      sourceName.includes('tass') ||
-      sourceName.includes('sputnik') ||
-      sourceName.includes('aljazeera') ||
-      sourceName.includes('dw') ||
-      sourceName.includes('france24') ||
-      sourceName.includes('euronews') ||
-      sourceName.includes('sky') ||
-      sourceName.includes('itv') ||
-      sourceName.includes('channel4') ||
-      sourceName.includes('abc') ||
-      sourceName.includes('cbs') ||
-      sourceName.includes('nbc') ||
-      sourceName.includes('fox') ||
-      sourceName.includes('msnbc') ||
-      sourceName.includes('cnbc') ||
-      sourceName.includes('bloomberg') ||
-      sourceName.includes('wsj') ||
-      sourceName.includes('nytimes') ||
-      sourceName.includes('washingtonpost') ||
-      sourceName.includes('usatoday') ||
-      sourceName.includes('latimes') ||
-      sourceName.includes('chicagotribune') ||
-      sourceName.includes('bostonglobe') ||
-      sourceName.includes('philly') ||
-      sourceName.includes('dallasnews') ||
-      sourceName.includes('seattletimes') ||
-      sourceName.includes('denverpost') ||
-      sourceName.includes('azcentral') ||
-      sourceName.includes('miamiherald') ||
-      sourceName.includes('orlandosentinel') ||
-      sourceName.includes('sun') ||
-      sourceName.includes('baltimoresun') ||
-      sourceName.includes('chicagotribune') ||
-      sourceName.includes('dailypress') ||
-      sourceName.includes('hamptonroads') ||
-      sourceName.includes('pilotonline') ||
-      sourceName.includes('virginian') ||
-      sourceName.includes('pilot')
-    );
-    
-    // Restaurar filtro de redes sociales pero con más artículos del backend
-    const isIncluded = !isSocialMedia && (isTraditional || hasTraditionalCharacteristics);
+    const isIncluded = !isSocialMedia;
     
     if (isSocialMedia) {
       console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
-    } else if (isIncluded) {
-      console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
     } else {
-      console.log(`  ❌ Excluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`);
+      console.log(`  ✅ Incluido: ${article.title} | Fuente: ${article.source?.name}`);
     }
     
     return isIncluded;
