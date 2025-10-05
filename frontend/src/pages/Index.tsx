@@ -400,8 +400,134 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
   const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
   
-  // Fuentes de medios tradicionales permitidas
-  const allowedTraditionalSources = ['diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion', 'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'chicagotribune', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'];
+  // Fuentes de medios tradicionales permitidas - Lista expandida
+  const allowedTraditionalSources = [
+    // Palabras genéricas
+    'diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion',
+    
+    // Medios argentinos
+    'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'telefe', 'america', 'canal13', 'tn', 'c5n', 'a24', 'cnn', 'fox', 'tyc', 'espn', 'ole', 'tycsports', 'minutouno', 'lanacion', 'clarin', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'telefe', 'america', 'canal13', 'tn', 'c5n', 'a24', 'cnn', 'fox', 'tyc', 'espn', 'ole', 'tycsports', 'minutouno',
+    
+    // Medios uruguayos
+    'elpais', 'ovacion', 'montevideo', 'subrayado', 'canal4', 'canal10', 'teledoce', 'sai', 'elobservador', 'ladiaria', 'brecha', 'busqueda', 'republica', 'ultimasnoticias', 'elobservador', 'ladiaria', 'brecha', 'busqueda', 'republica', 'ultimasnoticias',
+    
+    // Medios brasileños
+    'globo', 'folha', 'estadao', 'g1', 'uol', 'ig', 'terra', 'r7', 'band', 'record', 'sbt', 'rede', 'tv', 'globo', 'folha', 'estadao', 'g1', 'uol', 'ig', 'terra', 'r7', 'band', 'record', 'sbt', 'rede',
+    
+    // Medios chilenos
+    'emol', 'latercera', 'mercurio', 'cooperativa', 'biobio', 'mega', 'chilevision', 'canal13', 'tvn', 'emol', 'latercera', 'mercurio', 'cooperativa', 'biobio', 'mega', 'chilevision', 'canal13', 'tvn',
+    
+    // Medios colombianos
+    'eltiempo', 'semana', 'elespectador', 'rcn', 'caracol', 'eltiempo', 'semana', 'elespectador', 'rcn', 'caracol',
+    
+    // Medios mexicanos
+    'reforma', 'jornada', 'universal', 'milenio', 'proceso', 'televisa', 'azteca', 'reforma', 'jornada', 'universal', 'milenio', 'proceso', 'televisa', 'azteca',
+    
+    // Medios españoles
+    'elpais', 'elmundo', 'abc', 'lavanguardia', 'elperiodico', 'publico', 'eldiario', 'elconfidencial', 'libertaddigital', 'okdiario', 'vozpopuli', 'elespanol', 'elmundo', 'abc', 'lavanguardia', 'elperiodico', 'publico', 'eldiario', 'elconfidencial', 'libertaddigital', 'okdiario', 'vozpopuli', 'elespanol',
+    
+    // Medios internacionales
+    'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot',
+    
+    // Medios franceses
+    'lemonde', 'lefigaro', 'liberation', 'franceinfo', 'france24', 'tf1', 'france2', 'france3', 'bfmtv', 'cnews', 'lemonde', 'lefigaro', 'liberation', 'franceinfo', 'france24', 'tf1', 'france2', 'france3', 'bfmtv', 'cnews',
+    
+    // Medios alemanes
+    'spiegel', 'zeit', 'faz', 'sueddeutsche', 'bild', 'welt', 'tagesschau', 'ard', 'zdf', 'spiegel', 'zeit', 'faz', 'sueddeutsche', 'bild', 'welt', 'tagesschau', 'ard', 'zdf',
+    
+    // Medios italianos
+    'corriere', 'repubblica', 'sole24ore', 'ansa', 'rai', 'mediaset', 'la7', 'corriere', 'repubblica', 'sole24ore', 'ansa', 'rai', 'mediaset', 'la7',
+    
+    // Medios británicos
+    'guardian', 'telegraph', 'independent', 'mirror', 'sun', 'daily', 'mail', 'times', 'ft', 'guardian', 'telegraph', 'independent', 'mirror', 'sun', 'daily', 'mail', 'times', 'ft',
+    
+    // Medios canadienses
+    'globeandmail', 'nationalpost', 'cbc', 'ctv', 'global', 'globeandmail', 'nationalpost', 'cbc', 'ctv', 'global',
+    
+    // Medios australianos
+    'sydney', 'herald', 'age', 'australian', 'abc', 'sbs', 'nine', 'seven', 'ten', 'sydney', 'herald', 'age', 'australian', 'abc', 'sbs', 'nine', 'seven', 'ten',
+    
+    // Medios japoneses
+    'asahi', 'yomiuri', 'mainichi', 'nikkei', 'nhk', 'asahi', 'yomiuri', 'mainichi', 'nikkei', 'nhk',
+    
+    // Medios coreanos
+    'chosun', 'joongang', 'donga', 'kbs', 'mbc', 'sbs', 'chosun', 'joongang', 'donga', 'kbs', 'mbc', 'sbs',
+    
+    // Medios chinos
+    'xinhua', 'people', 'china', 'daily', 'global', 'times', 'xinhua', 'people', 'china', 'daily', 'global', 'times',
+    
+    // Medios rusos
+    'rt', 'sputnik', 'tass', 'ria', 'rt', 'sputnik', 'tass', 'ria',
+    
+    // Medios árabes
+    'aljazeera', 'arab', 'news', 'gulf', 'times', 'khaleej', 'aljazeera', 'arab', 'news', 'gulf', 'times', 'khaleej',
+    
+    // Medios africanos
+    'allafrica', 'african', 'news', 'allafrica', 'african', 'news',
+    
+    // Medios indios
+    'times', 'india', 'hindu', 'indian', 'express', 'times', 'india', 'hindu', 'indian', 'express',
+    
+    // Medios brasileños adicionales
+    'veja', 'istoe', 'epoca', 'veja', 'istoe', 'epoca',
+    
+    // Medios argentinos adicionales
+    'noticias', 'argentinas', 'argentina', 'buenos', 'aires', 'noticias', 'argentinas', 'argentina', 'buenos', 'aires',
+    
+    // Medios uruguayos adicionales
+    'uruguay', 'montevideo', 'uruguay', 'montevideo',
+    
+    // Medios chilenos adicionales
+    'chile', 'santiago', 'chile', 'santiago',
+    
+    // Medios colombianos adicionales
+    'colombia', 'bogota', 'colombia', 'bogota',
+    
+    // Medios mexicanos adicionales
+    'mexico', 'mexico', 'df', 'mexico', 'df',
+    
+    // Medios españoles adicionales
+    'espana', 'madrid', 'barcelona', 'espana', 'madrid', 'barcelona',
+    
+    // Medios franceses adicionales
+    'france', 'paris', 'france', 'paris',
+    
+    // Medios alemanes adicionales
+    'deutschland', 'berlin', 'munich', 'deutschland', 'berlin', 'munich',
+    
+    // Medios italianos adicionales
+    'italia', 'roma', 'milano', 'italia', 'roma', 'milano',
+    
+    // Medios británicos adicionales
+    'uk', 'london', 'britain', 'uk', 'london', 'britain',
+    
+    // Medios canadienses adicionales
+    'canada', 'toronto', 'montreal', 'canada', 'toronto', 'montreal',
+    
+    // Medios australianos adicionales
+    'australia', 'sydney', 'melbourne', 'australia', 'sydney', 'melbourne',
+    
+    // Medios japoneses adicionales
+    'japan', 'tokyo', 'japan', 'tokyo',
+    
+    // Medios coreanos adicionales
+    'korea', 'seoul', 'korea', 'seoul',
+    
+    // Medios chinos adicionales
+    'china', 'beijing', 'shanghai', 'china', 'beijing', 'shanghai',
+    
+    // Medios rusos adicionales
+    'russia', 'moscow', 'russia', 'moscow',
+    
+    // Medios árabes adicionales
+    'arab', 'dubai', 'riyadh', 'arab', 'dubai', 'riyadh',
+    
+    // Medios africanos adicionales
+    'africa', 'johannesburg', 'cairo', 'africa', 'johannesburg', 'cairo',
+    
+    // Medios indios adicionales
+    'india', 'mumbai', 'delhi', 'india', 'mumbai', 'delhi'
+  ];
   
   // Filtrar artículos - Excluir solo redes sociales, incluir todo lo demás
   const filteredArticles = articles.filter(article => {
