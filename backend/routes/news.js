@@ -234,19 +234,19 @@ async function getSearchResults(searchId) {
     console.log(`🔍 Saltando caché para forzar datos reales de Meltwater (searchId: ${searchId})`);
     
     // Verificar si el caché tiene datos de Meltwater reales y suficientes
-    const cachedArticles = await CacheService.getCachedArticles(searchId, 24);
+    const cachedArticles = await CacheService.getCachedArticles(searchId, 6); // 6 horas de caché
     if (cachedArticles && cachedArticles.length > 0) {
       // Verificar si son datos reales de Meltwater
       const isFromMeltwater = cachedArticles.some(article => 
         article.id && !article.id.startsWith('fallback_') && !article.id.startsWith('social_')
       );
       
-      // Solo usar caché si tiene suficientes artículos (más de 20)
-      if (isFromMeltwater && cachedArticles.length >= 20) {
+      // Usar caché si tiene artículos reales (aunque sean pocos)
+      if (isFromMeltwater && cachedArticles.length >= 10) {
         console.log(`📦 Usando cache REAL de Meltwater para searchId: ${searchId} (${cachedArticles.length} artículos)`);
         return { result: { documents: cachedArticles } };
-      } else if (isFromMeltwater && cachedArticles.length < 20) {
-        console.log(`⚠️  Cache tiene pocos artículos reales (${cachedArticles.length} < 20), forzando nuevas peticiones`);
+      } else if (isFromMeltwater && cachedArticles.length < 10) {
+        console.log(`⚠️  Cache tiene pocos artículos reales (${cachedArticles.length} < 10), forzando nuevas peticiones`);
       } else {
         console.log(`⚠️  Cache contiene datos ficticios, forzando nueva petición a Meltwater`);
       }
@@ -259,12 +259,9 @@ async function getSearchResults(searchId) {
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     
-    // Definir rangos de fechas más amplios para múltiples peticiones
+    // Definir rangos de fechas optimizados para menos peticiones
     const dateRanges = [
-      { days: 1, name: "último día" },
-      { days: 3, name: "últimos 3 días" },
       { days: 7, name: "última semana" },
-      { days: 14, name: "últimas 2 semanas" },
       { days: 30, name: "último mes" },
       { days: 60, name: "últimos 2 meses" }
     ];
@@ -272,9 +269,9 @@ async function getSearchResults(searchId) {
     for (let i = 0; i < dateRanges.length; i++) {
       const range = dateRanges[i];
       
-      // Delay progresivo entre peticiones para evitar saturación
+      // Delay mínimo entre peticiones para evitar saturación
       if (i > 0) {
-        const delay = 2000 + (i * 1000) + Math.random() * 2000; // 2-8 segundos entre peticiones
+        const delay = 500 + Math.random() * 1000; // 0.5-1.5 segundos entre peticiones
         console.log(`⏳ Esperando ${Math.round(delay/1000)}s antes de próxima petición...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -294,7 +291,7 @@ async function getSearchResults(searchId) {
             tz: "America/Montevideo",
             start: startDate,
             end: end,
-            limit: 200, // Reducir límite para evitar timeouts y errores
+            limit: 500, // Aumentar límite para compensar menos peticiones
           }),
         });
 
@@ -313,7 +310,7 @@ async function getSearchResults(searchId) {
           console.log(`📊 Total acumulado: ${allDocuments.length} artículos únicos`);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
-          if (allDocuments.length >= 150) {
+          if (allDocuments.length >= 100) {
             console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
             break;
           }
