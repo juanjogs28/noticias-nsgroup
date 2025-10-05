@@ -1345,7 +1345,17 @@ export default function Index() {
           });
           
           const words: WordFrequency[] = Array.from(freqMap.entries()).map(([word, count]) => ({ word, count }));
-          if (words.length === 0) return null;
+          
+          // Debug para nubes de palabras
+          console.log('🔍 DEBUG NUBE DE PALABRAS:');
+          console.log(`  📊 Artículos del país: ${paisArticles.length}`);
+          console.log(`  📊 Palabras extraídas: ${words.length}`);
+          console.log(`  📊 Primeras 5 palabras:`, words.slice(0, 5));
+          
+          if (words.length === 0) {
+            console.log('⚠️  No hay palabras para nube de palabras');
+            return null;
+          }
           return (
             <div className="news-section">
               <div className="section-header-dashboard">
