@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { postWithRetry } from "../utils/axiosWithRetry";
 import NewsList from "../components/ui/newsList";
 import WordCloud, { WordFrequency } from "../components/ui/WordCloud";
 import SectionSkeleton from "../components/ui/SectionSkeleton";
@@ -954,7 +954,7 @@ export default function Index() {
 
         // Si hay parámetros de URL, usarlos directamente
         if (countryId || sectorId) {
-          const response = await axios.post<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
+          const response = await postWithRetry<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
             countryId,
             sectorId,
             limit: 50  // Solicitar 50 artículos para cada sección
@@ -1001,7 +1001,7 @@ export default function Index() {
         const email = emailParam || localStorage.getItem("userEmail");
         
         if (email) {
-          const response = await axios.post<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { 
+          const response = await postWithRetry<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { 
             email,
             limit: 100  // Solicitar 100 artículos para cada sección
           });
@@ -1042,7 +1042,7 @@ export default function Index() {
         }
 
         // Si no hay nada, cargar noticias por defecto
-        const response = await axios.post<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
+        const response = await postWithRetry<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
           email: "default"
         });
         

@@ -16,6 +16,17 @@ console.log('🔧 Configuración API:', {
   hasCustomUrl: !!import.meta.env.VITE_API_BASE_URL
 });
 
+// Configuración de axios con timeouts y retry
+export const AXIOS_CONFIG = {
+  timeout: 60000, // 60 segundos
+  retry: 3, // 3 intentos
+  retryDelay: 1000, // 1 segundo entre intentos
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
+};
+
 export const API_CONFIG = {
   BASE_URL: baseUrl,
   ENDPOINTS: {
