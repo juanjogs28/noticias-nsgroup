@@ -259,26 +259,19 @@ async function getSearchResults(searchId) {
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     
-    // Definir rangos de fechas agresivos para máxima cobertura
+    // Definir rangos de fechas optimizados para velocidad
     const dateRanges = [
-      { days: 1, name: "último día" },
       { days: 3, name: "últimos 3 días" },
-      { days: 7, name: "última semana" },
       { days: 14, name: "últimas 2 semanas" },
-      { days: 30, name: "último mes" },
-      { days: 60, name: "últimos 2 meses" },
-      { days: 90, name: "últimos 3 meses" }
+      { days: 60, name: "últimos 2 meses" }
     ];
     
     for (let i = 0; i < dateRanges.length; i++) {
       const range = dateRanges[i];
       
-      // Delay inteligente entre peticiones para evitar saturación
+      // Delay mínimo entre peticiones para velocidad
       if (i > 0) {
-        // Delay progresivo: más tiempo entre peticiones conforme avanzamos
-        const baseDelay = 800 + (i * 200); // 0.8s, 1.0s, 1.2s, 1.4s, 1.6s, 1.8s, 2.0s
-        const randomDelay = Math.random() * 400; // 0-0.4s aleatorio
-        const delay = baseDelay + randomDelay;
+        const delay = 300 + Math.random() * 200; // 0.3-0.5 segundos entre peticiones
         console.log(`⏳ Esperando ${Math.round(delay/1000)}s antes de próxima petición...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -317,7 +310,7 @@ async function getSearchResults(searchId) {
           console.log(`📊 Total acumulado: ${allDocuments.length} artículos únicos`);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
-          if (allDocuments.length >= 200) {
+          if (allDocuments.length >= 100) {
             console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
             break;
           }
