@@ -259,15 +259,13 @@ async function getSearchResults(searchId) {
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     
-    // Definir rangos de fechas para obtener más noticias reales
+    // Definir rangos de fechas más amplios para obtener más noticias reales
     const dateRanges = [
-      { days: 1, name: "último día" },
-      { days: 3, name: "últimos 3 días" },
       { days: 7, name: "última semana" },
-      { days: 14, name: "últimas 2 semanas" },
       { days: 30, name: "último mes" },
-      { days: 60, name: "últimos 2 meses" },
-      { days: 90, name: "últimos 3 meses" }
+      { days: 90, name: "últimos 3 meses" },
+      { days: 180, name: "últimos 6 meses" },
+      { days: 365, name: "último año" }
     ];
     
     for (let i = 0; i < dateRanges.length; i++) {
@@ -296,12 +294,27 @@ async function getSearchResults(searchId) {
             start: startDate,
             end: end,
             limit: 1000, // Límite máximo para obtener más artículos
+            // Agregar parámetros adicionales para obtener más resultados
+            language: "es", // Idioma español
+            content_type: "news", // Tipo de contenido
+            sort: "relevance", // Ordenar por relevancia
+            include_social: true, // Incluir redes sociales
+            include_blog: true, // Incluir blogs
+            include_forum: true // Incluir foros
           }),
         });
 
         if (res.ok) {
           const data = await res.json();
           const documents = data.result?.documents || [];
+          
+          // Debug detallado de la respuesta de Meltwater
+          console.log(`🔍 DEBUG MELTWATER - Petición ${i + 1}:`);
+          console.log(`  📊 Status: ${res.status}`);
+          console.log(`  📊 Respuesta completa:`, JSON.stringify(data, null, 2));
+          console.log(`  📊 Documentos encontrados: ${documents.length}`);
+          console.log(`  📊 Límite solicitado: 1000`);
+          console.log(`  📊 Rango: ${range.name} (${range.days} días)`);
           
           console.log(`✅ Petición ${i + 1} exitosa: ${documents.length} artículos obtenidos`);
           
