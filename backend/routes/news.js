@@ -241,14 +241,14 @@ async function getSearchResults(searchId) {
         article.id && !article.id.startsWith('fallback_') && !article.id.startsWith('social_')
       );
       
-      // Solo usar caché si tiene suficientes artículos reales
+      // Solo usar caché si tiene suficientes artículos reales (mínimo 50)
       if (isFromMeltwater && cachedArticles.length >= 50) {
         console.log(`📦 Usando cache REAL de Meltwater para searchId: ${searchId} (${cachedArticles.length} artículos)`);
         return { result: { documents: cachedArticles } };
-      } else if (isFromMeltwater && cachedArticles.length < 50) {
-        console.log(`⚠️  Cache tiene pocos artículos reales (${cachedArticles.length} < 50), forzando nuevas peticiones`);
       } else {
-        console.log(`⚠️  Cache contiene datos ficticios, forzando nueva petición a Meltwater`);
+        console.log(`⚠️  Cache insuficiente (${cachedArticles.length} < 50 artículos), forzando nuevas peticiones`);
+        // Limpiar caché insuficiente
+        await CacheService.clearCacheForSearchId(searchId);
       }
     }
 

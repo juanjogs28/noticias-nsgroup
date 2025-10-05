@@ -149,6 +149,18 @@ class CacheService {
       return 0;
     }
   }
+
+  // Limpiar caché para un searchId específico
+  static async clearCacheForSearchId(searchId) {
+    try {
+      const result = await CachedNews.deleteOne({ searchId });
+      console.log(`🧹 Cache limpiado para searchId: ${searchId} (${result.deletedCount} entradas eliminadas)`);
+      return result.deletedCount;
+    } catch (error) {
+      console.error("Error limpiando cache para searchId:", error);
+      return 0;
+    }
+  }
 }
 
 module.exports = CacheService;
