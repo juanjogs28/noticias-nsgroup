@@ -230,6 +230,9 @@ async function getSearchResults(searchId) {
   // Usar cache service para obtener artículos
   const CacheService = require("../services/cacheService");
   
+  // Declarar fuera del try para evitar referencia no definida en catch/fallback
+  let allDocuments = [];
+
   try {
     // TEMPORAL: Saltar caché para forzar datos reales de Meltwater
     console.log(`🔍 Saltando caché para forzar datos reales de Meltwater (searchId: ${searchId})`);
@@ -256,7 +259,7 @@ async function getSearchResults(searchId) {
     // Si no hay cache, hacer múltiples peticiones con diferentes rangos de fechas
     console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (sin cache) - estrategia múltiple`);
     
-    const allDocuments = [];
+    allDocuments = [];
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     

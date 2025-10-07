@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { postWithRetry } from "../utils/axiosWithRetry";
 import NewsList from "../components/ui/newsList";
 import WordCloud, { WordFrequency } from "../components/ui/WordCloud";
@@ -1038,7 +1039,7 @@ export default function Index() {
           if (searchName) {
             setSearchName(searchName);
           }
-          const response = await postWithRetry<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
+          const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
             countryId,
             sectorId,
             limit: 50  // Solicitar 50 artículos para cada sección
@@ -1085,7 +1086,7 @@ export default function Index() {
         const email = emailParam || localStorage.getItem("userEmail");
         
         if (email) {
-          const response = await postWithRetry<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { 
+          const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { 
             email,
             limit: 100  // Solicitar 100 artículos para cada sección
           });
@@ -1126,7 +1127,7 @@ export default function Index() {
         }
 
         // Si no hay nada, cargar noticias por defecto
-        const response = await postWithRetry<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
+        const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
           email: "default"
         });
         
@@ -1440,8 +1441,8 @@ export default function Index() {
               addWords(a.enrichments.keyphrases);
             } else {
               // Extraer palabras del título y contenido
-              const titleWords = extractWordsFromText(a.content?.title || '');
-              const contentWords = extractWordsFromText(a.content?.summary || '');
+              const titleWords = extractWordsFromText((a as any)?.content?.title || '');
+              const contentWords = extractWordsFromText((a as any)?.content?.summary || '');
               addWords([...titleWords, ...contentWords]);
             }
           });
