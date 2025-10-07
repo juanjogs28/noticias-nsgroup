@@ -992,11 +992,33 @@ export default function Index() {
     const loadNews = async () => {
       try {
         setLoading(true);
+        // Manejar URLs limpias y parámetros tradicionales
         const urlParams = new URLSearchParams(window.location.search);
         const emailParam = urlParams.get("email");
-        const countryId = urlParams.get("countryId");
-        const sectorId = urlParams.get("sectorId");
-        const searchName = urlParams.get("searchName");
+        let countryId = urlParams.get("countryId");
+        let sectorId = urlParams.get("sectorId");
+        let searchName = urlParams.get("searchName");
+        
+        // Si no hay parámetros en query, verificar si es una URL limpia
+        if (!countryId && !sectorId) {
+          const pathname = window.location.pathname;
+          const hash = window.location.hash;
+          
+          // Si hay un pathname personalizado (ej: /noticias-espana-tecnologia)
+          if (pathname && pathname !== '/' && pathname !== '/index.html') {
+            // Extraer nombre de búsqueda del pathname
+            const cleanPath = pathname.replace(/^\//, '').replace(/\/$/, '');
+            searchName = cleanPath.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            setSearchName(searchName);
+          }
+          
+          // Si hay hash con parámetros técnicos (ej: #c=ES&s=TECH)
+          if (hash && hash.startsWith('#')) {
+            const hashParams = new URLSearchParams(hash.substring(1));
+            countryId = hashParams.get('c');
+            sectorId = hashParams.get('s');
+          }
+        }
 
         // Si hay parámetros de URL, usarlos directamente
         if (countryId || sectorId) {

@@ -221,21 +221,44 @@ async function sendNewsletterToSubscriber(subscriber, searchInfo) {
     const baseUrl = process.env.FRONTEND_URL || "https://newsroom.eyewatch.me";
     let personalizedUrl = baseUrl;
     
-    // Agregar parámetros de personalización si están disponibles
-    const params = new URLSearchParams();
-    if (searchInfo && searchInfo.countrySearchId) {
-      params.append('countryId', searchInfo.countrySearchId);
-    }
-    if (searchInfo && searchInfo.sectorSearchId) {
-      params.append('sectorId', searchInfo.sectorSearchId);
-    }
-    // Agregar nombre de la búsqueda para mejor UX
+    // Crear URL limpia usando solo el nombre de la búsqueda
     if (searchInfo && searchInfo.name) {
-      params.append('searchName', searchInfo.name);
-    }
-    
-    if (params.toString()) {
-      personalizedUrl += `?${params.toString()}`;
+      // Crear slug limpio del nombre de la búsqueda
+      const cleanName = searchInfo.name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '') // Remover caracteres especiales
+        .replace(/\s+/g, '-') // Reemplazar espacios con guiones
+        .replace(/-+/g, '-') // Remover guiones múltiples
+        .trim();
+      
+      // URL limpia: https://newsroom.eyewatch.me/noticias-espana-tecnologia
+      personalizedUrl = `${baseUrl}/${cleanName}`;
+      
+      // Agregar parámetros técnicos como hash para el backend (no visibles en URL)
+      const technicalParams = new URLSearchParams();
+      if (searchInfo.countrySearchId) {
+        technicalParams.append('c', searchInfo.countrySearchId);
+      }
+      if (searchInfo.sectorSearchId) {
+        technicalParams.append('s', searchInfo.sectorSearchId);
+      }
+      
+      if (technicalParams.toString()) {
+        personalizedUrl += `#${technicalParams.toString()}`;
+      }
+    } else {
+      // Fallback: usar parámetros tradicionales si no hay nombre
+      const params = new URLSearchParams();
+      if (searchInfo && searchInfo.countrySearchId) {
+        params.append('countryId', searchInfo.countrySearchId);
+      }
+      if (searchInfo && searchInfo.sectorSearchId) {
+        params.append('sectorId', searchInfo.sectorSearchId);
+      }
+      
+      if (params.toString()) {
+        personalizedUrl += `?${params.toString()}`;
+      }
     }
     
     console.log(`🔗 URL personalizada para ${subscriber.email}: ${personalizedUrl}`);
@@ -267,21 +290,44 @@ async function sendNewsletterToSubscriberWithDetails(subscriber, searchInfo) {
     const baseUrl = process.env.FRONTEND_URL || "https://newsroom.eyewatch.me";
     let personalizedUrl = baseUrl;
     
-    // Agregar parámetros de personalización si están disponibles
-    const params = new URLSearchParams();
-    if (searchInfo && searchInfo.countrySearchId) {
-      params.append('countryId', searchInfo.countrySearchId);
-    }
-    if (searchInfo && searchInfo.sectorSearchId) {
-      params.append('sectorId', searchInfo.sectorSearchId);
-    }
-    // Agregar nombre de la búsqueda para mejor UX
+    // Crear URL limpia usando solo el nombre de la búsqueda
     if (searchInfo && searchInfo.name) {
-      params.append('searchName', searchInfo.name);
-    }
-    
-    if (params.toString()) {
-      personalizedUrl += `?${params.toString()}`;
+      // Crear slug limpio del nombre de la búsqueda
+      const cleanName = searchInfo.name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '') // Remover caracteres especiales
+        .replace(/\s+/g, '-') // Reemplazar espacios con guiones
+        .replace(/-+/g, '-') // Remover guiones múltiples
+        .trim();
+      
+      // URL limpia: https://newsroom.eyewatch.me/noticias-espana-tecnologia
+      personalizedUrl = `${baseUrl}/${cleanName}`;
+      
+      // Agregar parámetros técnicos como hash para el backend (no visibles en URL)
+      const technicalParams = new URLSearchParams();
+      if (searchInfo.countrySearchId) {
+        technicalParams.append('c', searchInfo.countrySearchId);
+      }
+      if (searchInfo.sectorSearchId) {
+        technicalParams.append('s', searchInfo.sectorSearchId);
+      }
+      
+      if (technicalParams.toString()) {
+        personalizedUrl += `#${technicalParams.toString()}`;
+      }
+    } else {
+      // Fallback: usar parámetros tradicionales si no hay nombre
+      const params = new URLSearchParams();
+      if (searchInfo && searchInfo.countrySearchId) {
+        params.append('countryId', searchInfo.countrySearchId);
+      }
+      if (searchInfo && searchInfo.sectorSearchId) {
+        params.append('sectorId', searchInfo.sectorSearchId);
+      }
+      
+      if (params.toString()) {
+        personalizedUrl += `?${params.toString()}`;
+      }
     }
     
     console.log(`🔗 URL personalizada para ${subscriber.email}: ${personalizedUrl}`);

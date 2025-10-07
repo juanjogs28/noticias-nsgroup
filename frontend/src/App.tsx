@@ -19,7 +19,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin/*" element={<AdminPage />} />
-          <Route path="*" element={<NotFound />} />
+          {/* Ruta catch-all para URLs limpias de búsquedas */}
+          <Route path="/*" element={<Index />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
