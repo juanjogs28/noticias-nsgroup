@@ -7,6 +7,26 @@ const fetch = require("node-fetch");
 const MELTWATER_API_URL = "https://api.meltwater.com";
 const MELTWATER_TOKEN = process.env.MELTWATER_API_TOKEN;
 
+// Endpoint de diagnóstico para verificar variables de entorno
+router.get("/debug/env", (req, res) => {
+  const envStatus = {
+    MELTWATER_API_TOKEN: process.env.MELTWATER_API_TOKEN ? 'Configurada' : 'NO CONFIGURADA',
+    MONGODB_URI: process.env.MONGODB_URI ? 'Configurada' : 'NO CONFIGURADA',
+    RESEND_API_KEY: process.env.RESEND_API_KEY ? 'Configurada' : 'NO CONFIGURADA',
+    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD ? 'Configurada' : 'NO CONFIGURADA',
+    NODE_ENV: process.env.NODE_ENV || 'undefined'
+  };
+  
+  console.log("🔍 DIAGNÓSTICO DE VARIABLES EN PRODUCCIÓN:");
+  console.log(envStatus);
+  
+  res.json({
+    success: true,
+    environment: envStatus,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Función para asegurar conexión a MongoDB
 async function ensureConnection() {
   const mongoose = require("mongoose");
