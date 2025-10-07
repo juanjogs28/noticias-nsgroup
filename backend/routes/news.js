@@ -315,26 +315,24 @@ async function getSearchResults(searchId) {
     const end = now.toISOString().slice(0, 19);
     
     // Definir rangos de fechas más amplios para obtener más noticias reales
-    const dateRanges = [
-      { days: 7, name: "última semana" },
-      { days: 30, name: "último mes" },
-      { days: 90, name: "últimos 3 meses" },
-      { days: 180, name: "últimos 6 meses" },
-      { days: 365, name: "último año" }
-    ];
+    // Generar 50 peticiones para obtener más artículos
+    const dateRanges = [];
+    for (let i = 0; i < 50; i++) {
+      const days = 7 + (i * 7); // 7, 14, 21, 28, 35, 42, 49, 56, 63, 70, etc.
+      dateRanges.push({
+        name: `rango ${i + 1}`,
+        days: Math.min(days, 365) // Máximo 1 año
+      });
+    }
     
     for (let i = 0; i < dateRanges.length; i++) {
       const range = dateRanges[i];
       
-      // Backoff exponencial para manejar errores 429
+      // Backoff reducido para hacer más peticiones
       if (i > 0) {
-        const baseDelay = 1000; // 1 segundo base
-        const exponentialDelay = baseDelay * Math.pow(2, i - 1); // Backoff exponencial
-        const jitter = Math.random() * 1000; // Jitter aleatorio
-        const totalDelay = exponentialDelay + jitter;
-        
-        console.log(`⏳ Backoff exponencial: esperando ${Math.round(totalDelay/1000)}s antes de próxima petición...`);
-        await new Promise(resolve => setTimeout(resolve, totalDelay));
+        const delay = 500 + (i * 100); // 500ms, 600ms, 700ms, 800ms, etc.
+        console.log(`⏳ Esperando ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
       
       console.log(`🔍 Petición ${i + 1}/${dateRanges.length}: ${range.name} (${range.days} días)`);
@@ -385,7 +383,7 @@ async function getSearchResults(searchId) {
           allDocuments.push(...newDocuments);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
-          if (allDocuments.length >= 500) {
+          if (allDocuments.length >= 200) {
             console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
             break;
           }
