@@ -1365,7 +1365,7 @@ export default function Index() {
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
               <NewsList articles={(() => {
                 // Sección 1: Sector (ContentScore)
-                const articles = getUniqueTopArticles(sectorArticles, shownArticles, 100);
+                const articles = getUniqueTopArticles(sectorArticles, shownArticles, 200);
                 // Marcar como mostrados para evitar duplicados con las siguientes secciones
                 markShown(shownArticles, articles);
                 console.log('🔵 TOP 50 SECTOR - Artículos mostrados:', articles.length);
@@ -1441,7 +1441,7 @@ export default function Index() {
                 console.log('🚀 INICIANDO getUniqueTopPaisArticles con:', paisArticles.length, 'artículos del país');
                 console.log('🚀 ARTÍCULOS DEL PAÍS DISPONIBLES:', paisArticles.map(a => `${a.title} | ${a.source.name}`));
                 // Sección 2: País - Mostrar artículos del país (medios tradicionales) ordenados por SocialEcho/ContentScore
-                const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 100);
+                const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 200);
                 // Marcar como mostrados para evitar duplicados con la sección de redes
                 markShown(shownArticles, articles);
                 console.log('🟢 TOP 50 PAÍS - Artículos mostrados:', articles.length);
@@ -1539,7 +1539,7 @@ export default function Index() {
               <div className="news-grid-dashboard">
                 {(() => {
                   // Sección 3: Redes Sociales - Solo artículos que NO fueron mostrados en la sección País
-                  const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 100);
+                  const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 200);
                   console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
                   articles.forEach((article, index) => {
                     console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);
