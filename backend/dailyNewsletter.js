@@ -238,17 +238,22 @@ async function sendNewsletterToSubscriber(subscriber, searchInfo) {
       
       // Si el slug es muy corto, crear un formato más amigable
       if (cleanName.length < 5) {
-        // Opción 1: Formato descriptivo con palabras clave
-        const countryCode = searchInfo.countrySearchId ? searchInfo.countrySearchId.toLowerCase() : 'global';
-        const sectorCode = searchInfo.sectorSearchId ? searchInfo.sectorSearchId.toLowerCase() : 'general';
+        // Opción 2: Búsqueda personalizada con nombre descriptivo
+        const searchNameSlug = searchInfo.name
+          .toLowerCase()
+          .replace(/[^a-z0-9\s]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim();
         
-        // Crear un slug más legible
-        cleanName = `noticias-${countryCode}-${sectorCode}`;
+        cleanName = `busqueda-personalizada-${searchNameSlug}`;
         
-        // Opción 2: Si queremos algo más genérico
-        // cleanName = `busqueda-personalizada-${Date.now().toString().slice(-6)}`;
+        // Opción 1: Formato con country/sector (comentada)
+        // const countryCode = searchInfo.countrySearchId ? searchInfo.countrySearchId.toLowerCase() : 'global';
+        // const sectorCode = searchInfo.sectorSearchId ? searchInfo.sectorSearchId.toLowerCase() : 'general';
+        // cleanName = `noticias-${countryCode}-${sectorCode}`;
         
-        // Opción 3: Formato con fecha
+        // Opción 3: Formato con fecha (comentada)
         // const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         // cleanName = `noticias-${today}`;
       }
@@ -324,17 +329,22 @@ async function sendNewsletterToSubscriberWithDetails(subscriber, searchInfo) {
       
       // Si el slug es muy corto, crear un formato más amigable
       if (cleanName.length < 5) {
-        // Opción 1: Formato descriptivo con palabras clave
-        const countryCode = searchInfo.countrySearchId ? searchInfo.countrySearchId.toLowerCase() : 'global';
-        const sectorCode = searchInfo.sectorSearchId ? searchInfo.sectorSearchId.toLowerCase() : 'general';
+        // Opción 2: Búsqueda personalizada con nombre descriptivo
+        const searchNameSlug = searchInfo.name
+          .toLowerCase()
+          .replace(/[^a-z0-9\s]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim();
         
-        // Crear un slug más legible
-        cleanName = `noticias-${countryCode}-${sectorCode}`;
+        cleanName = `busqueda-personalizada-${searchNameSlug}`;
         
-        // Opción 2: Si queremos algo más genérico
-        // cleanName = `busqueda-personalizada-${Date.now().toString().slice(-6)}`;
+        // Opción 1: Formato con country/sector (comentada)
+        // const countryCode = searchInfo.countrySearchId ? searchInfo.countrySearchId.toLowerCase() : 'global';
+        // const sectorCode = searchInfo.sectorSearchId ? searchInfo.sectorSearchId.toLowerCase() : 'general';
+        // cleanName = `noticias-${countryCode}-${sectorCode}`;
         
-        // Opción 3: Formato con fecha
+        // Opción 3: Formato con fecha (comentada)
         // const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         // cleanName = `noticias-${today}`;
       }
