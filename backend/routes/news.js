@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Subscriber = require("../models/subscribers.js");
+const Subscription = require("../models/subscriptions.js");
 const DefaultConfig = require("../models/defaultConfig.js");
 const fetch = require("node-fetch");
 const MELTWATER_API_URL = "https://api.meltwater.com";
@@ -449,7 +450,7 @@ router.post("/personalized", async (req, res) => {
       });
     }
 
-    // Caso 2: Si hay email específico, buscar suscriptor
+    // Caso 2: Si hay email específico, buscar suscriptor y sus búsquedas
     if (email && email !== "default") {
       console.log(`🔍 Buscando suscriptor con email: ${email}`);
       
@@ -462,26 +463,55 @@ router.post("/personalized", async (req, res) => {
         });
       }
 
-      const resultsPais = subscriber.countrySearchId
-        ? await getSearchResults(subscriber.countrySearchId)
-        : { result: { documents: [] } };
-      const resultsSector = subscriber.sectorSearchId
-        ? await getSearchResults(subscriber.sectorSearchId)
-        : { result: { documents: [] } };
+      // Buscar suscripciones activas del suscriptor
+      const subscriptions = await Subscription.find({ 
+        subscriberId: subscriber._id, 
+        isActive: true 
+      }).populate('searchId');
 
-      const paisDocs = resultsPais.result?.documents || [];
-      const sectorDocs = resultsSector.result?.documents || [];
-      
+      if (subscriptions.length === 0) {
+        return res.json({
+          success: true,
+          pais: [],
+          sector: [],
+          source: "subscriber_no_subscriptions",
+          message: "El usuario no tiene búsquedas suscritas"
+        });
+      }
+
+      // Obtener noticias de todas las búsquedas suscritas
+      const allPaisDocs = [];
+      const allSectorDocs = [];
+
+      for (const subscription of subscriptions) {
+        const search = subscription.searchId;
+        if (search && search.isActive) {
+          // Determinar si es búsqueda de país o sector basado en el nombre o configuración
+          const isCountrySearch = search.name.toLowerCase().includes('país') || 
+                                 search.name.toLowerCase().includes('country') ||
+                                 search.countrySearchId;
+          
+          const results = await getSearchResults(search.countrySearchId || search.sectorSearchId);
+          const docs = results.result?.documents || [];
+          
+          if (isCountrySearch) {
+            allPaisDocs.push(...docs);
+          } else {
+            allSectorDocs.push(...docs);
+          }
+        }
+      }
+
       console.log(`📊 RESUMEN DE DATOS OBTENIDOS (email suscriptor):`);
-      console.log(`   - Noticias del país: ${paisDocs.length}`);
-      console.log(`   - Noticias del sector: ${sectorDocs.length}`);
-      console.log(`   - Total noticias: ${paisDocs.length + sectorDocs.length}`);
+      console.log(`   - Noticias del país: ${allPaisDocs.length}`);
+      console.log(`   - Noticias del sector: ${allSectorDocs.length}`);
+      console.log(`   - Total noticias: ${allPaisDocs.length + allSectorDocs.length}`);
 
       return res.json({
         success: true,
-        pais: paisDocs,
-        sector: sectorDocs,
-        source: "subscriber_email"
+        pais: allPaisDocs,
+        sector: allSectorDocs,
+        source: "subscriber_subscriptions"
       });
     }
 
