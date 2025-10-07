@@ -258,6 +258,8 @@ async function getSearchResults(searchId) {
 
     // Si no hay cache, hacer múltiples peticiones con diferentes rangos de fechas
     console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (sin cache) - estrategia múltiple`);
+    console.log(`🔍 DEBUG - MELTWATER_TOKEN configurado: ${MELTWATER_TOKEN ? 'Sí' : 'No'}`);
+    console.log(`🔍 DEBUG - MELTWATER_API_URL: ${MELTWATER_API_URL}`);
     
     allDocuments = [];
     const now = new Date();
@@ -562,6 +564,7 @@ router.post("/personalized", async (req, res) => {
       const resultsPais = defaultConfig.defaultCountrySearchId
         ? await getSearchResults(defaultConfig.defaultCountrySearchId)
         : { result: { documents: [] } };
+      console.log(`🔍 DEBUG SECTOR - Llamando getSearchResults con ID: ${defaultConfig.defaultSectorSearchId}`);
       const resultsSector = defaultConfig.defaultSectorSearchId
         ? await getSearchResults(defaultConfig.defaultSectorSearchId)
         : { result: { documents: [] } };
@@ -573,6 +576,12 @@ router.post("/personalized", async (req, res) => {
       console.log(`   - Noticias del país: ${paisDocs.length}`);
       console.log(`   - Noticias del sector: ${sectorDocs.length}`);
       console.log(`   - Total noticias: ${paisDocs.length + sectorDocs.length}`);
+      console.log(`🔍 DEBUG SECTOR - Primeros 3 artículos del sector:`);
+      sectorDocs.slice(0, 3).forEach((doc, index) => {
+        console.log(`   ${index + 1}. ${doc.content?.title || doc.title || 'Sin título'}`);
+        console.log(`      Fuente: ${doc.source?.name || 'Sin fuente'}`);
+        console.log(`      ID: ${doc.id || 'Sin ID'}`);
+      });
 
       return res.json({
         success: true,
