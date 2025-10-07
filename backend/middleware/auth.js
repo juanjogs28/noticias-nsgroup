@@ -1,5 +1,5 @@
 // Middleware de autenticación simple para admin
-const ADMIN_PASSWORD = "AdminNSG-+";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "AdminNSG-+";
 
 function requireAuth(req, res, next) {
   // Obtener la contraseña del header Authorization o del query parameter
@@ -23,7 +23,7 @@ function requireAuth(req, res, next) {
     return res.status(401).json({ 
       error: "Acceso denegado", 
       message: "Contraseña requerida",
-      hint: "Use ?password=AdminNSG-+ o header Authorization: Bearer AdminNSG-+" 
+      hint: "Use header Authorization: Bearer [password]" 
     });
   }
   

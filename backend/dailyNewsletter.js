@@ -344,8 +344,8 @@ async function sendDailyNewsletter() {
           errorCount++;
         }
         
-        // Pausa entre emails para evitar rate limiting
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Pausa reducida para envío más rápido (Resend permite hasta 100 emails/min)
+        await new Promise(resolve => setTimeout(resolve, 100));
       } else {
         console.log(`⚠️ Saltando suscripción inactiva: ${subscription.subscriberId.email} -> ${subscription.searchId.name}`);
       }
@@ -413,8 +413,8 @@ async function sendDailyNewsletterWithResults() {
           });
         }
         
-        // Pausa entre emails para evitar rate limiting
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Pausa reducida para envío más rápido (Resend permite hasta 100 emails/min)
+        await new Promise(resolve => setTimeout(resolve, 100));
       } else {
         console.log(`⚠️ Saltando suscripción inactiva: ${subscription.subscriberId.email} -> ${subscription.searchId.name}`);
       }

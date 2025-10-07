@@ -435,7 +435,7 @@ export default function AdminPanel() {
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-500">
-          <p>💡 Contraseña: AdminNSG-+</p>
+          <p>🔐 Acceso restringido al personal autorizado</p>
         </div>
       </div>
     );

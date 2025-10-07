@@ -10,6 +10,7 @@
     "newsletter": "node dailyNewsletter.js",
     "scheduler": "node scheduler.js",
     "test-resend": "node testResend.js",
+    "test-optimized-resend": "node testOptimizedResend.js",
     "test-scheduler": "node testScheduler.js",
     "test-auth": "node testAuth.js",
     "build": "echo 'No build step required for Node.js backend'"
