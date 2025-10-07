@@ -27,6 +27,35 @@ router.get("/debug/env", (req, res) => {
   });
 });
 
+// Endpoint para limpiar caché desde Railway
+router.post("/clear-cache", async (req, res) => {
+  try {
+    console.log("🧹 Iniciando limpieza de caché desde Railway...");
+    
+    // Importar el modelo de caché
+    const CachedNews = require("../models/cachedNews.js");
+    
+    // Limpiar todo el caché
+    const result = await CachedNews.deleteMany({});
+    
+    console.log(`✅ Cache limpiado desde Railway: ${result.deletedCount} entradas eliminadas`);
+    
+    res.json({
+      success: true,
+      message: `Cache limpiado exitosamente. ${result.deletedCount} entradas eliminadas.`,
+      deletedCount: result.deletedCount,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error("❌ Error limpiando caché:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error limpiando caché",
+      error: error.message
+    });
+  }
+});
+
 // Función para asegurar conexión a MongoDB
 async function ensureConnection() {
   const mongoose = require("mongoose");
