@@ -8,7 +8,7 @@ Agrega estas variables en Railway (o tu plataforma de hosting):
 
 ```bash
 # Contraseña del panel admin (CAMBIA ESTA CONTRASEÑA)
-ADMIN_PASSWORD=tu_contraseña_super_segura_aqui
+ADMIN_PASSWORD=TU_CONTRASEÑA_SUPER_SEGURA_AQUI
 
 # Configuración de Resend
 RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
@@ -49,7 +49,7 @@ FRONTEND_URL=https://newsroom.eyewatch.me
 
 ```bash
 # En Railway, configura:
-ADMIN_PASSWORD=TuContraseñaSuperSegura2024!
+ADMIN_PASSWORD=TU_CONTRASEÑA_SUPER_SEGURA_2024
 RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 RESEND_FROM_EMAIL=noticias@newsroom.eyewatch.me
 MONGODB_URI=mongodb://usuario:password@host:puerto/database
@@ -69,6 +69,6 @@ FRONTEND_URL=https://newsroom.eyewatch.me
 **CAMBIAR LA CONTRASEÑA INMEDIATAMENTE:**
 
 1. Ve a Railway > Variables
-2. Agrega: `ADMIN_PASSWORD=tu_nueva_contraseña_segura`
+2. Agrega: `ADMIN_PASSWORD=TU_NUEVA_CONTRASEÑA_SEGURA`
 3. Reinicia el servicio
 4. Prueba el acceso con la nueva contraseña

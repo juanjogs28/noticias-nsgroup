@@ -229,12 +229,19 @@ async function sendNewsletterToSubscriber(subscriber, searchInfo) {
     // Crear URL limpia usando solo el nombre de la búsqueda
     if (searchInfo && searchInfo.name) {
       // Crear slug limpio del nombre de la búsqueda
-      const cleanName = searchInfo.name
+      let cleanName = searchInfo.name
         .toLowerCase()
         .replace(/[^a-z0-9\s]/g, '') // Remover caracteres especiales
         .replace(/\s+/g, '-') // Reemplazar espacios con guiones
         .replace(/-+/g, '-') // Remover guiones múltiples
         .trim();
+      
+      // Si el slug es muy corto, agregar información adicional
+      if (cleanName.length < 5) {
+        const countryInfo = searchInfo.countrySearchId ? `-${searchInfo.countrySearchId.toLowerCase()}` : '';
+        const sectorInfo = searchInfo.sectorSearchId ? `-${searchInfo.sectorSearchId.toLowerCase()}` : '';
+        cleanName = `search${countryInfo}${sectorInfo}`;
+      }
       
       // URL limpia: https://newsroom.eyewatch.me/noticias-espana-tecnologia
       personalizedUrl = `${baseUrl}/${cleanName}`;
@@ -298,12 +305,19 @@ async function sendNewsletterToSubscriberWithDetails(subscriber, searchInfo) {
     // Crear URL limpia usando solo el nombre de la búsqueda
     if (searchInfo && searchInfo.name) {
       // Crear slug limpio del nombre de la búsqueda
-      const cleanName = searchInfo.name
+      let cleanName = searchInfo.name
         .toLowerCase()
         .replace(/[^a-z0-9\s]/g, '') // Remover caracteres especiales
         .replace(/\s+/g, '-') // Reemplazar espacios con guiones
         .replace(/-+/g, '-') // Remover guiones múltiples
         .trim();
+      
+      // Si el slug es muy corto, agregar información adicional
+      if (cleanName.length < 5) {
+        const countryInfo = searchInfo.countrySearchId ? `-${searchInfo.countrySearchId.toLowerCase()}` : '';
+        const sectorInfo = searchInfo.sectorSearchId ? `-${searchInfo.sectorSearchId.toLowerCase()}` : '';
+        cleanName = `search${countryInfo}${sectorInfo}`;
+      }
       
       // URL limpia: https://newsroom.eyewatch.me/noticias-espana-tecnologia
       personalizedUrl = `${baseUrl}/${cleanName}`;

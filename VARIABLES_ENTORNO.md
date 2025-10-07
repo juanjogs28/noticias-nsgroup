@@ -6,7 +6,7 @@ Para que la aplicación funcione correctamente, necesitas configurar estas varia
 
 ### 1. MongoDB (OBLIGATORIO)
 ```
-MONGODB_URI=mongodb://usuario:password@tu-mongodb-url/ns-news
+MONGODB_URI=mongodb://usuario:CONTRASEÑA@tu-mongodb-url/ns-news
 ```
 
 ### 2. Meltwater API (OBLIGATORIO)

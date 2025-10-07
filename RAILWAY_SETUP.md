@@ -44,11 +44,11 @@ Significa que **no tienes configurada la variable correcta** en Railway.
 4. Agrega:
    ```
    Name: MONGODB_URI
-   Value: mongodb://usuario:password@containers-us-west-1.railway.app:1234/ns-news
+   Value: mongodb://usuario:CONTRASEÑA@containers-us-west-1.railway.app:1234/ns-news
    ```
 
 ### Paso 2: Obtener la URL de MongoDB
-Necesitas reemplazar `usuario:password@containers-us-west-1.railway.app:1234` con tu URL real de MongoDB.
+Necesitas reemplazar `usuario:CONTRASEÑA@containers-us-west-1.railway.app:1234` con tu URL real de MongoDB.
 
 #### Opción A: Railway Database (Recomendado)
 Si tienes una base de datos Railway:
@@ -61,7 +61,7 @@ Si tienes una base de datos Railway:
 #### Opción B: MongoDB Atlas (Alternativo)
 Si usas MongoDB Atlas:
 ```
-MONGODB_URI=mongodb+srv://usuario:password@cluster0.xxxxx.mongodb.net/ns-news?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://usuario:CONTRASEÑA@cluster0.xxxxx.mongodb.net/ns-news?retryWrites=true&w=majority
 ```
 
 ### Paso 3: Reiniciar el Servicio

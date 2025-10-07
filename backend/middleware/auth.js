@@ -1,5 +1,5 @@
 // Middleware de autenticación simple para admin
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "AdminNSG-+";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 function requireAuth(req, res, next) {
   // Obtener la contraseña del header Authorization o del query parameter
@@ -18,6 +18,14 @@ function requireAuth(req, res, next) {
     providedPassword = queryPassword;
   }
   
+  // Si no hay contraseña configurada, error crítico
+  if (!ADMIN_PASSWORD) {
+    return res.status(500).json({ 
+      error: "Error de configuración", 
+      message: "ADMIN_PASSWORD no configurada en variables de entorno"
+    });
+  }
+  
   // Si no hay contraseña, pedir autenticación
   if (!providedPassword) {
     return res.status(401).json({ 
@@ -31,7 +39,7 @@ function requireAuth(req, res, next) {
   if (providedPassword !== ADMIN_PASSWORD) {
     return res.status(403).json({ 
       error: "Acceso denegado", 
-      message: "Contraseña incorrecta" 
+      message: "Contraseña incorrecta"
     });
   }
   

@@ -59,7 +59,7 @@ console.log('🔧 Configuración MongoDB:', {
 if (process.env.NODE_ENV === 'production' && MONGODB_URI.includes('localhost')) {
   console.error("🚨 ERROR CRÍTICO: Estás en producción pero usando MongoDB localhost!");
   console.error("   Configura la variable MONGODB_URI en Railway con tu URL de MongoDB externa");
-  console.error("   Ejemplo: mongodb://usuario:password@containers-us-west-1.railway.app:1234/ns-news");
+  console.error("   Ejemplo: mongodb://usuario:CONTRASEÑA@containers-us-west-1.railway.app:1234/ns-news");
 }
 
 mongoose
@@ -205,7 +205,7 @@ app.get("/api/diagnose", (req, res) => {
     },
     instructions: !process.env.MONGODB_URI && !process.env.DATABASE_URL && !process.env.MONGO_URI ? [
       "1. Ve a Railway > Tu proyecto > Variables",
-      "2. Agrega MONGODB_URI=mongodb://usuario:password@tu-url/ns-news",
+      "2. Agrega MONGODB_URI=mongodb://usuario:CONTRASEÑA@tu-url/ns-news",
       "3. Reinicia el servicio"
     ] : []
   });
