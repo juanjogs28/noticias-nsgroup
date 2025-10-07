@@ -59,21 +59,23 @@ function generateEmailHTML(subscriber, personalizedUrl, searchInfo = null) {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; 
           line-height: 1.6; 
           color: #1f2937; 
-          background-color: #f3f4f6;
+          background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
           margin: 0;
           padding: 0;
         }
         .container { 
           max-width: 600px; 
           margin: 20px auto; 
-          background: white;
+          background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
           border-radius: 12px;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
           overflow: hidden;
+          border: 2px solid #f5a031;
         }
         .header { 
-          background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-          color: white; 
+          background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+          border-bottom: 2px solid #f5a031;
+          color: #f5a031; 
           padding: 40px 30px; 
           text-align: center; 
         }
@@ -88,12 +90,12 @@ function generateEmailHTML(subscriber, personalizedUrl, searchInfo = null) {
           opacity: 0.9;
         }
         .content { 
-          background: white; 
+          background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
           padding: 40px 30px; 
-          color: #1f2937;
+          color: #ffffff;
         }
         .content h2 {
-          color: #059669;
+          color: #f5a031;
           margin-top: 0;
           font-size: 24px;
           font-weight: 600;
@@ -106,58 +108,61 @@ function generateEmailHTML(subscriber, personalizedUrl, searchInfo = null) {
           text-align: center; 
           margin: 40px 0;
           padding: 20px;
-          background: #f8fafc;
+          background: rgba(245, 160, 49, 0.1);
           border-radius: 8px;
+          border: 1px solid rgba(245, 160, 49, 0.3);
         }
         .button { 
           display: inline-block; 
           padding: 18px 36px; 
-          background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+          background: linear-gradient(135deg, #f5a031 0%, #e67e22 100%);
           color: white !important; 
           text-decoration: none; 
           border-radius: 10px; 
           font-size: 18px; 
           font-weight: 700;
-          box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+          box-shadow: 0 4px 6px -1px rgba(245, 160, 49, 0.3);
           transition: all 0.3s ease;
           border: none;
           cursor: pointer;
         }
         .button:hover { 
-          background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+          background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
           transform: translateY(-2px);
-          box-shadow: 0 8px 15px -3px rgba(220, 38, 38, 0.4);
+          box-shadow: 0 8px 15px -3px rgba(245, 160, 49, 0.4);
         }
         .tip {
-          background: #fef3c7;
-          border-left: 4px solid #f59e0b;
+          background: rgba(245, 160, 49, 0.1);
+          border-left: 4px solid #f5a031;
           padding: 16px 20px;
           border-radius: 0 8px 8px 0;
           margin: 20px 0;
+          color: #ffffff;
         }
         .tip strong {
-          color: #92400e;
+          color: #f5a031;
         }
         .personalization-info {
-          background: #e0f2fe;
-          border-left: 4px solid #0288d1;
+          background: rgba(245, 160, 49, 0.1);
+          border-left: 4px solid #f5a031;
           padding: 16px 20px;
           border-radius: 0 8px 8px 0;
           margin: 20px 0;
           font-size: 14px;
           line-height: 1.5;
+          color: #ffffff;
         }
         .personalization-info strong {
-          color: #0277bd;
+          color: #f5a031;
         }
         .footer { 
           text-align: center; 
           margin-top: 30px; 
           padding: 30px;
-          background: #f8fafc;
-          color: #6b7280; 
+          background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+          color: #ffffff; 
           font-size: 14px;
-          border-top: 1px solid #e5e7eb;
+          border-top: 2px solid #f5a031;
         }
         .footer p {
           margin: 8px 0;
