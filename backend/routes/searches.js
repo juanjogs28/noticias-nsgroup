@@ -3,6 +3,40 @@ const router = express.Router();
 const Search = require("../models/searches.js");
 const { requireAuth } = require("../middleware/auth.js");
 
+// Ruta pública para obtener IDs técnicos por nombre de búsqueda
+router.get("/by-name/:searchName", async (req, res) => {
+  try {
+    const { searchName } = req.params;
+    
+    // Buscar búsqueda por nombre (case insensitive)
+    const search = await Search.findOne({ 
+      name: { $regex: new RegExp(`^${searchName}$`, 'i') },
+      isActive: true 
+    });
+    
+    if (!search) {
+      return res.status(404).json({ 
+        message: "Búsqueda no encontrada",
+        searchName 
+      });
+    }
+    
+    res.json({
+      success: true,
+      search: {
+        id: search._id,
+        name: search.name,
+        countrySearchId: search.countrySearchId,
+        sectorSearchId: search.sectorSearchId,
+        isActive: search.isActive
+      }
+    });
+  } catch (err) {
+    console.error("Error obteniendo búsqueda por nombre:", err);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
 // Aplicar autenticación a todas las rutas de admin
 router.use(requireAuth);
 

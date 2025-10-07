@@ -116,6 +116,8 @@ app.use("/api/admin/subscribers", adminSubscribersRouter);
 
 const searchesRouter = require("./routes/searches");
 app.use("/api/admin/searches", searchesRouter);
+// Ruta pública para obtener búsquedas por nombre (sin autenticación)
+app.use("/api/searches", searchesRouter);
 
 const subscriptionsRouter = require("./routes/subscriptions");
 app.use("/api/admin/subscriptions", subscriptionsRouter);

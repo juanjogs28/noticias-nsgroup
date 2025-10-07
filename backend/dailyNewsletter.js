@@ -258,21 +258,11 @@ async function sendNewsletterToSubscriber(subscriber, searchInfo) {
         // cleanName = `noticias-${today}`;
       }
       
-      // URL limpia: https://newsroom.eyewatch.me/noticias-espana-tecnologia
+      // URL completamente limpia: https://newsroom.eyewatch.me/busqueda-personalizada-imm
       personalizedUrl = `${baseUrl}/${cleanName}`;
       
-      // Agregar parámetros técnicos como hash para el backend (no visibles en URL)
-      const technicalParams = new URLSearchParams();
-      if (searchInfo.countrySearchId) {
-        technicalParams.append('c', searchInfo.countrySearchId);
-      }
-      if (searchInfo.sectorSearchId) {
-        technicalParams.append('s', searchInfo.sectorSearchId);
-      }
-      
-      if (technicalParams.toString()) {
-        personalizedUrl += `#${technicalParams.toString()}`;
-      }
+      // Los IDs técnicos se manejan internamente en el backend
+      // No se muestran en la URL para mayor limpieza
     } else {
       // Fallback: usar parámetros tradicionales si no hay nombre
       const params = new URLSearchParams();
@@ -349,21 +339,11 @@ async function sendNewsletterToSubscriberWithDetails(subscriber, searchInfo) {
         // cleanName = `noticias-${today}`;
       }
       
-      // URL limpia: https://newsroom.eyewatch.me/noticias-espana-tecnologia
+      // URL completamente limpia: https://newsroom.eyewatch.me/busqueda-personalizada-imm
       personalizedUrl = `${baseUrl}/${cleanName}`;
       
-      // Agregar parámetros técnicos como hash para el backend (no visibles en URL)
-      const technicalParams = new URLSearchParams();
-      if (searchInfo.countrySearchId) {
-        technicalParams.append('c', searchInfo.countrySearchId);
-      }
-      if (searchInfo.sectorSearchId) {
-        technicalParams.append('s', searchInfo.sectorSearchId);
-      }
-      
-      if (technicalParams.toString()) {
-        personalizedUrl += `#${technicalParams.toString()}`;
-      }
+      // Los IDs técnicos se manejan internamente en el backend
+      // No se muestran en la URL para mayor limpieza
     } else {
       // Fallback: usar parámetros tradicionales si no hay nombre
       const params = new URLSearchParams();

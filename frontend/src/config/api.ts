@@ -41,6 +41,7 @@ export const API_CONFIG = {
     ADMIN_SUBSCRIBERS: '/api/admin/subscribers',
     ADMIN_SEARCHES: '/api/admin/searches',
     ADMIN_SUBSCRIPTIONS: '/api/admin/subscriptions',
+    SEARCHES_BY_NAME: '/api/searches/by-name',
     ADMIN_SCHEDULE_TIMES: '/api/admin/schedule-times',
     ADMIN_MANUAL_NEWSLETTER: '/api/admin/manual-newsletter/send',
     ADMIN_DEFAULT_CONFIG: '/api/admin/default-config'

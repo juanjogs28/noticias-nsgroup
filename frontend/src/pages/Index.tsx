@@ -1002,21 +1002,33 @@ export default function Index() {
         // Si no hay parámetros en query, verificar si es una URL limpia
         if (!countryId && !sectorId) {
           const pathname = window.location.pathname;
-          const hash = window.location.hash;
           
-          // Si hay un pathname personalizado (ej: /noticias-espana-tecnologia)
+          // Si hay un pathname personalizado (ej: /busqueda-personalizada-imm)
           if (pathname && pathname !== '/' && pathname !== '/index.html') {
             // Extraer nombre de búsqueda del pathname
             const cleanPath = pathname.replace(/^\//, '').replace(/\/$/, '');
-            searchName = cleanPath.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            setSearchName(searchName);
-          }
-          
-          // Si hay hash con parámetros técnicos (ej: #c=ES&s=TECH)
-          if (hash && hash.startsWith('#')) {
-            const hashParams = new URLSearchParams(hash.substring(1));
-            countryId = hashParams.get('c');
-            sectorId = hashParams.get('s');
+            
+            // Si es una búsqueda personalizada, extraer el nombre
+            if (cleanPath.startsWith('busqueda-personalizada-')) {
+              const searchNameFromPath = cleanPath.replace('busqueda-personalizada-', '');
+              searchName = searchNameFromPath.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              setSearchName(searchName);
+              
+              // Obtener IDs técnicos desde el backend
+              try {
+                const searchResponse = await axios.get(`${buildApiUrl(API_CONFIG.ENDPOINTS.SEARCHES_BY_NAME)}/${searchNameFromPath}`);
+                if (searchResponse.data.success) {
+                  countryId = searchResponse.data.search.countrySearchId;
+                  sectorId = searchResponse.data.search.sectorSearchId;
+                }
+              } catch (error) {
+                console.warn('No se pudo obtener la búsqueda por nombre:', error);
+              }
+            } else {
+              // Para otros formatos, usar lógica anterior
+              searchName = cleanPath.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+              setSearchName(searchName);
+            }
           }
         }
 
