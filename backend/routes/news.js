@@ -305,7 +305,7 @@ async function getSearchResults(searchId) {
             tz: "America/Montevideo",
             start: startDate,
             end: end,
-            limit: 1000, // Límite máximo para obtener más artículos
+            limit: 2000, // Límite máximo para obtener más artículos
             // Agregar parámetros adicionales para obtener más resultados
             language: "es", // Idioma español
             content_type: "news", // Tipo de contenido
@@ -341,7 +341,7 @@ async function getSearchResults(searchId) {
           console.log(`📊 Total acumulado: ${allDocuments.length} artículos únicos`);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
-          if (allDocuments.length >= 150) {
+          if (allDocuments.length >= 500) {
             console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
             break;
           }
@@ -396,7 +396,7 @@ async function getSearchResults(searchId) {
               tz: "America/Montevideo",
               start: extendedStart,
               end: end,
-              limit: 1000,
+              limit: 2000,
             }),
           });
 

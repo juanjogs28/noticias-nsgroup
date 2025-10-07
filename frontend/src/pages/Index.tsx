@@ -530,15 +530,16 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     'india', 'mumbai', 'delhi', 'india', 'mumbai', 'delhi'
   ];
   
-  // Filtrar artículos - Excluir solo redes sociales, incluir todo lo demás
+  // Filtrar artículos - Ser menos restrictivo, incluir más fuentes
   const filteredArticles = articles.filter(article => {
     const sourceName = article.source?.name?.toLowerCase() || '';
     
-    // Solo excluir redes sociales explícitas
+    // Solo excluir redes sociales explícitas más comunes
     const isSocialMedia = excludedSources.some(excludedSource => 
       sourceName.includes(excludedSource)
     );
     
+    // Incluir todo lo que no sea claramente red social
     const isIncluded = !isSocialMedia;
     
     if (isSocialMedia) {
@@ -582,12 +583,12 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   
   console.log('  Resultado final antes de rellenar:', result.length);
 
-  // Rellenar hasta 50 artículos: primero engagement, luego ContentScore (manteniendo exclusión de redes sociales)
+  // Rellenar hasta 50 artículos: ser más permisivo para conseguir más artículos
   if (result.length < limit) {
     const selectedIds = new Set(result.map(a => generateArticleId(a)));
 
-    // Candidatos por engagement dentro de fuentes no sociales
-    const engagementCandidates = [...articlesWithoutSocialEcho]
+    // 1) Intentar con más artículos filtrados por engagement
+    const engagementCandidates = [...filteredArticles]
       .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
 
     for (const candidate of engagementCandidates) {
@@ -599,21 +600,12 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // Si aún faltan, usar ContentScore de TODOS los artículos no sociales (misma métrica que sector)
+    // 2) Si aún faltan, usar TODOS los artículos por ContentScore (más permisivo)
     if (result.length < limit) {
-      const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
-      const allNonSocialArticles = articles.filter(article => {
-        const sourceName = article.source?.name?.toLowerCase() || '';
-        return !excludedSources.some(excludedSource => 
-          sourceName.includes(excludedSource)
-        );
-      });
-      
-      // Usar la misma lógica de ContentScore que el sector
-      const contentScoreCandidates = allNonSocialArticles
+      const contentScoreCandidates = articles
         .sort((a, b) => {
-          const scoreA = calculateContentScore(a, allNonSocialArticles);
-          const scoreB = calculateContentScore(b, allNonSocialArticles);
+          const scoreA = calculateContentScore(a, articles);
+          const scoreB = calculateContentScore(b, articles);
           return scoreB - scoreA;
         });
 
@@ -627,23 +619,8 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // Si aún faltan, usar CUALQUIER artículo no social por ContentScore (incluyendo duplicados si es necesario)
+    // 3) Si aún faltan, permitir duplicados para llegar a 50
     if (result.length < limit) {
-      const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
-      const allNonSocialArticles = articles.filter(article => {
-        const sourceName = article.source?.name?.toLowerCase() || '';
-        return !excludedSources.some(excludedSource => 
-          sourceName.includes(excludedSource)
-        );
-      });
-      
-      const contentScoreCandidates = allNonSocialArticles
-        .sort((a, b) => {
-          const scoreA = calculateContentScore(a, allNonSocialArticles);
-          const scoreB = calculateContentScore(b, allNonSocialArticles);
-          return scoreB - scoreA;
-        });
-
       for (const candidate of contentScoreCandidates) {
         if (result.length >= limit) break;
         const id = generateArticleId(candidate);
@@ -654,9 +631,9 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // Como último recurso, permitir candidatos ya mostrados para no dejar huecos
+    // 4) Como último recurso, usar cualquier artículo disponible
     if (result.length < limit) {
-      for (const candidate of engagementCandidates) {
+      for (const candidate of articles) {
         if (result.length >= limit) break;
         const id = generateArticleId(candidate);
         if (!selectedIds.has(id)) {
@@ -665,9 +642,6 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
         }
       }
     }
-
-    // NO rellenar con redes sociales - mantener solo medios tradicionales
-    // Si no hay suficientes medios tradicionales, mostrar menos artículos pero mantener la pureza
   }
 
   console.log('  🎯 RESULTADO FINAL getUniqueTopPaisArticles:', result.length);
@@ -809,7 +783,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   // Tomar el límite solicitado
   let result = uniqueArticles.slice(0, limit);
 
-  // Rellenar hasta 50 artículos: intentar con más posts sociales por engagement
+  // Rellenar hasta 50 artículos: ser más permisivo para conseguir más artículos
   if (result.length < limit) {
     const selectedIds = new Set(result.map(a => generateArticleId(a)));
 
@@ -826,11 +800,24 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
       }
     }
 
-    // 2) Si aún faltan, permitir duplicados sociales ya mostrados para no dejar huecos
+    // 2) Si aún faltan, usar TODOS los artículos sociales por engagement
     if (result.length < limit) {
-      const fallbackPool = [...completeSocialArticles]
+      const allSocialCandidates = [...socialMediaArticles]
         .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
-      for (const candidate of fallbackPool) {
+      
+      for (const candidate of allSocialCandidates) {
+        if (result.length >= limit) break;
+        const id = generateArticleId(candidate);
+        if (!selectedIds.has(id) && !shownArticles.has(id)) {
+          result.push(candidate);
+          selectedIds.add(id);
+        }
+      }
+    }
+
+    // 3) Si aún faltan, permitir duplicados sociales
+    if (result.length < limit) {
+      for (const candidate of allSocialCandidates) {
         if (result.length >= limit) break;
         const id = generateArticleId(candidate);
         if (!selectedIds.has(id)) {
@@ -840,8 +827,17 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
       }
     }
 
-    // NO rellenar con medios tradicionales - mantener solo redes sociales
-    // Si no hay suficientes redes sociales, mostrar menos artículos pero mantener la pureza
+    // 4) Como último recurso, usar cualquier artículo disponible
+    if (result.length < limit) {
+      for (const candidate of articles) {
+        if (result.length >= limit) break;
+        const id = generateArticleId(candidate);
+        if (!selectedIds.has(id)) {
+          result.push(candidate);
+          selectedIds.add(id);
+        }
+      }
+    }
   }
 
   console.log('  🎯 RESULTADO FINAL getUniqueSocialMediaArticles:', result.length);
@@ -1042,7 +1038,7 @@ export default function Index() {
           const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
             countryId,
             sectorId,
-            limit: 50  // Solicitar 50 artículos para cada sección
+            limit: 200  // Solicitar 200 artículos para cada sección
           });
 
           if (response.data.success) {
@@ -1088,7 +1084,7 @@ export default function Index() {
         if (email) {
           const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { 
             email,
-            limit: 100  // Solicitar 100 artículos para cada sección
+            limit: 200  // Solicitar 200 artículos para cada sección
           });
           if (response.data.success) {
             // Log de la respuesta cruda de la API
@@ -1356,8 +1352,17 @@ export default function Index() {
               freqMap.set(key, (freqMap.get(key) || 0) + 1);
             }
           };
-          // tomar keyphrases solo del sector
-          sectorArticles.forEach(a => addWords(a.enrichments?.keyphrases));
+          // tomar keyphrases del sector, con fallback a títulos y descripciones
+          sectorArticles.forEach(a => {
+            if (a.enrichments?.keyphrases && a.enrichments.keyphrases.length > 0) {
+              addWords(a.enrichments.keyphrases);
+            } else {
+              // Extraer palabras del título y descripción como fallback
+              const titleWords = extractWordsFromText(a.title || '');
+              const descWords = extractWordsFromText(a.description || '');
+              addWords([...titleWords, ...descWords]);
+            }
+          });
           const words: WordFrequency[] = Array.from(freqMap.entries()).map(([word, count]) => ({ word, count }));
           if (words.length === 0) return null;
           return (
@@ -1435,15 +1440,15 @@ export default function Index() {
               .slice(0, 10); // Limitar a 10 palabras por artículo
           };
           
-          // Intentar usar keyphrases primero, luego extraer de títulos
+          // Intentar usar keyphrases primero, luego extraer de títulos y descripciones
           paisArticles.forEach(a => {
             if (a.enrichments?.keyphrases && a.enrichments.keyphrases.length > 0) {
               addWords(a.enrichments.keyphrases);
             } else {
-              // Extraer palabras del título y contenido
-              const titleWords = extractWordsFromText((a as any)?.content?.title || '');
-              const contentWords = extractWordsFromText((a as any)?.content?.summary || '');
-              addWords([...titleWords, ...contentWords]);
+              // Extraer palabras del título y descripción
+              const titleWords = extractWordsFromText(a.title || '');
+              const descWords = extractWordsFromText(a.description || '');
+              addWords([...titleWords, ...descWords]);
             }
           });
           
