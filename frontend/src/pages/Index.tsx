@@ -316,6 +316,35 @@ function canonicalizeUrl(rawUrl: string | undefined): string {
   }
 }
 
+// Heurística común para detectar si un artículo es de redes sociales
+function isSocialMediaArticle(article: MeltwaterArticle): boolean {
+  const allowedSources = ['instagram', 'facebook', 'twitter', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin'];
+  const socialHosts = new Set([
+    'twitter.com', 'x.com',
+    'instagram.com', 'www.instagram.com',
+    'facebook.com', 'www.facebook.com', 'm.facebook.com',
+    'reddit.com', 'www.reddit.com',
+    'youtube.com', 'www.youtube.com', 'youtu.be',
+    'tiktok.com', 'www.tiktok.com',
+    'threads.net', 'www.threads.net',
+    'linkedin.com', 'www.linkedin.com'
+  ]);
+  const getHost = (url?: string) => {
+    if (!url) return '';
+    try { return new URL(url).hostname.toLowerCase(); } catch { return ''; }
+  };
+  // @ts-ignore posibles campos crudos
+  const raw: any = article as any;
+  if (raw?.content_type === 'social post' || raw?.content_type === 'repost' || raw?.content_type === 'comment') return true;
+  const host = getHost(article.url);
+  if (host && socialHosts.has(host)) return true;
+  const sourceName = article.source?.name?.toLowerCase() || '';
+  if (allowedSources.some(token => sourceName.includes(token))) return true;
+  const url = article.url || '';
+  if (/instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be)/i.test(url)) return true;
+  return false;
+}
+
 // Normaliza descripción para key adicional
 function normalizeDescription(desc: string | undefined): string {
   if (!desc) return '';
@@ -565,25 +594,15 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     'india', 'mumbai', 'delhi', 'india', 'mumbai', 'delhi'
   ];
   
-  // Filtrar artículos - Ser menos restrictivo, incluir más fuentes
+  // Filtrar artículos - Excluir de forma robusta redes sociales para panel País
   const filteredArticles = articles.filter(article => {
-    const sourceName = article.source?.name?.toLowerCase() || '';
-    
-    // Solo excluir redes sociales explícitas más comunes
-    const isSocialMedia = excludedSources.some(excludedSource => 
-      sourceName.includes(excludedSource)
-    );
-    
-    // Incluir todo lo que no sea claramente red social
-    const isIncluded = !isSocialMedia;
-    
-    if (isSocialMedia) {
+    const isSocial = isSocialMediaArticle(article);
+    if (isSocial) {
       console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
-    } else {
-      console.log(`  ✅ Incluido: ${article.title} | Fuente: ${article.source?.name}`);
+      return false;
     }
-    
-    return isIncluded;
+    console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
+    return true;
   });
   
   console.log('  Artículos después de filtrar redes sociales:', filteredArticles.length);
@@ -1072,10 +1091,10 @@ export default function Index() {
           if (searchName) {
             setSearchName(searchName);
           }
-          const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
+        const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
             countryId,
             sectorId,
-            limit: 200  // Solicitar 200 artículos para cada sección
+          limit: 300  // Solicitar 300 artículos para cada sección
           });
 
           if (response.data.success) {
@@ -1121,7 +1140,7 @@ export default function Index() {
         if (email) {
           const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { 
             email,
-            limit: 200  // Solicitar 200 artículos para cada sección
+            limit: 300  // Solicitar 300 artículos para cada sección
           });
           if (response.data.success) {
             // Log de la respuesta cruda de la API
@@ -1365,7 +1384,7 @@ export default function Index() {
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
               <NewsList articles={(() => {
                 // Sección 1: Sector (ContentScore)
-                const articles = getUniqueTopArticles(sectorArticles, shownArticles, 200);
+                const articles = getUniqueTopArticles(sectorArticles, shownArticles, 300);
                 // Marcar como mostrados para evitar duplicados con las siguientes secciones
                 markShown(shownArticles, articles);
                 console.log('🔵 TOP 50 SECTOR - Artículos mostrados:', articles.length);
@@ -1441,7 +1460,7 @@ export default function Index() {
                 console.log('🚀 INICIANDO getUniqueTopPaisArticles con:', paisArticles.length, 'artículos del país');
                 console.log('🚀 ARTÍCULOS DEL PAÍS DISPONIBLES:', paisArticles.map(a => `${a.title} | ${a.source.name}`));
                 // Sección 2: País - Mostrar artículos del país (medios tradicionales) ordenados por SocialEcho/ContentScore
-                const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 200);
+                const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 300);
                 // Marcar como mostrados para evitar duplicados con la sección de redes
                 markShown(shownArticles, articles);
                 console.log('🟢 TOP 50 PAÍS - Artículos mostrados:', articles.length);
@@ -1539,7 +1558,7 @@ export default function Index() {
               <div className="news-grid-dashboard">
                 {(() => {
                   // Sección 3: Redes Sociales - Solo artículos que NO fueron mostrados en la sección País
-                  const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 200);
+                  const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 300);
                   console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
                   articles.forEach((article, index) => {
                     console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);
