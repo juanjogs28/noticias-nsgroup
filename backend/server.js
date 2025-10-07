@@ -313,6 +313,7 @@ app.get("/api/version", (req, res) => {
 // Iniciar servidor
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+  console.log("🔄 Cache limpiado - reiniciando para obtener datos frescos");
   console.log(`🌐 CORS: Permitidos todos los orígenes (*)`);
   console.log(`🔗 URLs permitidas:`);
   console.log(`   - Desarrollo: http://localhost:${PORT}`);
