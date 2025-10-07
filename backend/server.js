@@ -314,6 +314,18 @@ app.get("/api/version", (req, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
   console.log("🔄 Cache limpiado - reiniciando para obtener datos frescos");
+  
+  // Limpiar caché automáticamente al iniciar
+  setTimeout(async () => {
+    try {
+      console.log("🧹 Limpiando caché automáticamente...");
+      const CachedNews = require("./models/cachedNews.js");
+      const result = await CachedNews.deleteMany({});
+      console.log(`✅ Cache limpiado automáticamente: ${result.deletedCount} entradas eliminadas`);
+    } catch (error) {
+      console.error("❌ Error limpiando caché automáticamente:", error);
+    }
+  }, 5000); // Esperar 5 segundos después del inicio
   console.log(`🌐 CORS: Permitidos todos los orígenes (*)`);
   console.log(`🔗 URLs permitidas:`);
   console.log(`   - Desarrollo: http://localhost:${PORT}`);
