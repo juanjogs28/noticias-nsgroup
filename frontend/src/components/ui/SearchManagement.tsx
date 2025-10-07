@@ -15,9 +15,10 @@ interface SearchManagementProps {
   password: string;
   onError: (error: string) => void;
   onSuccess: (message: string) => void;
+  onSearchCreated?: () => void;
 }
 
-export default function SearchManagement({ password, onError, onSuccess }: SearchManagementProps) {
+export default function SearchManagement({ password, onError, onSuccess, onSearchCreated }: SearchManagementProps) {
   const [searches, setSearches] = useState<Search[]>([]);
   const [loading, setLoading] = useState(false);
   const [newSearch, setNewSearch] = useState({
@@ -64,6 +65,10 @@ export default function SearchManagement({ password, onError, onSuccess }: Searc
       setNewSearch({ name: "", countrySearchId: "", sectorSearchId: "" });
       fetchSearches();
       onSuccess("✅ Búsqueda creada exitosamente");
+      // Notificar que se creó una búsqueda para actualizar otros componentes
+      if (onSearchCreated) {
+        onSearchCreated();
+      }
     } catch (err: any) {
       console.error("Error creando búsqueda:", err);
       onError(err.response?.data?.message || "Error creando búsqueda");
@@ -74,7 +79,7 @@ export default function SearchManagement({ password, onError, onSuccess }: Searc
 
   const updateSearch = async (id: string, updates: Partial<Search>) => {
     try {
-      await axios.patch(
+      const response = await axios.patch(
         `${buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_SEARCHES)}/${id}`,
         updates,
         {
@@ -83,8 +88,13 @@ export default function SearchManagement({ password, onError, onSuccess }: Searc
           }
         }
       );
-      fetchSearches();
-      onSuccess("✅ Búsqueda actualizada exitosamente");
+      
+      if (response.data.success) {
+        fetchSearches();
+        onSuccess("✅ Búsqueda actualizada exitosamente");
+      } else {
+        onError("Error actualizando búsqueda");
+      }
     } catch (err: any) {
       console.error("Error actualizando búsqueda:", err);
       onError(err.response?.data?.message || "Error actualizando búsqueda");

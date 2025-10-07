@@ -52,6 +52,9 @@ export default function AdminPanel() {
   // Estados para edición de suscriptores
   const [editingSubscriber, setEditingSubscriber] = useState<Subscriber | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
+  // Estado para refrescar SubscriptionManagement cuando se crea una búsqueda
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Función para autenticar
   const authenticate = async () => {
@@ -78,6 +81,7 @@ export default function AdminPanel() {
         fetchSubscribers();
         fetchScheduleTimes();
         fetchDefaultConfig();
+        // No limpiar la contraseña aquí porque se necesita para las llamadas API
       }
     } catch (err: any) {
       console.error("Error de autenticación:", err);
@@ -99,6 +103,7 @@ export default function AdminPanel() {
     setPassword("");
     setSubscribers([]);
     setError("");
+    setSuccessMessage("");
   };
 
   const fetchSubscribers = async () => {
@@ -436,6 +441,7 @@ export default function AdminPanel() {
 
         <div className="mt-6 text-center text-sm text-gray-500">
           <p>🔐 Acceso restringido al personal autorizado</p>
+          <p className="text-xs text-gray-400 mt-2">La contraseña se mantiene segura y no se muestra en pantalla</p>
         </div>
       </div>
     );
@@ -446,12 +452,15 @@ export default function AdminPanel() {
     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">📋 Panel Admin</h2>
-        <button
-          onClick={logout}
-          className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
-        >
-          🚪 Cerrar Sesión
-        </button>
+        <div className="flex items-center space-x-4">
+          <span className="text-sm text-gray-500">🔐 Sesión activa</span>
+          <button
+            onClick={logout}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+          >
+            🚪 Cerrar Sesión
+          </button>
+        </div>
       </div>
 
               {error && <p className="text-red-500 mb-4">{error}</p>}
@@ -584,6 +593,7 @@ export default function AdminPanel() {
         password={password}
         onError={setError}
         onSuccess={setSuccessMessage}
+        onSearchCreated={() => setRefreshTrigger(prev => prev + 1)}
       />
 
       {/* Gestión de suscripciones */}
@@ -591,6 +601,7 @@ export default function AdminPanel() {
         password={password}
         onError={setError}
         onSuccess={setSuccessMessage}
+        refreshTrigger={refreshTrigger}
       />
 
       {/* Formulario de suscriptores */}

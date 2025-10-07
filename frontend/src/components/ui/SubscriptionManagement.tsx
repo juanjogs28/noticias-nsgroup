@@ -38,9 +38,10 @@ interface SubscriptionManagementProps {
   password: string;
   onError: (error: string) => void;
   onSuccess: (message: string) => void;
+  refreshTrigger?: number;
 }
 
-export default function SubscriptionManagement({ password, onError, onSuccess }: SubscriptionManagementProps) {
+export default function SubscriptionManagement({ password, onError, onSuccess, refreshTrigger }: SubscriptionManagementProps) {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [searches, setSearches] = useState<Search[]>([]);
@@ -149,6 +150,13 @@ export default function SubscriptionManagement({ password, onError, onSuccess }:
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Actualizar datos cuando cambie el refreshTrigger
+  useEffect(() => {
+    if (refreshTrigger) {
+      fetchData();
+    }
+  }, [refreshTrigger]);
 
   return (
     <div className="bg-gray-50 p-4 rounded-lg mb-6">
