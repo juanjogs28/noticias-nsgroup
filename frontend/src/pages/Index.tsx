@@ -1539,7 +1539,7 @@ export default function Index() {
         })()}
 
         {/* Contenido Más Relevante */}
-        {paisArticles.length > 0 && (
+        {sectorArticles.length > 0 && (
           <div className="news-section">
             <div className="section-header-dashboard">
               <div className="section-icon-dashboard">
@@ -1550,52 +1550,93 @@ export default function Index() {
               <div>
                 <h2 className="section-title-dashboard">Contenido Más Relevante</h2>
                 <p className="section-description">
-                  Contenido de redes sociales (Instagram, Facebook, Twitter/X, Reddit, YouTube) ordenado por engagement para identificar oportunidades de HOT NEWS
+                  Contenido del sector ordenado por ContentScore para identificar las noticias más impactantes y relevantes
                 </p>
               </div>
             </div>
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
-              <div className="news-grid-dashboard">
-                {(() => {
-                  // Sección 3: Redes Sociales - Solo artículos que NO fueron mostrados en la sección País
-                  const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 300);
-                  console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
-                  articles.forEach((article, index) => {
-                    console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);
-                  });
-                  return articles;
-                })().map((article, index) => (
-                  <a
-                    key={`${article.url}-${index}`}
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="news-card-dashboard"
-                  >
-                    <img
-                      src={article.urlToImage || '/placeholder.svg'}
-                      alt={article.title}
-                      className="news-image-dashboard"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/placeholder.svg';
-                      }}
-                    />
-                    <div className="news-content-dashboard">
-                      <h3 className="news-title-dashboard">{article.title}</h3>
-                      <p className="news-description-dashboard">{article.description}</p>
-                      <div className="news-meta-dashboard">
-                        <span className="news-source-dashboard">{article.source.name}</span>
-                        <span>{new Date(article.publishedAt).toLocaleDateString('es-ES')}</span>
-                      </div>
-                      {index < 2 && <span className="news-tag">Actualidad</span>}
-                    </div>
-                  </a>
-                ))}
-              </div>
+              <NewsList articles={(() => {
+                console.log('🚀 INICIANDO getUniqueTopArticles para sector con:', sectorArticles.length, 'artículos del sector');
+                console.log('🚀 ARTÍCULOS DEL SECTOR DISPONIBLES:', sectorArticles.map(a => `${a.title} | ${a.source.name}`));
+                // Sección 1: Sector - Mostrar artículos del sector ordenados por ContentScore
+                const articles = getUniqueTopArticles(sectorArticles, shownArticles, 300);
+                // Marcar como mostrados para evitar duplicados
+                markShown(shownArticles, articles);
+                console.log('🟡 TOP 50 SECTOR - Artículos mostrados:', articles.length);
+                articles.forEach((article, index) => {
+                  console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | ContentScore: ${article.contentScore?.toFixed(3)}`);
+                });
+                return articles;
+              })()} title="Noticias del Sector" />
             </div>
           </div>
         )}
+
+        {/* Redes Sociales */}
+        {paisArticles.length > 0 && (() => {
+          // Filtrar solo artículos de redes sociales del país
+          const socialMediaArticles = paisArticles.filter(article => isSocialMediaArticle(article));
+          
+          if (socialMediaArticles.length === 0) return null;
+          
+          return (
+            <div className="news-section">
+              <div className="section-header-dashboard">
+                <div className="section-icon-dashboard">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="section-title-dashboard">Redes Sociales</h2>
+                  <p className="section-description">
+                    Contenido de redes sociales (Instagram, Facebook, Twitter/X, Reddit, YouTube) ordenado por engagement para identificar oportunidades de HOT NEWS
+                  </p>
+                </div>
+              </div>
+              <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
+                <div className="news-grid-dashboard">
+                  {(() => {
+                    // Sección 3: Redes Sociales - Solo artículos de redes sociales
+                    const articles = getUniqueSocialMediaArticles(socialMediaArticles, shownArticles, 300);
+                    console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
+                    articles.forEach((article, index) => {
+                      console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);
+                    });
+                    return articles;
+                  })().map((article, index) => (
+                    <a
+                      key={`${article.url}-${index}`}
+                      href={article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="news-card-dashboard"
+                    >
+                      <img
+                        src={article.urlToImage || '/placeholder.svg'}
+                        alt={article.title}
+                        className="news-image-dashboard"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/placeholder.svg';
+                        }}
+                      />
+                      <div className="news-content-dashboard">
+                        <h3 className="news-title-dashboard">{article.title}</h3>
+                        <p className="news-description-dashboard">{article.description}</p>
+                        <div className="news-meta-dashboard">
+                          <span className="news-source-dashboard">{article.source.name}</span>
+                          <span>{new Date(article.publishedAt).toLocaleDateString('es-ES')}</span>
+                        </div>
+                        {index < 2 && <span className="news-tag">Actualidad</span>}
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </main>
     </div>
   );
