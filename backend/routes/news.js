@@ -374,14 +374,8 @@ async function getSearchResults(searchId) {
           const documents = data.result?.documents || [];
           
           // Debug detallado de la respuesta de Meltwater
-          console.log(`🔍 DEBUG MELTWATER - Petición ${i + 1}:`);
-          console.log(`  📊 Status: ${res.status}`);
-          console.log(`  📊 Respuesta completa:`, JSON.stringify(data, null, 2));
-          console.log(`  📊 Documentos encontrados: ${documents.length}`);
-          console.log(`  📊 Límite solicitado: 1000`);
-          console.log(`  📊 Rango: ${range.name} (${range.days} días)`);
-          
-          console.log(`✅ Petición ${i + 1} exitosa: ${documents.length} artículos obtenidos`);
+          // Logs reducidos para evitar rate limit de Railway
+          console.log(`✅ Petición ${i + 1} exitosa: ${documents.length} artículos (${range.name})`);
           
           // Agregar documentos únicos (evitar duplicados)
           const newDocuments = documents.filter(doc => 
@@ -389,7 +383,6 @@ async function getSearchResults(searchId) {
           );
           
           allDocuments.push(...newDocuments);
-          console.log(`📊 Total acumulado: ${allDocuments.length} artículos únicos`);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
           if (allDocuments.length >= 500) {
@@ -397,30 +390,31 @@ async function getSearchResults(searchId) {
             break;
           }
         } else {
-          console.log(`⚠️  Error en petición ${i + 1}: ${res.status}`);
+          // Logs reducidos para errores
+          console.log(`⚠️  Error ${res.status} en petición ${i + 1}`);
           
           // Si es error 429, esperar más tiempo antes de continuar
           if (res.status === 429) {
             const retryAfter = res.headers.get('retry-after');
-            const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 5000; // 5 segundos por defecto
-            console.log(`⏳ Error 429 detectado, esperando ${waitTime/1000}s antes de continuar...`);
+            const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 5000;
+            console.log(`⏳ Esperando ${waitTime/1000}s...`);
             await new Promise(resolve => setTimeout(resolve, waitTime));
           }
         }
       } catch (error) {
         clearTimeout(timeoutId);
-        console.log(`⚠️  Error en petición ${i + 1}: ${error.message}`);
+        console.log(`⚠️  Error en petición ${i + 1}: ${error.name}`);
         
         // Si es timeout, esperar más tiempo antes de continuar
         if (error.name === 'AbortError') {
-          console.log(`⏳ Timeout detectado, esperando 5s antes de continuar...`);
+          console.log(`⏳ Timeout, esperando 5s...`);
           await new Promise(resolve => setTimeout(resolve, 5000));
         }
       }
     }
 
     if (allDocuments.length > 0) {
-      console.log(`✅ Meltwater múltiple exitoso: ${allDocuments.length} artículos únicos obtenidos`);
+      console.log(`✅ Meltwater: ${allDocuments.length} artículos obtenidos`);
       
       // Si tenemos pocos artículos, intentar peticiones adicionales con diferentes parámetros
       if (allDocuments.length < 50) {
