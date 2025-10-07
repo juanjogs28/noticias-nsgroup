@@ -1388,8 +1388,12 @@ export default function Index() {
                 console.log(`  📊 sectorArticles disponibles: ${sectorArticles.length}`);
                 console.log(`  📊 shownArticles.size: ${shownArticles.size}`);
                 console.log(`  📊 shownArticles contenido:`, Array.from(shownArticles).slice(0, 10));
-                
-                const articles = getUniqueTopArticles(sectorArticles, shownArticles, 300);
+
+                // Excluir redes sociales del panel sector
+                const sectorNonSocial = sectorArticles.filter(a => !isSocialMediaArticle(a));
+                console.log(`  🧹 sectorNonSocial (sin redes): ${sectorNonSocial.length}`);
+
+                const articles = getUniqueTopArticles(sectorNonSocial, shownArticles, 300);
                 // Marcar como mostrados para evitar duplicados con las siguientes secciones
                 markShown(shownArticles, articles);
                 console.log('🔵 TOP 50 SECTOR - Artículos mostrados:', articles.length);
