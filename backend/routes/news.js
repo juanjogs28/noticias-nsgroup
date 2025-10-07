@@ -234,23 +234,23 @@ async function getSearchResults(searchId) {
   let allDocuments = [];
 
   try {
-    // TEMPORAL: Saltar caché para forzar datos reales de Meltwater
-    console.log(`🔍 Saltando caché para forzar datos reales de Meltwater (searchId: ${searchId})`);
+    // Usar caché más agresivo para evitar peticiones repetidas a Meltwater
+    console.log(`🔍 Verificando caché para searchId: ${searchId}`);
     
-    // Verificar si el caché tiene datos de Meltwater reales y suficientes
-    const cachedArticles = await CacheService.getCachedArticles(searchId, 6); // 6 horas de caché
+    // Verificar si el caché tiene datos de Meltwater reales y suficientes (24 horas de caché)
+    const cachedArticles = await CacheService.getCachedArticles(searchId, 24); // 24 horas de caché
     if (cachedArticles && cachedArticles.length > 0) {
       // Verificar si son datos reales de Meltwater
       const isFromMeltwater = cachedArticles.some(article => 
         article.id && !article.id.startsWith('fallback_') && !article.id.startsWith('social_')
       );
       
-      // Solo usar caché si tiene suficientes artículos reales (mínimo 50)
-      if (isFromMeltwater && cachedArticles.length >= 50) {
+      // Usar caché si tiene artículos reales (mínimo 10 para ser más permisivo)
+      if (isFromMeltwater && cachedArticles.length >= 10) {
         console.log(`📦 Usando cache REAL de Meltwater para searchId: ${searchId} (${cachedArticles.length} artículos)`);
         return { result: { documents: cachedArticles } };
       } else {
-        console.log(`⚠️  Cache insuficiente (${cachedArticles.length} < 50 artículos), forzando nuevas peticiones`);
+        console.log(`⚠️  Cache insuficiente (${cachedArticles.length} < 10 artículos), forzando nuevas peticiones`);
         // Limpiar caché insuficiente
         await CacheService.clearCacheForSearchId(searchId);
       }
@@ -275,11 +275,15 @@ async function getSearchResults(searchId) {
     for (let i = 0; i < dateRanges.length; i++) {
       const range = dateRanges[i];
       
-      // Delay mínimo entre peticiones para obtener más noticias
+      // Backoff exponencial para manejar errores 429
       if (i > 0) {
-        const delay = 200 + Math.random() * 300; // 0.2-0.5 segundos entre peticiones
-        console.log(`⏳ Esperando ${Math.round(delay/1000)}s antes de próxima petición...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        const baseDelay = 1000; // 1 segundo base
+        const exponentialDelay = baseDelay * Math.pow(2, i - 1); // Backoff exponencial
+        const jitter = Math.random() * 1000; // Jitter aleatorio
+        const totalDelay = exponentialDelay + jitter;
+        
+        console.log(`⏳ Backoff exponencial: esperando ${Math.round(totalDelay/1000)}s antes de próxima petición...`);
+        await new Promise(resolve => setTimeout(resolve, totalDelay));
       }
       
       console.log(`🔍 Petición ${i + 1}/${dateRanges.length}: ${range.name} (${range.days} días)`);
@@ -287,12 +291,16 @@ async function getSearchResults(searchId) {
       try {
         const startDate = new Date(now.getTime() - range.days * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
         
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
+        
         const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
           method: "POST",
           headers: {
             apikey: MELTWATER_TOKEN,
             "Content-Type": "application/json",
           },
+          signal: controller.signal,
           body: JSON.stringify({
             tz: "America/Montevideo",
             start: startDate,
@@ -308,6 +316,8 @@ async function getSearchResults(searchId) {
           }),
         });
 
+        clearTimeout(timeoutId);
+        
         if (res.ok) {
           const data = await res.json();
           const documents = data.result?.documents || [];
@@ -337,9 +347,24 @@ async function getSearchResults(searchId) {
           }
         } else {
           console.log(`⚠️  Error en petición ${i + 1}: ${res.status}`);
+          
+          // Si es error 429, esperar más tiempo antes de continuar
+          if (res.status === 429) {
+            const retryAfter = res.headers.get('retry-after');
+            const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 5000; // 5 segundos por defecto
+            console.log(`⏳ Error 429 detectado, esperando ${waitTime/1000}s antes de continuar...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+          }
         }
       } catch (error) {
+        clearTimeout(timeoutId);
         console.log(`⚠️  Error en petición ${i + 1}: ${error.message}`);
+        
+        // Si es timeout, esperar más tiempo antes de continuar
+        if (error.name === 'AbortError') {
+          console.log(`⏳ Timeout detectado, esperando 5s antes de continuar...`);
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        }
       }
     }
 
@@ -357,12 +382,16 @@ async function getSearchResults(searchId) {
           const extendedStart = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
           console.log(`🔍 Petición adicional: últimos 90 días`);
           
+          const controller2 = new AbortController();
+          const timeoutId2 = setTimeout(() => controller2.abort(), 30000); // 30 segundos timeout
+          
           const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
             method: "POST",
             headers: {
               apikey: MELTWATER_TOKEN,
               "Content-Type": "application/json",
             },
+            signal: controller2.signal,
             body: JSON.stringify({
               tz: "America/Montevideo",
               start: extendedStart,
@@ -371,6 +400,8 @@ async function getSearchResults(searchId) {
             }),
           });
 
+          clearTimeout(timeoutId2);
+          
           if (res.ok) {
             const data = await res.json();
             const documents = data.result?.documents || [];
@@ -385,6 +416,7 @@ async function getSearchResults(searchId) {
             console.log(`📊 Total final: ${allDocuments.length} artículos únicos`);
           }
         } catch (error) {
+          clearTimeout(timeoutId2);
           console.log(`⚠️  Error en petición adicional: ${error.message}`);
         }
       }
