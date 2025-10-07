@@ -391,7 +391,31 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
   console.log(`  📊 Artículos únicos después de filtrar duplicados: ${uniqueArticles.length}`);
 
   // Tomar el límite solicitado
-  const result = uniqueArticles.slice(0, limit);
+  let result = uniqueArticles.slice(0, limit);
+  console.log(`  📊 Resultado inicial: ${result.length} artículos`);
+  
+  // Rellenar hasta el límite si es necesario (solo con artículos reales)
+  if (result.length < limit) {
+    const selectedIds = new Set(result.map(a => generateArticleId(a)));
+    
+    // Intentar con más artículos ordenados por ContentScore
+    const contentScoreCandidates = articles
+      .sort((a, b) => {
+        const scoreA = calculateContentScore(a, articles);
+        const scoreB = calculateContentScore(b, articles);
+        return scoreB - scoreA;
+      });
+
+    for (const candidate of contentScoreCandidates) {
+      if (result.length >= limit) break;
+      const id = generateArticleId(candidate);
+      if (!selectedIds.has(id) && !shownArticles.has(id)) {
+        result.push(candidate);
+        selectedIds.add(id);
+      }
+    }
+  }
+  
   console.log(`  📊 Resultado final: ${result.length} artículos`);
   
   // Log de los primeros 5 artículos para debug
@@ -1051,7 +1075,7 @@ export default function Index() {
           const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
             countryId,
             sectorId,
-            limit: 200  // Solicitar 200 artículos para cada sección
+            limit: 500  // Solicitar 500 artículos para cada sección
           });
 
           if (response.data.success) {
@@ -1097,7 +1121,7 @@ export default function Index() {
         if (email) {
           const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { 
             email,
-            limit: 200  // Solicitar 200 artículos para cada sección
+            limit: 500  // Solicitar 500 artículos para cada sección
           });
           if (response.data.success) {
             // Log de la respuesta cruda de la API
