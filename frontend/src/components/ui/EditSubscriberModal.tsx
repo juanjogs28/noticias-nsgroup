@@ -3,12 +3,8 @@ import { useState, useEffect } from "react";
 interface Subscriber {
   _id: string;
   email: string;
-  countrySearchId: string;
-  sectorSearchId: string;
   subscribedAt: string;
   isActive: boolean;
-  isDefaultCountry: boolean;
-  isDefaultSector: boolean;
 }
 
 interface EditSubscriberModalProps {
@@ -26,8 +22,6 @@ export default function EditSubscriberModal({
 }: EditSubscriberModalProps) {
   const [formData, setFormData] = useState({
     email: "",
-    countrySearchId: "",
-    sectorSearchId: "",
     isActive: true
   });
   const [loading, setLoading] = useState(false);
@@ -38,8 +32,6 @@ export default function EditSubscriberModal({
     if (subscriber) {
       setFormData({
         email: subscriber.email,
-        countrySearchId: subscriber.countrySearchId || "",
-        sectorSearchId: subscriber.sectorSearchId || "",
         isActive: subscriber.isActive
       });
       setError("");
@@ -108,40 +100,13 @@ export default function EditSubscriberModal({
             />
           </div>
 
-          <div>
-            <label htmlFor="countrySearchId" className="block text-sm font-medium text-gray-700 mb-1">
-              ID Búsqueda País
-            </label>
-            <input
-              type="text"
-              id="countrySearchId"
-              value={formData.countrySearchId}
-              onChange={(e) => handleChange("countrySearchId", e.target.value)}
-              placeholder="Dejar vacío si no aplica"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="sectorSearchId" className="block text-sm font-medium text-gray-700 mb-1">
-              ID Búsqueda Sector
-            </label>
-            <input
-              type="text"
-              id="sectorSearchId"
-              value={formData.sectorSearchId}
-              onChange={(e) => handleChange("sectorSearchId", e.target.value)}
-              placeholder="Dejar vacío si no aplica"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
 
           <div className="flex items-center">
             <input
               type="checkbox"
               id="isActive"
               checked={formData.isActive}
-              onChange={(e) => handleChange("isActive", e.target.value)}
+              onChange={(e) => handleChange("isActive", e.target.checked)}
               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
             />
             <label htmlFor="isActive" className="ml-2 block text-sm text-gray-900">

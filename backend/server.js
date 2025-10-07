@@ -114,6 +114,12 @@ mongoose.connection.on('reconnected', () => {
 const adminSubscribersRouter = require("./routes/adminSubscribers");
 app.use("/api/admin/subscribers", adminSubscribersRouter);
 
+const searchesRouter = require("./routes/searches");
+app.use("/api/admin/searches", searchesRouter);
+
+const subscriptionsRouter = require("./routes/subscriptions");
+app.use("/api/admin/subscriptions", subscriptionsRouter);
+
 const newsRouter = require("./routes/news");
 app.use("/api/news", newsRouter);
 

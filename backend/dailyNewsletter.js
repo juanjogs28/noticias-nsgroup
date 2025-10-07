@@ -1,6 +1,8 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 const Subscriber = require("./models/subscribers.js");
+const Search = require("./models/searches.js");
+const Subscription = require("./models/subscriptions.js");
 const { Resend } = require("resend");
 
 // Conectar a MongoDB
@@ -29,19 +31,19 @@ mongoose
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Función para generar el HTML del email
-function generateEmailHTML(subscriber, personalizedUrl) {
+function generateEmailHTML(subscriber, personalizedUrl, searchInfo = null) {
   // Construir URL personalizada con los parámetros del suscriptor
   const baseUrl = process.env.FRONTEND_URL || "https://newsroom.eyewatch.me";
   
   // Agregar información de personalización si está disponible
   let personalizationInfo = "";
-  if (subscriber.countrySearchId || subscriber.sectorSearchId) {
+  if (searchInfo) {
     personalizationInfo = `
       <div class="personalization-info">
-        <strong>🔍 Configuración personalizada:</strong><br>
-        ${subscriber.countrySearchId ? `🌍 País ID: ${subscriber.countrySearchId}` : ''}
-        ${subscriber.countrySearchId && subscriber.sectorSearchId ? '<br>' : ''}
-        ${subscriber.sectorSearchId ? `🏢 Sector ID: ${subscriber.sectorSearchId}` : ''}
+        <strong>🔍 Búsqueda personalizada:</strong><br>
+        <strong>📝 ${searchInfo.name}</strong><br>
+        🌍 País ID: ${searchInfo.countrySearchId}<br>
+        🏢 Sector ID: ${searchInfo.sectorSearchId}
       </div>
     `;
   }
@@ -212,8 +214,8 @@ function generateEmailHTML(subscriber, personalizedUrl) {
   `;
 }
 
-// Función para enviar email a un suscriptor
-async function sendNewsletterToSubscriber(subscriber) {
+// Función para enviar email a un suscriptor con sus búsquedas
+async function sendNewsletterToSubscriber(subscriber, searchInfo) {
   try {
     // Construir URL personalizada para este suscriptor
     const baseUrl = process.env.FRONTEND_URL || "https://newsroom.eyewatch.me";
@@ -221,11 +223,11 @@ async function sendNewsletterToSubscriber(subscriber) {
     
     // Agregar parámetros de personalización si están disponibles
     const params = new URLSearchParams();
-    if (subscriber.countrySearchId) {
-      params.append('countryId', subscriber.countrySearchId);
+    if (searchInfo && searchInfo.countrySearchId) {
+      params.append('countryId', searchInfo.countrySearchId);
     }
-    if (subscriber.sectorSearchId) {
-      params.append('sectorId', subscriber.sectorSearchId);
+    if (searchInfo && searchInfo.sectorSearchId) {
+      params.append('sectorId', searchInfo.sectorSearchId);
     }
     
     if (params.toString()) {
@@ -238,7 +240,7 @@ async function sendNewsletterToSubscriber(subscriber) {
       from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
       to: [subscriber.email],
       subject: `📰 Noticias Personalizadas - ${new Date().toLocaleDateString('es-ES')}`,
-      html: generateEmailHTML(subscriber, personalizedUrl),
+      html: generateEmailHTML(subscriber, personalizedUrl, searchInfo),
     });
 
     if (error) {
@@ -255,7 +257,7 @@ async function sendNewsletterToSubscriber(subscriber) {
 }
 
 // Función mejorada que devuelve detalles del envío
-async function sendNewsletterToSubscriberWithDetails(subscriber) {
+async function sendNewsletterToSubscriberWithDetails(subscriber, searchInfo) {
   try {
     // Construir URL personalizada para este suscriptor
     const baseUrl = process.env.FRONTEND_URL || "https://newsroom.eyewatch.me";
@@ -263,11 +265,11 @@ async function sendNewsletterToSubscriberWithDetails(subscriber) {
     
     // Agregar parámetros de personalización si están disponibles
     const params = new URLSearchParams();
-    if (subscriber.countrySearchId) {
-      params.append('countryId', subscriber.countrySearchId);
+    if (searchInfo && searchInfo.countrySearchId) {
+      params.append('countryId', searchInfo.countrySearchId);
     }
-    if (subscriber.sectorSearchId) {
-      params.append('sectorId', subscriber.sectorSearchId);
+    if (searchInfo && searchInfo.sectorSearchId) {
+      params.append('sectorId', searchInfo.sectorSearchId);
     }
     
     if (params.toString()) {
@@ -280,7 +282,7 @@ async function sendNewsletterToSubscriberWithDetails(subscriber) {
       from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
       to: [subscriber.email],
       subject: `📰 Noticias Personalizadas - ${new Date().toLocaleDateString('es-ES')}`,
-      html: generateEmailHTML(subscriber, personalizedUrl),
+      html: generateEmailHTML(subscriber, personalizedUrl, searchInfo),
     });
 
     if (error) {
@@ -316,29 +318,37 @@ async function sendDailyNewsletter() {
   try {
     console.log("🚀 Iniciando envío de newsletter diario...");
     
-    // Obtener todos los suscriptores activos
-    const subscribers = await Subscriber.find({ isActive: true });
-    console.log(`📧 Encontrados ${subscribers.length} suscriptores activos`);
+    // Obtener todas las suscripciones activas con información completa
+    const subscriptions = await Subscription.find({ isActive: true })
+      .populate('subscriberId', 'email isActive')
+      .populate('searchId', 'name countrySearchId sectorSearchId isActive');
     
-    if (subscribers.length === 0) {
-      console.log("ℹ️ No hay suscriptores activos");
+    console.log(`📧 Encontradas ${subscriptions.length} suscripciones activas`);
+    
+    if (subscriptions.length === 0) {
+      console.log("ℹ️ No hay suscripciones activas");
       return;
     }
     
     let successCount = 0;
     let errorCount = 0;
     
-    // Enviar emails a todos los suscriptores
-    for (const subscriber of subscribers) {
-      const success = await sendNewsletterToSubscriber(subscriber);
-      if (success) {
-        successCount++;
+    // Enviar emails a todos los suscriptores con sus búsquedas
+    for (const subscription of subscriptions) {
+      // Verificar que tanto el suscriptor como la búsqueda estén activos
+      if (subscription.subscriberId.isActive && subscription.searchId.isActive) {
+        const success = await sendNewsletterToSubscriber(subscription.subscriberId, subscription.searchId);
+        if (success) {
+          successCount++;
+        } else {
+          errorCount++;
+        }
+        
+        // Pausa entre emails para evitar rate limiting
+        await new Promise(resolve => setTimeout(resolve, 500));
       } else {
-        errorCount++;
+        console.log(`⚠️ Saltando suscripción inactiva: ${subscription.subscriberId.email} -> ${subscription.searchId.name}`);
       }
-      
-      // Pausa entre emails para evitar rate limiting
-      await new Promise(resolve => setTimeout(resolve, 500));
     }
     
     console.log(`📊 Resumen del envío:`);
@@ -357,19 +367,22 @@ async function sendDailyNewsletterWithResults() {
   try {
     console.log("🚀 Iniciando envío de newsletter diario con resultados...");
     
-    // Obtener todos los suscriptores activos
-    const subscribers = await Subscriber.find({ isActive: true });
-    console.log(`📧 Encontrados ${subscribers.length} suscriptores activos`);
+    // Obtener todas las suscripciones activas con información completa
+    const subscriptions = await Subscription.find({ isActive: true })
+      .populate('subscriberId', 'email isActive')
+      .populate('searchId', 'name countrySearchId sectorSearchId isActive');
     
-    if (subscribers.length === 0) {
-      console.log("ℹ️ No hay suscriptores activos");
+    console.log(`📧 Encontradas ${subscriptions.length} suscripciones activas`);
+    
+    if (subscriptions.length === 0) {
+      console.log("ℹ️ No hay suscripciones activas");
       return {
-        totalSubscribers: 0,
+        totalSubscriptions: 0,
         successCount: 0,
         errorCount: 0,
         successEmails: [],
         errorEmails: [],
-        message: "No hay suscriptores activos"
+        message: "No hay suscripciones activas"
       };
     }
     
@@ -378,26 +391,33 @@ async function sendDailyNewsletterWithResults() {
     const successEmails = [];
     const errorEmails = [];
     
-    // Enviar emails a todos los suscriptores
-    for (const subscriber of subscribers) {
-      const result = await sendNewsletterToSubscriberWithDetails(subscriber);
-      if (result.success) {
-        successCount++;
-        successEmails.push({
-          email: subscriber.email,
-          emailId: result.emailId,
-          personalizedUrl: result.personalizedUrl
-        });
+    // Enviar emails a todos los suscriptores con sus búsquedas
+    for (const subscription of subscriptions) {
+      // Verificar que tanto el suscriptor como la búsqueda estén activos
+      if (subscription.subscriberId.isActive && subscription.searchId.isActive) {
+        const result = await sendNewsletterToSubscriberWithDetails(subscription.subscriberId, subscription.searchId);
+        if (result.success) {
+          successCount++;
+          successEmails.push({
+            email: subscription.subscriberId.email,
+            searchName: subscription.searchId.name,
+            emailId: result.emailId,
+            personalizedUrl: result.personalizedUrl
+          });
+        } else {
+          errorCount++;
+          errorEmails.push({
+            email: subscription.subscriberId.email,
+            searchName: subscription.searchId.name,
+            error: result.error
+          });
+        }
+        
+        // Pausa entre emails para evitar rate limiting
+        await new Promise(resolve => setTimeout(resolve, 500));
       } else {
-        errorCount++;
-        errorEmails.push({
-          email: subscriber.email,
-          error: result.error
-        });
+        console.log(`⚠️ Saltando suscripción inactiva: ${subscription.subscriberId.email} -> ${subscription.searchId.name}`);
       }
-      
-      // Pausa entre emails para evitar rate limiting
-      await new Promise(resolve => setTimeout(resolve, 500));
     }
     
     console.log(`📊 Resumen del envío:`);
@@ -406,18 +426,18 @@ async function sendDailyNewsletterWithResults() {
     console.log(`📅 Newsletter diario completado: ${new Date().toISOString()}`);
     
     return {
-      totalSubscribers: subscribers.length,
+      totalSubscriptions: subscriptions.length,
       successCount,
       errorCount,
       successEmails,
       errorEmails,
-      message: `Enviados ${successCount}/${subscribers.length} emails exitosamente`
+      message: `Enviados ${successCount}/${subscriptions.length} emails exitosamente`
     };
     
   } catch (error) {
     console.error("❌ Error en newsletter diario:", error.message);
     return {
-      totalSubscribers: 0,
+      totalSubscriptions: 0,
       successCount: 0,
       errorCount: 0,
       successEmails: [],

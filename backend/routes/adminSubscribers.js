@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
 // POST crear suscriptor
 router.post("/", async (req, res) => {
   try {
-    const { email, countrySearchId, sectorSearchId } = req.body;
+    const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email requerido" });
 
     const existing = await Subscriber.findOne({ email: email.toLowerCase() });
@@ -28,8 +28,6 @@ router.post("/", async (req, res) => {
 
     const subscriber = new Subscriber({
       email: email.toLowerCase(),
-      countrySearchId,
-      sectorSearchId,
     });
     const saved = await subscriber.save();
     res.json({ success: true, subscriber: saved });
@@ -42,7 +40,7 @@ router.post("/", async (req, res) => {
 // PATCH actualizar suscriptor
 router.patch("/:id", async (req, res) => {
   try {
-    const { email, countrySearchId, sectorSearchId, isActive } = req.body;
+    const { email, isActive } = req.body;
     
     // Verificar que el suscriptor existe
     const existingSubscriber = await Subscriber.findById(req.params.id);
@@ -64,8 +62,6 @@ router.patch("/:id", async (req, res) => {
     // Preparar datos de actualización
     const updateData = {};
     if (email !== undefined) updateData.email = email.toLowerCase();
-    if (countrySearchId !== undefined) updateData.countrySearchId = countrySearchId;
-    if (sectorSearchId !== undefined) updateData.sectorSearchId = sectorSearchId;
     if (isActive !== undefined) updateData.isActive = isActive;
     
     // Actualizar suscriptor

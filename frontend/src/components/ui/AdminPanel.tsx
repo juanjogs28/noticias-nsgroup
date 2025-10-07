@@ -2,17 +2,15 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import EditSubscriberModal from "./EditSubscriberModal";
+import SearchManagement from "./SearchManagement";
+import SubscriptionManagement from "./SubscriptionManagement";
 import { buildApiUrl, API_CONFIG } from "../../config/api";
 
 interface Subscriber {
   _id: string;
   email: string;
-  countrySearchId: string;
-  sectorSearchId: string;
   subscribedAt: string;
   isActive: boolean;
-  isDefaultCountry: boolean;
-  isDefaultSector: boolean;
 }
 
 interface ScheduleTime {
@@ -25,10 +23,6 @@ interface ScheduleTime {
 
 export default function AdminPanel() {
   const [email, setEmail] = useState("");
-  const [countrySearchId, setCountrySearchId] = useState("");
-  const [sectorSearchId, setSectorSearchId] = useState("");
-  const [isDefaultCountry, setIsDefaultCountry] = useState(false);
-  const [isDefaultSector, setIsDefaultSector] = useState(false);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -312,20 +306,12 @@ export default function AdminPanel() {
     try {
       await axios.post(buildApiUrl(API_CONFIG.ENDPOINTS.ADMIN_SUBSCRIBERS), {
         email,
-        countrySearchId,
-        sectorSearchId,
-        isDefaultCountry,
-        isDefaultSector,
       }, {
         headers: {
           'Authorization': `Bearer ${password}`
         }
       });
       setEmail("");
-      setCountrySearchId("");
-      setSectorSearchId("");
-      setIsDefaultCountry(false);
-      setIsDefaultSector(false);
       fetchSubscribers();
       setSuccessMessage("✅ Suscriptor creado exitosamente");
       setTimeout(() => setSuccessMessage(""), 3000);
@@ -593,10 +579,24 @@ export default function AdminPanel() {
         </div>
       </div>
 
+      {/* Gestión de búsquedas */}
+      <SearchManagement 
+        password={password}
+        onError={setError}
+        onSuccess={setSuccessMessage}
+      />
+
+      {/* Gestión de suscripciones */}
+      <SubscriptionManagement 
+        password={password}
+        onError={setError}
+        onSuccess={setSuccessMessage}
+      />
+
       {/* Formulario de suscriptores */}
       <div className="bg-gray-50 p-4 rounded-lg mb-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-3">👥 Gestión de Suscriptores</h3>
-        <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
             type="email"
             placeholder="Email"
@@ -604,26 +604,12 @@ export default function AdminPanel() {
             onChange={(e) => setEmail(e.target.value)}
             className="border rounded px-3 py-2"
           />
-          <input
-            type="text"
-            placeholder="ID búsqueda país"
-            value={countrySearchId}
-            onChange={(e) => setCountrySearchId(e.target.value)}
-            className="border rounded px-3 py-2"
-          />
-          <input
-            type="text"
-            placeholder="ID búsqueda sector"
-            value={sectorSearchId}
-            onChange={(e) => setSectorSearchId(e.target.value)}
-            className="border rounded px-3 py-2"
-          />
           <button
             onClick={createSubscriber}
             disabled={loading}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
           >
-            {loading ? "Guardando..." : "Agregar"}
+            {loading ? "Guardando..." : "➕ Agregar Suscriptor"}
           </button>
         </div>
       </div>
@@ -636,12 +622,6 @@ export default function AdminPanel() {
             <div className="flex-1">
               <div className="flex items-center space-x-4">
                 <span className="font-medium">{s.email}</span>
-                <span className="text-sm text-gray-600">
-                  País ID: {s.countrySearchId || "—"}
-                </span>
-                <span className="text-sm text-gray-600">
-                  Sector ID: {s.sectorSearchId || "—"}
-                </span>
                 <span className="text-sm text-gray-500">
                   {new Date(s.subscribedAt).toLocaleString()}
                 </span>
