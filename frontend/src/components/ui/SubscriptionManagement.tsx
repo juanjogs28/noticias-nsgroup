@@ -68,7 +68,12 @@ export default function SubscriptionManagement({ password, onError, onSuccess, r
         )
       ]);
 
-      setSubscriptions(subscriptionsRes.data.subscriptions || []);
+      // Filtrar suscripciones con datos válidos
+      const validSubscriptions = (subscriptionsRes.data.subscriptions || []).filter(
+        subscription => subscription.subscriberId && subscription.searchId
+      );
+
+      setSubscriptions(validSubscriptions);
       setSubscribers(subscribersRes.data.subscribers || []);
       setSearches(searchesRes.data.searches || []);
     } catch (err) {
@@ -201,16 +206,16 @@ export default function SubscriptionManagement({ password, onError, onSuccess, r
 
       {/* Lista de suscripciones */}
       <div className="space-y-2">
-        {subscriptions.map((subscription) => (
+        {subscriptions.filter(subscription => subscription.subscriberId && subscription.searchId).map((subscription) => (
           <div key={subscription._id} className="flex items-center justify-between bg-white p-3 rounded border">
             <div className="flex-1">
               <div className="flex items-center space-x-4">
-                <span className="font-medium">{subscription.subscriberId.email}</span>
+                <span className="font-medium">{subscription.subscriberId?.email || 'Email no disponible'}</span>
                 <span className="text-sm text-gray-600">
-                  → {subscription.searchId.name}
+                  → {subscription.searchId?.name || 'Búsqueda eliminada'}
                 </span>
                 <span className="text-sm text-gray-500">
-                  ({subscription.searchId.countrySearchId}, {subscription.searchId.sectorSearchId})
+                  ({subscription.searchId?.countrySearchId || 'N/A'}, {subscription.searchId?.sectorSearchId || 'N/A'})
                 </span>
                 <span className="text-sm text-gray-500">
                   {new Date(subscription.subscribedAt).toLocaleDateString()}

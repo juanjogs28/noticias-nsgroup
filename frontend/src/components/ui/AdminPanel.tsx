@@ -426,6 +426,7 @@ export default function AdminPanel() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Ingresa la contraseña"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              autoComplete="off"
               required
             />
           </div>
