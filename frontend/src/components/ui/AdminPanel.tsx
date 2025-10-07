@@ -442,7 +442,6 @@ export default function AdminPanel() {
 
         <div className="mt-6 text-center text-sm text-gray-500">
           <p>🔐 Acceso restringido al personal autorizado</p>
-          <p className="text-xs text-gray-400 mt-2">La contraseña se mantiene segura y no se muestra en pantalla</p>
         </div>
       </div>
     );
