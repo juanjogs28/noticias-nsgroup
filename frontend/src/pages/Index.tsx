@@ -1384,6 +1384,11 @@ export default function Index() {
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
               <NewsList articles={(() => {
                 // Sección 1: Sector (ContentScore)
+                console.log('🔵 DEBUG SECTOR - Estado inicial:');
+                console.log(`  📊 sectorArticles disponibles: ${sectorArticles.length}`);
+                console.log(`  📊 shownArticles.size: ${shownArticles.size}`);
+                console.log(`  📊 shownArticles contenido:`, Array.from(shownArticles).slice(0, 10));
+                
                 const articles = getUniqueTopArticles(sectorArticles, shownArticles, 300);
                 // Marcar como mostrados para evitar duplicados con las siguientes secciones
                 markShown(shownArticles, articles);
