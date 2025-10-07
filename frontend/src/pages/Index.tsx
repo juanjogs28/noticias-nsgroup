@@ -612,8 +612,9 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     }
 
     // 2) Si aún faltan, usar TODOS los artículos por ContentScore (más permisivo)
+    let contentScoreCandidates: MeltwaterArticle[] = [];
     if (result.length < limit) {
-      const contentScoreCandidates = articles
+      contentScoreCandidates = articles
         .sort((a, b) => {
           const scoreA = calculateContentScore(a, articles);
           const scoreB = calculateContentScore(b, articles);
@@ -812,8 +813,9 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     }
 
     // 2) Si aún faltan, usar TODOS los artículos sociales por engagement
+    let allSocialCandidates: MeltwaterArticle[] = [];
     if (result.length < limit) {
-      const allSocialCandidates = [...socialMediaArticles]
+      allSocialCandidates = [...socialMediaArticles]
         .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
       
       for (const candidate of allSocialCandidates) {
