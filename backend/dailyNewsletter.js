@@ -236,11 +236,21 @@ async function sendNewsletterToSubscriber(subscriber, searchInfo) {
         .replace(/-+/g, '-') // Remover guiones múltiples
         .trim();
       
-      // Si el slug es muy corto, agregar información adicional
+      // Si el slug es muy corto, crear un formato más amigable
       if (cleanName.length < 5) {
-        const countryInfo = searchInfo.countrySearchId ? `-${searchInfo.countrySearchId.toLowerCase()}` : '';
-        const sectorInfo = searchInfo.sectorSearchId ? `-${searchInfo.sectorSearchId.toLowerCase()}` : '';
-        cleanName = `search${countryInfo}${sectorInfo}`;
+        // Opción 1: Formato descriptivo con palabras clave
+        const countryCode = searchInfo.countrySearchId ? searchInfo.countrySearchId.toLowerCase() : 'global';
+        const sectorCode = searchInfo.sectorSearchId ? searchInfo.sectorSearchId.toLowerCase() : 'general';
+        
+        // Crear un slug más legible
+        cleanName = `noticias-${countryCode}-${sectorCode}`;
+        
+        // Opción 2: Si queremos algo más genérico
+        // cleanName = `busqueda-personalizada-${Date.now().toString().slice(-6)}`;
+        
+        // Opción 3: Formato con fecha
+        // const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        // cleanName = `noticias-${today}`;
       }
       
       // URL limpia: https://newsroom.eyewatch.me/noticias-espana-tecnologia
@@ -312,11 +322,21 @@ async function sendNewsletterToSubscriberWithDetails(subscriber, searchInfo) {
         .replace(/-+/g, '-') // Remover guiones múltiples
         .trim();
       
-      // Si el slug es muy corto, agregar información adicional
+      // Si el slug es muy corto, crear un formato más amigable
       if (cleanName.length < 5) {
-        const countryInfo = searchInfo.countrySearchId ? `-${searchInfo.countrySearchId.toLowerCase()}` : '';
-        const sectorInfo = searchInfo.sectorSearchId ? `-${searchInfo.sectorSearchId.toLowerCase()}` : '';
-        cleanName = `search${countryInfo}${sectorInfo}`;
+        // Opción 1: Formato descriptivo con palabras clave
+        const countryCode = searchInfo.countrySearchId ? searchInfo.countrySearchId.toLowerCase() : 'global';
+        const sectorCode = searchInfo.sectorSearchId ? searchInfo.sectorSearchId.toLowerCase() : 'general';
+        
+        // Crear un slug más legible
+        cleanName = `noticias-${countryCode}-${sectorCode}`;
+        
+        // Opción 2: Si queremos algo más genérico
+        // cleanName = `busqueda-personalizada-${Date.now().toString().slice(-6)}`;
+        
+        // Opción 3: Formato con fecha
+        // const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        // cleanName = `noticias-${today}`;
       }
       
       // URL limpia: https://newsroom.eyewatch.me/noticias-espana-tecnologia
