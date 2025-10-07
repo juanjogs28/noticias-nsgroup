@@ -315,22 +315,19 @@ async function getSearchResults(searchId) {
     const end = now.toISOString().slice(0, 19);
     
     // Definir rangos de fechas más amplios para obtener más noticias reales
-    // Generar 50 peticiones para obtener más artículos
-    const dateRanges = [];
-    for (let i = 0; i < 50; i++) {
-      const days = 7 + (i * 7); // 7, 14, 21, 28, 35, 42, 49, 56, 63, 70, etc.
-      dateRanges.push({
-        name: `rango ${i + 1}`,
-        days: Math.min(days, 365) // Máximo 1 año
-      });
-    }
+    // Solo 3 peticiones para evitar saturar Meltwater
+    const dateRanges = [
+      { name: "última semana", days: 7 },
+      { name: "último mes", days: 30 },
+      { name: "últimos 3 meses", days: 90 }
+    ];
     
     for (let i = 0; i < dateRanges.length; i++) {
       const range = dateRanges[i];
       
-      // Backoff reducido para hacer más peticiones
+      // Backoff simple para evitar saturar Meltwater
       if (i > 0) {
-        const delay = 500 + (i * 100); // 500ms, 600ms, 700ms, 800ms, etc.
+        const delay = 2000; // 2 segundos entre peticiones
         console.log(`⏳ Esperando ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -383,7 +380,7 @@ async function getSearchResults(searchId) {
           allDocuments.push(...newDocuments);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
-          if (allDocuments.length >= 200) {
+          if (allDocuments.length >= 50) {
             console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
             break;
           }
