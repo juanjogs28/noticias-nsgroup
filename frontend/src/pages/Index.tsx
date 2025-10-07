@@ -1243,16 +1243,9 @@ export default function Index() {
       {/* Header Dashboard */}
       <header className="dashboard-header">
         <div className="dashboard-container">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="dashboard-title">
-                NEWSROOM
-              </h1>
-              <p className="dashboard-subtitle">
-                Media & Social Dynamics Suite
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
+          <div className="relative">
+            {/* Botón de admin en posición absoluta */}
+            <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
               <a 
                 href="/admin" 
                 className="admin-button"
@@ -1265,6 +1258,14 @@ export default function Index() {
                 <span className="hidden sm:inline">Admin</span>
               </a>
             </div>
+            
+            {/* Título centrado como antes */}
+            <h1 className="dashboard-title">
+              NEWSROOM
+            </h1>
+            <p className="dashboard-subtitle">
+              Media & Social Dynamics Suite
+            </p>
           </div>
         </div>
       </header>
