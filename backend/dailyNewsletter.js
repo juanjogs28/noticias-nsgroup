@@ -229,6 +229,10 @@ async function sendNewsletterToSubscriber(subscriber, searchInfo) {
     if (searchInfo && searchInfo.sectorSearchId) {
       params.append('sectorId', searchInfo.sectorSearchId);
     }
+    // Agregar nombre de la búsqueda para mejor UX
+    if (searchInfo && searchInfo.name) {
+      params.append('searchName', searchInfo.name);
+    }
     
     if (params.toString()) {
       personalizedUrl += `?${params.toString()}`;
@@ -270,6 +274,10 @@ async function sendNewsletterToSubscriberWithDetails(subscriber, searchInfo) {
     }
     if (searchInfo && searchInfo.sectorSearchId) {
       params.append('sectorId', searchInfo.sectorSearchId);
+    }
+    // Agregar nombre de la búsqueda para mejor UX
+    if (searchInfo && searchInfo.name) {
+      params.append('searchName', searchInfo.name);
     }
     
     if (params.toString()) {

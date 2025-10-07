@@ -985,6 +985,7 @@ export default function Index() {
     topTopic: 'Sin datos'
   });
   const [countryName, setCountryName] = useState("País");
+  const [searchName, setSearchName] = useState<string | null>(null);
   const [shownArticles, setShownArticles] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -995,9 +996,14 @@ export default function Index() {
         const emailParam = urlParams.get("email");
         const countryId = urlParams.get("countryId");
         const sectorId = urlParams.get("sectorId");
+        const searchName = urlParams.get("searchName");
 
         // Si hay parámetros de URL, usarlos directamente
         if (countryId || sectorId) {
+          // Guardar el nombre de la búsqueda si está disponible
+          if (searchName) {
+            setSearchName(searchName);
+          }
           const response = await postWithRetry<NewsResponse>(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
             countryId,
             sectorId,
@@ -1264,7 +1270,7 @@ export default function Index() {
               NEWSROOM
             </h1>
             <p className="dashboard-subtitle">
-              Media & Social Dynamics Suite
+              {searchName ? `Búsqueda: ${searchName}` : "Media & Social Dynamics Suite"}
             </p>
           </div>
         </div>
