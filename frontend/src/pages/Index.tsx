@@ -1397,40 +1397,6 @@ export default function Index() {
           </div>
         )}
 
-        {/* TOP 50 Contenido - Sector */}
-        {sectorArticles.length > 0 && (
-          <div className="news-section">
-            <div className="section-header-dashboard">
-              <div className="section-icon-dashboard">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="section-title-dashboard">TOP 50 Contenido - Sector</h2>
-                <p className="section-description">
-                  Las noticias más impactantes del sector ordenadas por ContentScore para identificar contenido de alto impacto
-                </p>
-              </div>
-            </div>
-            <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
-              <NewsList articles={(() => {
-                console.log('🚀 INICIANDO getUniqueTopArticles para sector con:', sectorArticles.length, 'artículos del sector');
-                console.log('🚀 ARTÍCULOS DEL SECTOR DISPONIBLES:', sectorArticles.map(a => `${a.title} | ${a.source.name}`));
-                // Sección 1: Sector - Mostrar artículos del sector ordenados por ContentScore
-                const articles = getUniqueTopArticles(sectorArticles, shownArticles, 300);
-                // Marcar como mostrados para evitar duplicados
-                markShown(shownArticles, articles);
-                console.log('🟡 TOP 50 SECTOR - Artículos mostrados:', articles.length);
-                articles.forEach((article, index) => {
-                  console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | ContentScore: ${article.contentScore?.toFixed(3)}`);
-                });
-                return articles;
-              })()} title="Noticias del Sector" />
-            </div>
-          </div>
-        )}
-
         {/* Nube de Palabras - Sector */}
         {sectorArticles.length > 0 && (() => {
           const freqMap = new Map<string, number>();
