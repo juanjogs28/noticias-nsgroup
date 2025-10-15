@@ -71,209 +71,6 @@ async function ensureConnection() {
   }
 }
 
-// Función para generar datos de fallback cuando Meltwater esté bloqueado o no disponible
-function generateFallbackData(searchId) {
-  const isCountry = searchId === "27551367";
-  const category = isCountry ? "país" : "sector";
-  
-  console.log(`🔄 Generando datos de fallback para ${category} (searchId: ${searchId})`);
-  
-  const fallbackArticles = [
-    {
-      id: `fallback_${searchId}_1`,
-      url: "https://www.elobservador.com.uy/",
-      published_date: new Date().toISOString(),
-      source: { name: "El Observador" },
-      content: {
-        title: `Noticia importante del ${category} - Impacto económico y social`,
-        summary: `Análisis detallado de la situación actual del ${category} y sus implicaciones para el desarrollo nacional.`,
-        image: "https://picsum.photos/400/300?random=1"
-      }
-    },
-    {
-      id: `fallback_${searchId}_2`,
-      url: "https://www.montecarlo.com.uy/",
-      published_date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      source: { name: "Monte Carlo Television" },
-      content: {
-        title: `Desarrollo sostenible en el ${category} - Nuevas oportunidades`,
-        summary: `Iniciativas innovadoras que están transformando el panorama del ${category} en Uruguay.`,
-        image: "https://picsum.photos/400/300?random=2"
-      }
-    },
-    {
-      id: `fallback_${searchId}_3`,
-      url: "https://www.elpais.com.uy/",
-      published_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-      source: { name: "El País" },
-      content: {
-        title: `Tendencias emergentes en el ${category} - Análisis 2025`,
-        summary: `Expertos analizan las principales tendencias que marcarán el futuro del ${category} en el próximo año.`,
-        image: "https://picsum.photos/400/300?random=3"
-      }
-    },
-    {
-      id: `fallback_${searchId}_4`,
-      url: "https://ladiaria.com.uy/",
-      published_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      source: { name: "La Diaria" },
-      content: {
-        title: `Innovación tecnológica en el ${category} - Casos de éxito`,
-        summary: `Cómo la tecnología está revolucionando las prácticas tradicionales del ${category} en Uruguay.`,
-        image: "https://picsum.photos/400/300?random=4"
-      }
-    },
-    {
-      id: `fallback_${searchId}_5`,
-      url: "https://brecha.com.uy/",
-      published_date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-      source: { name: "Brecha" },
-      content: {
-        title: `Perspectivas de crecimiento en el ${category} - Proyecciones`,
-        summary: `Análisis de las oportunidades de crecimiento y desarrollo en el ${category} para los próximos meses.`,
-        image: "https://picsum.photos/400/300?random=5"
-      }
-    },
-    {
-      id: `fallback_${searchId}_6`,
-      url: "https://www.eltelegrafo.com/",
-      published_date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      source: { name: "El Telégrafo" },
-      content: {
-        title: `Reformas estructurales en el ${category} - Nuevo enfoque`,
-        summary: `Cambios fundamentales que están redefiniendo las bases del ${category} en el contexto nacional.`,
-        image: "https://via.placeholder.com/400x300?text=Reformas+Estructurales"
-      }
-    },
-    {
-      id: `fallback_${searchId}_7`,
-      url: "https://www.busqueda.com.uy/",
-      published_date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-      source: { name: "Busqueda" },
-      content: {
-        title: `Inversión pública en el ${category} - Presupuesto 2025`,
-        summary: `Análisis de las asignaciones presupuestarias destinadas al fortalecimiento del ${category} en el próximo año.`,
-        image: "https://via.placeholder.com/400x300?text=Inversion+Publica"
-      }
-    },
-    {
-      id: `fallback_${searchId}_8`,
-      url: "https://www.elespectador.com/",
-      published_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-      source: { name: "El Espectador" },
-      content: {
-        title: `Cooperación internacional en el ${category} - Alianzas estratégicas`,
-        summary: `Acuerdos y colaboraciones que están potenciando el desarrollo del ${category} a nivel regional.`,
-        image: "https://via.placeholder.com/400x300?text=Cooperacion+Internacional"
-      }
-    },
-    {
-      id: `fallback_${searchId}_9`,
-      url: "https://www.ovaciondigital.com.uy/",
-      published_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
-      source: { name: "Ovación" },
-      content: {
-        title: `Capacitación y formación en el ${category} - Recursos humanos`,
-        summary: `Programas de desarrollo profesional que están elevando la calidad del ${category} en Uruguay.`,
-        image: "https://via.placeholder.com/400x300?text=Capacitacion+Formacion"
-      }
-    },
-    {
-      id: `fallback_${searchId}_10`,
-      url: "https://www.elobservador.com.uy/",
-      published_date: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
-      source: { name: "El Observador" },
-      content: {
-        title: `Sostenibilidad ambiental en el ${category} - Compromiso verde`,
-        summary: `Iniciativas ecológicas que están transformando las prácticas del ${category} hacia un futuro más sostenible.`,
-        image: "https://via.placeholder.com/400x300?text=Sostenibilidad+Ambiental"
-      }
-    }
-  ];
-  
-  // Generar más artículos de fallback para igualar números anteriores
-  const additionalArticles = [];
-  const sources = ["El Observador", "Monte Carlo Television", "El País", "La Diaria", "Brecha", "El Telégrafo", "Busqueda", "El Espectador", "Ovación"];
-  const topics = [
-    "Análisis económico", "Desarrollo sostenible", "Innovación tecnológica", "Reformas estructurales", 
-    "Inversión pública", "Cooperación internacional", "Capacitación profesional", "Sostenibilidad ambiental",
-    "Políticas públicas", "Crecimiento económico", "Modernización", "Competitividad", "Productividad",
-    "Empleo", "Formación", "Investigación", "Desarrollo regional", "Integración", "Calidad", "Eficiencia"
-  ];
-  
-  // Generar 50 artículos adicionales para llegar a 60 total (solo para emergencias)
-  for (let i = 11; i <= 60; i++) {
-    const randomSource = sources[Math.floor(Math.random() * sources.length)];
-    const randomTopic = topics[Math.floor(Math.random() * topics.length)];
-    const daysAgo = Math.floor(Math.random() * 30); // Últimos 30 días
-    
-    // Mapear fuentes a URLs reales
-    const sourceUrls = {
-      "El Observador": "https://www.elobservador.com.uy/",
-      "Monte Carlo Television": "https://www.montecarlo.com.uy/",
-      "El País": "https://www.elpais.com.uy/",
-      "La Diaria": "https://ladiaria.com.uy/",
-      "Brecha": "https://brecha.com.uy/",
-      "El Telégrafo": "https://www.eltelegrafo.com/",
-      "Busqueda": "https://www.busqueda.com.uy/",
-      "El Espectador": "https://www.elespectador.com/",
-      "Ovación": "https://www.ovaciondigital.com.uy/"
-    };
-    
-    additionalArticles.push({
-      id: `fallback_${searchId}_${i}`,
-      url: sourceUrls[randomSource] || "https://www.elobservador.com.uy/",
-      published_date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
-      source: { name: randomSource },
-      content: {
-        title: `${randomTopic} en el ${category} - Perspectivas y análisis`,
-        summary: `Análisis detallado sobre ${randomTopic.toLowerCase()} y su impacto en el desarrollo del ${category} en Uruguay.`,
-        image: `https://picsum.photos/400/300?random=${i}`
-      }
-    });
-  }
-  
-  // Agregar artículos de redes sociales para la sección de redes sociales
-  const socialMediaArticles = [];
-  const socialSources = ["Facebook", "Twitter", "Instagram", "LinkedIn", "TikTok", "X","Youtube","Threads","Reddit","Telegram","Whatsapp","Discord","Twitch","Vimeo","Flickr","Tumblr","Medium","Quora"];
-  const socialTopics = [
-    "Tendencias virales", "Opinión pública", "Debate social", "Movimientos ciudadanos",
-    "Campañas digitales", "Influencers", "Comunidad online", "Redes sociales",
-    "Engagement", "Viral", "Hashtags", "Trending", "Social media", "Facebook", "Twitter", "Instagram", "LinkedIn", "TikTok", "X","Youtube","Threads","Reddit","Telegram","Whatsapp","Discord","Twitch","Vimeo","Flickr","Tumblr","Medium","Quora"
-  ];
-  
-  // Generar 20 artículos de redes sociales (solo para emergencias)
-  for (let i = 1; i <= 20; i++) {
-    const randomSource = socialSources[Math.floor(Math.random() * socialSources.length)];
-    const randomTopic = socialTopics[Math.floor(Math.random() * socialTopics.length)];
-    const daysAgo = Math.floor(Math.random() * 7); // Últimos 7 días
-    
-    // URLs para redes sociales
-    const socialUrls = {
-      "Facebook": "https://www.facebook.com/",
-      "Twitter": "https://twitter.com/",
-      "Instagram": "https://www.instagram.com/",
-      "LinkedIn": "https://www.linkedin.com/",
-      "TikTok": "https://www.tiktok.com/"
-    };
-    
-    socialMediaArticles.push({
-      id: `social_${searchId}_${i}`,
-      url: socialUrls[randomSource] || "https://www.facebook.com/",
-      published_date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
-      source: { name: randomSource },
-      content: {
-        title: `${randomTopic} - ${category} en redes sociales`,
-        summary: `Discusión y análisis sobre ${randomTopic.toLowerCase()} relacionado con el ${category} en las redes sociales.`,
-        image: `https://picsum.photos/400/300?random=${i + 100}`
-      }
-    });
-  }
-  
-  const allFallbackArticles = [...fallbackArticles, ...additionalArticles, ...socialMediaArticles];
-  console.log(`✅ Generados ${allFallbackArticles.length} artículos de fallback para ${category} (incluyendo ${socialMediaArticles.length} de redes sociales)`);
-  return allFallbackArticles;
-}
 
 // Función principal para obtener resultados de búsqueda con estrategia de caché y fallback
 async function getSearchResults(searchId) {
@@ -479,24 +276,18 @@ async function getSearchResults(searchId) {
     console.log(`⚠️  Error en Meltwater múltiple: ${error.message}`);
   }
 
-    // Solo usar noticias reales de Meltwater
+    // Si no hay artículos de Meltwater, lanzar error
     if (allDocuments.length === 0) {
-      console.log(`🔄 Meltwater falló completamente, usando fallback para searchId: ${searchId}`);
-      const fallbackDocuments = generateFallbackData(searchId);
-      
-      // Guardar fallback en cache
-      await CacheService.saveCachedArticles(searchId, fallbackDocuments, false);
-      
-      return { result: { documents: fallbackDocuments } };
-    } else {
-      // Usar solo noticias reales de Meltwater
-      console.log(`✅ Usando ${allDocuments.length} artículos reales de Meltwater`);
-      
-      // Guardar artículos reales en cache
-      await CacheService.saveCachedArticles(searchId, allDocuments, true);
-      
-      return { result: { documents: allDocuments } };
+      throw new Error(`No se pudieron obtener noticias de Meltwater para searchId: ${searchId}. API no disponible o sin resultados.`);
     }
+    
+    // Usar solo noticias reales de Meltwater
+    console.log(`✅ Usando ${allDocuments.length} artículos reales de Meltwater`);
+    
+    // Guardar artículos reales en cache
+    await CacheService.saveCachedArticles(searchId, allDocuments, true);
+    
+    return { result: { documents: allDocuments } };
 }
 
 // Endpoint principal para obtener noticias personalizadas según suscriptor o configuración por defecto
@@ -718,32 +509,5 @@ router.get("/clear-cache", async (req, res) => {
   }
 });
 
-// Endpoint para limpiar solo caché de fallback (mantener datos reales de Meltwater)
-router.get("/clear-fallback", async (req, res) => {
-  try {
-    await ensureConnection();
-    
-    const CacheService = require("../services/cacheService");
-    
-    // Limpiar solo caché de fallback
-    const deletedCount = await CacheService.clearFallbackCache();
-    
-    console.log(`🧹 Cache de fallback limpiado: ${deletedCount} entradas eliminadas`);
-    
-    res.json({
-      success: true,
-      message: `Cache de fallback limpiado exitosamente. ${deletedCount} entradas eliminadas.`,
-      deletedCount: deletedCount,
-      note: "Se mantienen los datos reales de Meltwater en caché"
-    });
-  } catch (error) {
-    console.error("❌ Error limpiando cache de fallback:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error limpiando cache de fallback",
-      error: error.message
-    });
-  }
-});
 
 module.exports = router;

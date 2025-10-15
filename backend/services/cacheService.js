@@ -1,6 +1,5 @@
 // Servicio de caché para gestión inteligente de noticias almacenadas
 const CachedNews = require("../models/cachedNews");
-const { generateFallbackData } = require("../routes/news");
 
 class CacheService {
   // Obtener artículos del caché con estrategia balanceada de tiempo
@@ -56,23 +55,6 @@ class CacheService {
     }
   }
 
-  // Obtener artículos con estrategia de fallback inteligente
-  static async getArticlesWithFallback(searchId) {
-    // 1. Intentar obtener del caché primero
-    const cachedArticles = await this.getCachedArticles(searchId);
-    if (cachedArticles && cachedArticles.length > 0) {
-      return cachedArticles;
-    }
-
-    // 2. Si no hay caché, generar datos de fallback
-    console.log(`🔄 Generando fallback para searchId: ${searchId}`);
-    const fallbackArticles = generateFallbackData(searchId);
-    
-    // 3. Guardar fallback en caché para uso futuro
-    await this.saveCachedArticles(searchId, fallbackArticles, false);
-    
-    return fallbackArticles;
-  }
 
   // Obtener artículos con límite aumentado para garantizar contenido suficiente
   static async getCachedArticlesWithLimit(searchId, maxAgeHours = 72, minArticles = 50) {
@@ -118,18 +100,6 @@ class CacheService {
     }
   }
 
-  // Forzar uso de fallback eliminando caché existente
-  static async forceFallbackForSearchId(searchId) {
-    try {
-      // Eliminar caché existente para este searchId
-      await CachedNews.deleteOne({ searchId });
-      console.log(`🔄 Cache eliminado para searchId: ${searchId} - forzando fallback`);
-      return true;
-    } catch (error) {
-      console.error("Error forzando fallback:", error);
-      return false;
-    }
-  }
 
   // Limpiar todo el caché para forzar nuevas peticiones a Meltwater
   static async clearAllCache() {
@@ -143,17 +113,6 @@ class CacheService {
     }
   }
 
-  // Limpiar solo caché de fallback (datos ficticios, no de Meltwater)
-  static async clearFallbackCache() {
-    try {
-      const result = await CachedNews.deleteMany({ isFromMeltwater: false });
-      console.log(`🧹 Cache de fallback limpiado: ${result.deletedCount} entradas eliminadas`);
-      return result.deletedCount;
-    } catch (error) {
-      console.error("Error limpiando cache de fallback:", error);
-      return 0;
-    }
-  }
 
   // Limpiar caché para un searchId específico
   static async clearCacheForSearchId(searchId) {
