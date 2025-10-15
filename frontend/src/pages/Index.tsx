@@ -622,13 +622,24 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     'india', 'mumbai', 'delhi', 'india', 'mumbai', 'delhi'
   ];
   
-  // Filtrar artículos - Excluir de forma robusta redes sociales para panel País
+  // Filtrar artículos - SOLO medios tradicionales permitidos para panel País
   const filteredArticles = articles.filter(article => {
+    const sourceName = article.source?.name?.toLowerCase() || '';
+    
+    // 1. Excluir redes sociales
     const isSocial = isSocialMediaArticle(article);
     if (isSocial) {
       console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
       return false;
     }
+    
+    // 2. Verificar que sea un medio tradicional permitido
+    const isTraditionalMedia = allowedTraditionalSources.some(traditional => sourceName.includes(traditional));
+    if (!isTraditionalMedia) {
+      console.log(`  ❌ Excluido (medio no reconocido): ${article.title} | Fuente: ${article.source?.name}`);
+      return false;
+    }
+    
     console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
     return true;
   });
