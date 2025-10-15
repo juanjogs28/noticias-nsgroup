@@ -748,16 +748,17 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   // Filtrar artículos solo sociales
   const socialMediaArticles = articles.filter(isSocialArticle);
   
-  // Filtrar posts sociales con datos completos (título y descripción válidos)
+  // Filtrar posts sociales con datos básicos (muy permisivo)
   const completeSocialArticles = socialMediaArticles.filter(article => {
-    const hasValidTitle = article.title && article.title.trim().length > 3 && 
+    const hasValidTitle = article.title && article.title.trim().length > 1 && 
                          !article.title.includes('Post sobre:') && 
                          !article.title.includes('Post de');
-    const hasValidDescription = article.description && article.description.trim().length > 5;
+    const hasValidDescription = article.description && article.description.trim().length > 1;
     const hasValidImage = article.urlToImage && article.urlToImage !== '/placeholder.svg';
+    const hasValidUrl = article.url && article.url.trim().length > 5;
     
-    // Al menos título válido O (descripción válida Y imagen válida)
-    return hasValidTitle || (hasValidDescription && hasValidImage);
+    // Ser muy permisivo: cualquier dato válido es suficiente
+    return hasValidTitle || hasValidDescription || hasValidImage || hasValidUrl;
   });
   
   // Debug: Log de detección de redes sociales
@@ -767,6 +768,26 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   console.log(`  Artículos sociales completos: ${completeSocialArticles.length}`);
   console.log('  Fuentes sociales detectadas:', [...new Set(socialMediaArticles.map(a => a.source.name))]);
   console.log('  URLs de redes sociales:', socialMediaArticles.slice(0, 5).map(a => a.url));
+  
+  // Debug: Analizar por qué se filtran artículos
+  const filteredOut = socialMediaArticles.filter(article => {
+    const hasValidTitle = article.title && article.title.trim().length > 1 && 
+                         !article.title.includes('Post sobre:') && 
+                         !article.title.includes('Post de');
+    const hasValidDescription = article.description && article.description.trim().length > 1;
+    const hasValidImage = article.urlToImage && article.urlToImage !== '/placeholder.svg';
+    const hasValidUrl = article.url && article.url.trim().length > 5;
+    
+    return !(hasValidTitle || hasValidDescription || hasValidImage || hasValidUrl);
+  });
+  
+  console.log(`  Artículos filtrados por datos incompletos: ${filteredOut.length}`);
+  if (filteredOut.length > 0) {
+    console.log('  Ejemplos de artículos filtrados:');
+    filteredOut.slice(0, 3).forEach((article, index) => {
+      console.log(`    ${index + 1}. "${article.title}" | Desc: ${article.description?.length || 0} chars | Img: ${article.urlToImage ? 'Sí' : 'No'}`);
+    });
+  }
   
   // Debug: Verificar que NO hay medios tradicionales en la selección
   const traditionalInSocial = socialMediaArticles.filter(a => {
