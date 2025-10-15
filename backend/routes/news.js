@@ -112,27 +112,19 @@ async function getSearchResults(searchId) {
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     
-    // Definir rangos de fechas más amplios para obtener más noticias reales
-    // Estrategia híbrida: 10 peticiones con rangos diferentes para obtener más artículos
+    // Estrategia optimizada: solo 3 peticiones para carga rápida
     const dateRanges = [
       { name: "última semana", days: 7 },
-      { name: "últimos 14 días", days: 14 },
       { name: "último mes", days: 30 },
-      { name: "últimos 45 días", days: 45 },
-      { name: "últimos 60 días", days: 60 },
-      { name: "últimos 3 meses", days: 90 },
-      { name: "últimos 4 meses", days: 120 },
-      { name: "últimos 6 meses", days: 180 },
-      { name: "últimos 9 meses", days: 270 },
-      { name: "último año", days: 365 }
+      { name: "últimos 3 meses", days: 90 }
     ];
     
     for (let i = 0; i < dateRanges.length; i++) {
       const range = dateRanges[i];
       
-      // Backoff inteligente: más rápido al inicio, más lento al final
+      // Delay mínimo entre peticiones (solo 500ms)
       if (i > 0) {
-        const delay = i < 5 ? 1000 : 2000; // 1s para primeras 5, 2s para el resto
+        const delay = 500; // 500ms entre peticiones
         console.log(`⏳ Esperando ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -215,56 +207,6 @@ async function getSearchResults(searchId) {
 
     if (allDocuments.length > 0) {
       console.log(`✅ Meltwater: ${allDocuments.length} artículos obtenidos`);
-      
-      // Si tenemos pocos artículos, intentar peticiones adicionales con diferentes parámetros
-      if (allDocuments.length < 50) {
-        console.log(`🔄 Pocos artículos obtenidos (${allDocuments.length}), intentando peticiones adicionales...`);
-        
-        // Petición adicional con rango más amplio
-        try {
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          const extendedStart = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
-          console.log(`🔍 Petición adicional: últimos 90 días`);
-          
-          const controller2 = new AbortController();
-          const timeoutId2 = setTimeout(() => controller2.abort(), 30000); // 30 segundos timeout
-          
-          const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
-            method: "POST",
-            headers: {
-              apikey: MELTWATER_TOKEN,
-              "Content-Type": "application/json",
-            },
-            signal: controller2.signal,
-            body: JSON.stringify({
-              tz: "America/Montevideo",
-              start: extendedStart,
-              end: end,
-              limit: 2000,
-            }),
-          });
-
-          clearTimeout(timeoutId2);
-          
-          if (res.ok) {
-            const data = await res.json();
-            const documents = data.result?.documents || [];
-            
-            console.log(`✅ Petición adicional exitosa: ${documents.length} artículos obtenidos`);
-            
-            const newDocuments = documents.filter(doc => 
-              !allDocuments.some(existing => existing.id === doc.id)
-            );
-            
-            allDocuments.push(...newDocuments);
-            console.log(`📊 Total final: ${allDocuments.length} artículos únicos`);
-          }
-        } catch (error) {
-          clearTimeout(timeoutId2);
-          console.log(`⚠️  Error en petición adicional: ${error.message}`);
-        }
-      }
       
       // Guardar en cache
       await CacheService.saveCachedArticles(searchId, allDocuments, true);
