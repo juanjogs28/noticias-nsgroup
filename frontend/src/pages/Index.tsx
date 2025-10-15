@@ -318,7 +318,7 @@ function canonicalizeUrl(rawUrl: string | undefined): string {
 
 // Heurística común para detectar si un artículo es de redes sociales
 function isSocialMediaArticle(article: MeltwaterArticle): boolean {
-  const allowedSources = ['instagram', 'facebook', 'twitter', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin'];
+  const allowedSources = ['instagram', 'facebook', 'twitter', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin', 'x', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 'twitch', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora'];
   const socialHosts = new Set([
     'twitter.com', 'x.com',
     'instagram.com', 'www.instagram.com',
@@ -327,7 +327,19 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     'youtube.com', 'www.youtube.com', 'youtu.be',
     'tiktok.com', 'www.tiktok.com',
     'threads.net', 'www.threads.net',
-    'linkedin.com', 'www.linkedin.com'
+    'linkedin.com', 'www.linkedin.com',
+    'x.com', 'www.x.com',
+    'snapchat.com', 'www.snapchat.com',
+    'pinterest.com', 'www.pinterest.com',
+    'telegram.org', 'www.telegram.org',
+    'whatsapp.com', 'www.whatsapp.com',
+    'discord.com', 'www.discord.com',
+    'twitch.tv', 'www.twitch.tv',
+    'vimeo.com', 'www.vimeo.com',
+    'flickr.com', 'www.flickr.com',
+    'tumblr.com', 'www.tumblr.com',
+    'medium.com', 'www.medium.com',
+    'quora.com', 'www.quora.com'
   ]);
   const getHost = (url?: string) => {
     if (!url) return '';
@@ -341,7 +353,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
   const sourceName = article.source?.name?.toLowerCase() || '';
   if (allowedSources.some(token => sourceName.includes(token))) return true;
   const url = article.url || '';
-  if (/instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be)/i.test(url)) return true;
+  if (/instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be|snapchat\.com|pinterest\.com|telegram\.org|whatsapp\.com|discord\.com|twitch\.tv|vimeo\.com|flickr\.com|tumblr\.com|medium\.com|quora\.com)/i.test(url)) return true;
   return false;
 }
 
@@ -829,7 +841,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   });
   const byUrlRegex = articles.filter(a => {
     const url = a.url || '';
-    return /instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be)/i.test(url);
+    return /instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be|snapchat\.com|pinterest\.com|telegram\.org|whatsapp\.com|discord\.com|twitch\.tv|vimeo\.com|flickr\.com|tumblr\.com|medium\.com|quora\.com)/i.test(url);
   });
   
   console.log('  Por content_type:', byContentType.length);
@@ -1578,8 +1590,9 @@ export default function Index() {
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
               <div className="news-grid-dashboard">
                 {(() => {
-                  // Sección 3: Redes Sociales - Solo artículos de redes sociales del SECTOR
-                  const articles = getUniqueSocialMediaArticles(sectorArticles, shownArticles, 300);
+                  // Sección 3: Redes Sociales - Solo artículos de redes sociales (combinar sector + país)
+                  const allArticles = [...sectorArticles, ...paisArticles];
+                  const articles = getUniqueSocialMediaArticles(allArticles, shownArticles, 300);
                   console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
                   articles.forEach((article, index) => {
                     console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);
