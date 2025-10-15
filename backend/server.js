@@ -1,10 +1,11 @@
+// Configuración inicial del servidor Express
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 
 const app = express();
-// Railway asigna automáticamente un puerto, pero si no está disponible, usar 3001
+// Configuración del puerto: Railway asigna automáticamente un puerto, pero si no está disponible, usar 3001
 const PORT = process.env.PORT || process.env.RAILWAY_STATIC_PORT || 3001;
 console.log('🔧 Puerto configurado:', PORT);
 console.log('🔧 Variables de entorno PORT:', process.env.PORT);
@@ -12,19 +13,19 @@ console.log('🔧 Variables de entorno RAILWAY_STATIC_PORT:', process.env.RAILWA
 console.log('🔧 Todas las variables de entorno relacionadas con puerto:', 
   Object.keys(process.env).filter(key => key.includes('PORT')));
 
-// Configuración CORS - Permitir todos los orígenes (*)
+// Configuración CORS - Permite todas las conexiones desde cualquier origen
 const corsOptions = {
-  origin: "*", // Permitir todos los orígenes como solicitaste
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  origin: "*", // Permitir todos los orígenes para máxima compatibilidad
+  credentials: true, // Permitir cookies y credenciales
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // Métodos HTTP permitidos
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'] // Headers permitidos
 };
 
 app.use(cors(corsOptions));
 console.log('🌐 CORS configurado para permitir todos los orígenes (*)');
 app.use(express.json());
 
-// Función de diagnóstico de variables de entorno
+// Función de diagnóstico que verifica el estado de las variables de entorno críticas
 function diagnoseEnvironment() {
   console.log("\n🔍 DIAGNÓSTICO DE ENTORNO:");
   console.log("NODE_ENV:", process.env.NODE_ENV || "undefined");
@@ -32,7 +33,7 @@ function diagnoseEnvironment() {
   console.log("DATABASE_URL:", process.env.DATABASE_URL ? "✅ Configurada" : "❌ No configurada");
   console.log("MONGO_URI:", process.env.MONGO_URI ? "✅ Configurada" : "❌ No configurada");
 
-  // Listar variables relacionadas con DB
+  // Busca y lista todas las variables de entorno relacionadas con base de datos
   const dbVars = Object.keys(process.env).filter(key =>
     key.includes('MONGO') || key.includes('DATABASE') || key.includes('DB')
   );
@@ -44,7 +45,7 @@ function diagnoseEnvironment() {
 
 diagnoseEnvironment();
 
-// Conectar a MongoDB - Usar variable de entorno o fallback
+// Configuración de conexión a MongoDB con múltiples opciones de fallback
 const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
 
 console.log('🔧 Configuración MongoDB:', {
@@ -62,13 +63,14 @@ if (process.env.NODE_ENV === 'production' && MONGODB_URI.includes('localhost')) 
   console.error("   Ejemplo: mongodb://usuario:CONTRASEÑA@containers-us-west-1.railway.app:1234/ns-news");
 }
 
+// Establecer conexión a MongoDB con configuración optimizada para Railway
 mongoose
   .connect(MONGODB_URI, {
-    serverSelectionTimeoutMS: 15000, // Aumentar timeout para Railway
-    socketTimeoutMS: 45000,
+    serverSelectionTimeoutMS: 15000, // Timeout aumentado para Railway
+    socketTimeoutMS: 45000, // Timeout de socket para operaciones largas
     bufferCommands: false, // Deshabilitar buffering para evitar timeouts
-    maxPoolSize: 5, // Reducir pool de conexiones para Railway
-    minPoolSize: 1, // Mínimo 1 conexión
+    maxPoolSize: 5, // Pool de conexiones reducido para Railway
+    minPoolSize: 1, // Mínimo 1 conexión activa
     maxIdleTimeMS: 30000, // Cerrar conexiones inactivas después de 30s
   })
   .then(() => {
@@ -97,7 +99,7 @@ mongoose
     }
   });
 
-// Manejar eventos de conexión
+// Manejadores de eventos para monitorear el estado de la conexión a MongoDB
 mongoose.connection.on('error', (err) => {
   console.error('❌ Error de conexión MongoDB:', err);
 });
@@ -110,7 +112,7 @@ mongoose.connection.on('reconnected', () => {
   console.log('✅ Conexión MongoDB reconectada');
 });
 
-// Rutas
+// Configuración de rutas de la API
 const adminSubscribersRouter = require("./routes/adminSubscribers");
 app.use("/api/admin/subscribers", adminSubscribersRouter);
 
@@ -136,7 +138,7 @@ app.use("/api/admin/default-config", defaultConfigRouter);
 // Ruta pública para defaultConfig (sin autenticación)
 app.use("/api/defaultConfig", defaultConfigRouter);
 
-// Ruta de admin principal (protegida)
+// Ruta de administración principal protegida por autenticación
 const { requireAuth } = require("./middleware/auth.js");
 app.get("/api/admin", requireAuth, (req, res) => {
   res.json({ 
@@ -149,7 +151,7 @@ app.get("/api/admin", requireAuth, (req, res) => {
   });
 });
 
-// Endpoint de prueba simple
+// Endpoint raíz que confirma que el servidor está funcionando
 app.get("/", (req, res) => {
   res.json({
     message: "NS News Group Backend funcionando",
@@ -160,7 +162,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// Endpoint de prueba adicional
+// Endpoint de prueba adicional para debugging
 app.get("/test", (req, res) => {
   res.json({
     message: "Test endpoint funcionando",
@@ -170,7 +172,7 @@ app.get("/test", (req, res) => {
   });
 });
 
-// Health check
+// Endpoint de health check que verifica el estado del sistema y la base de datos
 app.get("/api/health", (req, res) => {
   const finalUri = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
   res.json({
@@ -178,7 +180,7 @@ app.get("/api/health", (req, res) => {
     timestamp: new Date().toISOString(),
     mongodb: {
       configured: !!(process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI),
-      uri: finalUri.replace(/\/\/.*@/, '//***:***@'),
+      uri: finalUri.replace(/\/\/.*@/, '//***:***@'), // Ocultar credenciales en la respuesta
       isLocalhost: finalUri.includes('localhost'),
       isAtlas: finalUri.includes('mongodb.net'),
       connectionState: mongoose.connection.readyState
@@ -187,7 +189,7 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Endpoint de diagnóstico (solo para debugging)
+// Endpoint de diagnóstico detallado para debugging y resolución de problemas
 app.get("/api/diagnose", (req, res) => {
   const finalUri = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
   res.json({
@@ -199,7 +201,7 @@ app.get("/api/diagnose", (req, res) => {
       MONGO_URI: process.env.MONGO_URI ? 'CONFIGURADA' : 'NO CONFIGURADA'
     },
     mongodb: {
-      uri: finalUri.replace(/\/\/.*@/, '//***:***@'),
+      uri: finalUri.replace(/\/\/.*@/, '//***:***@'), // Ocultar credenciales
       isLocalhost: finalUri.includes('localhost'),
       isRailway: finalUri.includes('railway.app'),
       isAtlas: finalUri.includes('mongodb.net'),
@@ -213,7 +215,7 @@ app.get("/api/diagnose", (req, res) => {
   });
 });
 
-// Endpoint temporal para verificar variables de email
+// Endpoint para verificar la configuración de variables de email
 app.get("/api/check-email-env", (req, res) => {
   res.json({
     timestamp: new Date().toISOString(),
@@ -232,7 +234,7 @@ app.get("/api/check-email-env", (req, res) => {
   });
 });
 
-// Endpoint temporal para probar envío de email SIN autenticación
+// Endpoint para probar el envío de emails sin autenticación (solo para testing)
 app.post("/api/test-email", async (req, res) => {
   try {
     const { Resend } = require("resend");
@@ -300,7 +302,7 @@ app.post("/api/test-email", async (req, res) => {
   }
 });
 
-// Endpoint de verificación de versión
+// Endpoint que devuelve información de la versión actual del sistema
 app.get("/api/version", (req, res) => {
   res.json({
     version: "2.0.0",
@@ -310,12 +312,12 @@ app.get("/api/version", (req, res) => {
   });
 });
 
-// Iniciar servidor
+// Inicializar el servidor y configurar limpieza automática de caché
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
   console.log("🔄 Cache limpiado - reiniciando para obtener datos frescos");
   
-  // Limpiar caché automáticamente al iniciar
+  // Limpiar caché automáticamente al iniciar el servidor
   setTimeout(async () => {
     try {
       console.log("🧹 Limpiando caché automáticamente...");

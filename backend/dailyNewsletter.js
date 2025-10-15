@@ -1,3 +1,4 @@
+// Sistema de envío de newsletters diarios personalizados
 require("dotenv").config();
 const mongoose = require("mongoose");
 const Subscriber = require("./models/subscribers.js");
@@ -5,7 +6,7 @@ const Search = require("./models/searches.js");
 const Subscription = require("./models/subscriptions.js");
 const { Resend } = require("resend");
 
-// Conectar a MongoDB
+// Configuración de conexión a MongoDB con múltiples opciones de fallback
 const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
 
 console.log('🔧 dailyNewsletter.js - Conectando a MongoDB:', {
@@ -27,10 +28,10 @@ mongoose
   .then(() => console.log("✅ Conectado a MongoDB"))
   .catch((err) => console.error("❌ Error MongoDB:", err));
 
-// Inicializar Resend
+// Inicializar cliente de Resend para envío de emails
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Función para generar el HTML del email
+// Función para generar el HTML del email con diseño moderno y personalizado
 function generateEmailHTML(subscriber, personalizedUrl, searchInfo = null) {
   // Construir URL personalizada con los parámetros del suscriptor
   const baseUrl = process.env.FRONTEND_URL || "https://newsroom.eyewatch.me";
@@ -219,7 +220,7 @@ function generateEmailHTML(subscriber, personalizedUrl, searchInfo = null) {
   `;
 }
 
-// Función para enviar email a un suscriptor con sus búsquedas
+// Función para enviar email personalizado a un suscriptor con sus búsquedas específicas
 async function sendNewsletterToSubscriber(subscriber, searchInfo) {
   try {
     // Construir URL personalizada para este suscriptor
@@ -300,7 +301,7 @@ async function sendNewsletterToSubscriber(subscriber, searchInfo) {
   }
 }
 
-// Función mejorada que devuelve detalles del envío
+// Función mejorada que devuelve detalles completos del envío para monitoreo
 async function sendNewsletterToSubscriberWithDetails(subscriber, searchInfo) {
   try {
     // Construir URL personalizada para este suscriptor
@@ -396,7 +397,7 @@ async function sendNewsletterToSubscriberWithDetails(subscriber, searchInfo) {
   }
 }
 
-// Función principal para enviar newsletter diario
+// Función principal para enviar newsletter diario a todos los suscriptores activos
 async function sendDailyNewsletter() {
   try {
     console.log("🚀 Iniciando envío de newsletter diario...");
@@ -445,7 +446,7 @@ async function sendDailyNewsletter() {
   // No cerramos la conexión aquí para evitar problemas con el scheduler
 }
 
-// Función mejorada que devuelve resultados detallados
+// Función mejorada que devuelve resultados detallados del envío para análisis
 async function sendDailyNewsletterWithResults() {
   try {
     console.log("🚀 Iniciando envío de newsletter diario con resultados...");

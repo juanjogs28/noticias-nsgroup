@@ -1,3 +1,4 @@
+// Router para gestión de suscripciones con autenticación requerida
 const express = require("express");
 const router = express.Router();
 const Subscription = require("../models/subscriptions.js");
@@ -5,10 +6,10 @@ const Subscriber = require("../models/subscribers.js");
 const Search = require("../models/searches.js");
 const { requireAuth } = require("../middleware/auth.js");
 
-// Aplicar autenticación a todas las rutas de admin
+// Aplicar middleware de autenticación a todas las rutas de administración
 router.use(requireAuth);
 
-// GET todas las suscripciones con información completa
+// Obtener todas las suscripciones con información completa de suscriptores y búsquedas
 router.get("/", async (req, res) => {
   try {
     const subscriptions = await Subscription.find()
@@ -23,7 +24,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET suscripciones de un suscriptor específico
+// Obtener todas las suscripciones de un suscriptor específico
 router.get("/subscriber/:subscriberId", async (req, res) => {
   try {
     const subscriptions = await Subscription.find({ subscriberId: req.params.subscriberId })
@@ -37,7 +38,7 @@ router.get("/subscriber/:subscriberId", async (req, res) => {
   }
 });
 
-// GET suscriptores de una búsqueda específica
+// Obtener todos los suscriptores de una búsqueda específica
 router.get("/search/:searchId", async (req, res) => {
   try {
     const subscriptions = await Subscription.find({ searchId: req.params.searchId })
@@ -51,11 +52,12 @@ router.get("/search/:searchId", async (req, res) => {
   }
 });
 
-// POST crear suscripción
+// Crear una nueva suscripción con validación de existencia de suscriptor y búsqueda
 router.post("/", async (req, res) => {
   try {
     const { subscriberId, searchId } = req.body;
     
+    // Validar campos requeridos
     if (!subscriberId || !searchId) {
       return res.status(400).json({ message: "subscriberId y searchId son requeridos" });
     }
@@ -78,6 +80,7 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ message: "El suscriptor ya está suscrito a esta búsqueda" });
     }
 
+    // Crear nueva suscripción
     const subscription = new Subscription({
       subscriberId,
       searchId,
@@ -85,7 +88,7 @@ router.post("/", async (req, res) => {
     
     const saved = await subscription.save();
     
-    // Poblar la respuesta con información completa
+    // Poblar la respuesta con información completa de suscriptor y búsqueda
     const populatedSubscription = await Subscription.findById(saved._id)
       .populate('subscriberId', 'email isActive')
       .populate('searchId', 'name countrySearchId sectorSearchId isActive');
@@ -97,7 +100,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// PATCH actualizar suscripción
+// Actualizar el estado de una suscripción (activar/desactivar)
 router.patch("/:id", async (req, res) => {
   try {
     const { isActive } = req.body;
@@ -108,7 +111,7 @@ router.patch("/:id", async (req, res) => {
       return res.status(404).json({ message: "Suscripción no encontrada" });
     }
     
-    // Actualizar suscripción
+    // Actualizar estado de la suscripción con información poblada
     const updated = await Subscription.findByIdAndUpdate(
       req.params.id,
       { isActive },
@@ -123,7 +126,7 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
-// DELETE suscripción
+// Eliminar una suscripción por ID
 router.delete("/:id", async (req, res) => {
   try {
     await Subscription.findByIdAndDelete(req.params.id);
@@ -134,7 +137,7 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// DELETE suscripción por subscriberId y searchId
+// Eliminar una suscripción específica por suscriptor y búsqueda
 router.delete("/subscriber/:subscriberId/search/:searchId", async (req, res) => {
   try {
     const result = await Subscription.findOneAndDelete({

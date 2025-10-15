@@ -1,6 +1,7 @@
-// Middleware de autenticación simple para admin
+// Middleware de autenticación simple para rutas de administración
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
+// Función que valida la autenticación para rutas protegidas
 function requireAuth(req, res, next) {
   // Obtener la contraseña del header Authorization o del query parameter
   const authHeader = req.headers.authorization;
@@ -13,7 +14,7 @@ function requireAuth(req, res, next) {
     providedPassword = authHeader.substring(7);
   }
   
-  // Verificar si viene en query parameter
+  // Verificar si viene en query parameter (para testing)
   if (queryPassword) {
     providedPassword = queryPassword;
   }
@@ -26,7 +27,7 @@ function requireAuth(req, res, next) {
     });
   }
   
-  // Si no hay contraseña, pedir autenticación
+  // Si no hay contraseña proporcionada, pedir autenticación
   if (!providedPassword) {
     return res.status(401).json({ 
       error: "Acceso denegado", 
@@ -35,7 +36,7 @@ function requireAuth(req, res, next) {
     });
   }
   
-  // Verificar contraseña
+  // Verificar que la contraseña sea correcta
   if (providedPassword !== ADMIN_PASSWORD) {
     return res.status(403).json({ 
       error: "Acceso denegado", 
@@ -43,7 +44,7 @@ function requireAuth(req, res, next) {
     });
   }
   
-  // Contraseña correcta, continuar
+  // Contraseña correcta, continuar con la siguiente función
   next();
 }
 

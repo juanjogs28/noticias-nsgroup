@@ -1,3 +1,4 @@
+// Sistema de programación automática de newsletters con horarios configurables
 require("dotenv").config();
 const cron = require("node-cron");
 const { sendDailyNewsletter } = require("./dailyNewsletter.js");
@@ -6,7 +7,7 @@ const mongoose = require("mongoose");
 
 console.log("⏰ Iniciando programador de newsletters...");
 
-// Conectar a MongoDB solo si no hay conexión activa
+// Función para asegurar conexión a MongoDB solo si no hay conexión activa
 async function ensureConnection() {
   if (mongoose.connection.readyState === 0) {
     const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
@@ -20,7 +21,7 @@ async function ensureConnection() {
   }
 }
 
-// Función para crear jobs de cron dinámicamente
+// Función para crear jobs de cron dinámicamente basados en horarios configurados
 function createCronJob(time) {
   const [hour, minute] = time.split(':').map(Number);
   const cronExpression = `${minute} ${hour} * * *`;
@@ -34,7 +35,7 @@ function createCronJob(time) {
   });
 }
 
-// Función para inicializar todos los horarios configurados
+// Función para inicializar todos los horarios configurados desde la base de datos
 async function initializeScheduledJobs() {
   try {
     await ensureConnection();
@@ -69,10 +70,10 @@ async function initializeScheduledJobs() {
   }
 }
 
-// Inicializar horarios
+// Almacenar jobs programados en un Map para gestión dinámica
 let scheduledJobs = new Map();
 
-// Función para actualizar horarios dinámicamente
+// Función para actualizar horarios dinámicamente sin reiniciar el servidor
 async function updateScheduledJobs() {
   try {
     await ensureConnection();
@@ -90,7 +91,7 @@ async function updateScheduledJobs() {
   }
 }
 
-// Inicializar al arrancar
+// Inicializar scheduler al arrancar la aplicación
 ensureConnection().then(() => {
   initializeScheduledJobs().then(jobs => {
     scheduledJobs = jobs;
@@ -101,7 +102,7 @@ ensureConnection().then(() => {
 // Exportar función para actualizar horarios desde otras partes del código
 module.exports = { updateScheduledJobs };
 
-// También se puede ejecutar manualmente
+// Job de desarrollo para testing (solo en modo desarrollo)
 const manualNewsletterJob = cron.schedule("*/5 * * * *", async () => {
   // Solo para desarrollo - ejecutar cada 5 minutos
   if (process.env.NODE_ENV === "development") {
@@ -119,7 +120,7 @@ if (process.env.NODE_ENV === "development") {
   console.log("   🧪 Modo desarrollo: Cada 5 minutos");
 }
 
-// Mantener el proceso activo
+// Manejador de señales para limpieza al cerrar el proceso
 process.on("SIGINT", () => {
   console.log("🛑 Deteniendo programador...");
   dailyNewsletterJob.stop();
@@ -127,7 +128,7 @@ process.on("SIGINT", () => {
   process.exit(0);
 });
 
-// Para ejecutar manualmente
+// Ejecutar newsletter manualmente si se llama directamente
 if (require.main === module) {
   console.log("🚀 Ejecutando newsletter manualmente...");
   sendDailyNewsletter().then(() => {

@@ -1,16 +1,17 @@
+// Router para gestión de configuración por defecto con rutas públicas y protegidas
 const express = require("express");
 const router = express.Router();
 const DefaultConfig = require("../models/defaultConfig.js");
 const { requireAuth } = require("../middleware/auth.js");
 
-// Función para asegurar conexión a MongoDB
+// Función para asegurar conexión a MongoDB con diagnóstico detallado
 async function ensureConnection() {
   const mongoose = require("mongoose");
   if (mongoose.connection.readyState === 0) {
     const MONGODB_URI = process.env.MONGODB_URI || process.env.DATABASE_URL || process.env.MONGO_URI || "mongodb://localhost:27017/ns-news";
 
     console.log('🔧 defaultConfig.js - Conectando a MongoDB:', {
-      uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'),
+      uri: MONGODB_URI.replace(/\/\/.*@/, '//***:***@'), // Ocultar credenciales en logs
       isLocalhost: MONGODB_URI.includes('localhost'),
       nodeEnv: process.env.NODE_ENV,
       hasMongodbUri: !!process.env.MONGODB_URI,
@@ -35,10 +36,10 @@ async function ensureConnection() {
   }
 }
 
-// Aplicar autenticación solo a rutas que lo requieran
 // Las rutas GET no requieren autenticación para uso público
+// Las rutas PATCH requieren autenticación para modificaciones
 
-// GET obtener configuración por defecto
+// Obtener configuración por defecto (ruta pública)
 router.get("/", async (req, res) => {
   try {
     await ensureConnection();
@@ -62,7 +63,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// PATCH actualizar configuración por defecto (requiere autenticación)
+// Actualizar configuración por defecto (ruta protegida con autenticación)
 router.patch("/", requireAuth, async (req, res) => {
   try {
     await ensureConnection();
@@ -84,7 +85,7 @@ router.patch("/", requireAuth, async (req, res) => {
       config.defaultSectorSearchId = defaultSectorSearchId;
     }
     
-    // Guardar quién actualizó la configuración
+    // Guardar información de quién actualizó la configuración
     config.updatedBy = req.user?.email || "admin";
     
     const updated = await config.save();

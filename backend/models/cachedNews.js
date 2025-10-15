@@ -1,45 +1,48 @@
+// Modelo de datos para caché de noticias obtenidas de Meltwater
 const mongoose = require("mongoose");
 
+// Esquema que define la estructura de noticias en caché
 const cachedNewsSchema = new mongoose.Schema({
   searchId: {
     type: String,
-    required: true,
+    required: true, // ID único de la búsqueda
     unique: true
   },
   category: {
     type: String,
-    required: true,
+    required: true, // Categoría de la búsqueda (país o sector)
     enum: ['país', 'sector']
   },
-  articles: [{
-    id: String,
-    url: String,
-    published_date: String,
+  articles: [{ // Array de artículos almacenados en caché
+    id: String, // ID único del artículo
+    url: String, // URL del artículo original
+    published_date: String, // Fecha de publicación
     source: {
-      name: String
+      name: String // Nombre de la fuente
     },
     content: {
-      title: String,
-      summary: String,
-      image: String
+      title: String, // Título del artículo
+      summary: String, // Resumen del artículo
+      image: String // URL de la imagen
     }
   }],
   lastUpdated: {
     type: Date,
-    default: Date.now
+    default: Date.now // Fecha de última actualización del caché
   },
   isFromMeltwater: {
     type: Boolean,
-    default: false
+    default: false // Indica si los datos son reales de Meltwater o fallback
   },
   totalArticles: {
     type: Number,
-    default: 0
+    default: 0 // Contador total de artículos en caché
   }
 });
 
-// Índice para búsquedas rápidas
-cachedNewsSchema.index({ searchId: 1 });
-cachedNewsSchema.index({ lastUpdated: 1 });
+// Índices para optimizar búsquedas rápidas
+cachedNewsSchema.index({ searchId: 1 }); // Índice por searchId
+cachedNewsSchema.index({ lastUpdated: 1 }); // Índice por fecha de actualización
 
+// Exportar el modelo para uso en otras partes de la aplicación
 module.exports = mongoose.model("CachedNews", cachedNewsSchema);

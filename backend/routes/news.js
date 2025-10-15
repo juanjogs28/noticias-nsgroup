@@ -1,3 +1,4 @@
+// Router para gestión de noticias con integración a Meltwater API
 const express = require("express");
 const router = express.Router();
 const Subscriber = require("../models/subscribers.js");
@@ -7,7 +8,7 @@ const fetch = require("node-fetch");
 const MELTWATER_API_URL = "https://api.meltwater.com";
 const MELTWATER_TOKEN = process.env.MELTWATER_API_TOKEN;
 
-// Endpoint de diagnóstico para verificar variables de entorno
+// Endpoint de diagnóstico para verificar el estado de las variables de entorno críticas
 router.get("/debug/env", (req, res) => {
   const envStatus = {
     MELTWATER_API_TOKEN: process.env.MELTWATER_API_TOKEN ? 'Configurada' : 'NO CONFIGURADA',
@@ -27,15 +28,15 @@ router.get("/debug/env", (req, res) => {
   });
 });
 
-// Endpoint para limpiar caché desde Railway
+// Endpoint para limpiar caché desde Railway (forzar nuevas peticiones a Meltwater)
 router.post("/clear-cache", async (req, res) => {
   try {
     console.log("🧹 Iniciando limpieza de caché desde Railway...");
     
-    // Importar el modelo de caché
+    // Importar el modelo de caché para operaciones de limpieza
     const CachedNews = require("../models/cachedNews.js");
     
-    // Limpiar todo el caché
+    // Limpiar todo el caché almacenado
     const result = await CachedNews.deleteMany({});
     
     console.log(`✅ Cache limpiado desde Railway: ${result.deletedCount} entradas eliminadas`);
@@ -56,7 +57,7 @@ router.post("/clear-cache", async (req, res) => {
   }
 });
 
-// Función para asegurar conexión a MongoDB
+// Función para asegurar conexión a MongoDB antes de operaciones de base de datos
 async function ensureConnection() {
   const mongoose = require("mongoose");
   if (mongoose.connection.readyState === 0) {
@@ -70,8 +71,7 @@ async function ensureConnection() {
   }
 }
 
-// Función para traer resultados de Meltwater dado un searchId con múltiples requests
-// Función para generar datos de fallback cuando Meltwater esté bloqueado
+// Función para generar datos de fallback cuando Meltwater esté bloqueado o no disponible
 function generateFallbackData(searchId) {
   const isCountry = searchId === "27551367";
   const category = isCountry ? "país" : "sector";
@@ -235,11 +235,11 @@ function generateFallbackData(searchId) {
   
   // Agregar artículos de redes sociales para la sección de redes sociales
   const socialMediaArticles = [];
-  const socialSources = ["Facebook", "Twitter", "Instagram", "LinkedIn", "TikTok"];
+  const socialSources = ["Facebook", "Twitter", "Instagram", "LinkedIn", "TikTok", "X","Youtube","Threads","Reddit","Telegram","Whatsapp","Discord","Twitch","Vimeo","Flickr","Tumblr","Medium","Quora"];
   const socialTopics = [
     "Tendencias virales", "Opinión pública", "Debate social", "Movimientos ciudadanos",
     "Campañas digitales", "Influencers", "Comunidad online", "Redes sociales",
-    "Engagement", "Viral", "Hashtags", "Trending", "Social media"
+    "Engagement", "Viral", "Hashtags", "Trending", "Social media", "Facebook", "Twitter", "Instagram", "LinkedIn", "TikTok", "X","Youtube","Threads","Reddit","Telegram","Whatsapp","Discord","Twitch","Vimeo","Flickr","Tumblr","Medium","Quora"
   ];
   
   // Generar 20 artículos de redes sociales (solo para emergencias)
@@ -275,8 +275,9 @@ function generateFallbackData(searchId) {
   return allFallbackArticles;
 }
 
+// Función principal para obtener resultados de búsqueda con estrategia de caché y fallback
 async function getSearchResults(searchId) {
-  // Usar cache service para obtener artículos
+  // Usar servicio de caché para obtener artículos
   const CacheService = require("../services/cacheService");
   
   // Declarar fuera del try para evitar referencia no definida en catch/fallback
@@ -387,7 +388,7 @@ async function getSearchResults(searchId) {
           allDocuments.push(...newDocuments);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
-          if (allDocuments.length >= 100) {
+          if (allDocuments.length >= 300) {
             console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
             break;
           }
@@ -498,7 +499,7 @@ async function getSearchResults(searchId) {
     }
 }
 
-// POST /api/news/personalized
+// Endpoint principal para obtener noticias personalizadas según suscriptor o configuración por defecto
 router.post("/personalized", async (req, res) => {
   try {
     await ensureConnection();
@@ -689,7 +690,7 @@ router.post("/personalized", async (req, res) => {
   }
 });
 
-// GET /api/news/clear-cache - Limpiar caché y forzar nuevas peticiones
+// Endpoint para limpiar caché y forzar nuevas peticiones a Meltwater
 router.get("/clear-cache", async (req, res) => {
   try {
     await ensureConnection();
@@ -717,7 +718,7 @@ router.get("/clear-cache", async (req, res) => {
   }
 });
 
-// GET /api/news/clear-fallback - Limpiar solo caché de fallback
+// Endpoint para limpiar solo caché de fallback (mantener datos reales de Meltwater)
 router.get("/clear-fallback", async (req, res) => {
   try {
     await ensureConnection();

@@ -1,14 +1,15 @@
+// Router para gestión de búsquedas con rutas públicas y protegidas
 const express = require("express");
 const router = express.Router();
 const Search = require("../models/searches.js");
 const { requireAuth } = require("../middleware/auth.js");
 
-// Ruta pública para obtener IDs técnicos por nombre de búsqueda
+// Ruta pública para obtener información de búsqueda por nombre (sin autenticación)
 router.get("/by-name/:searchName", async (req, res) => {
   try {
     const { searchName } = req.params;
     
-    // Buscar búsqueda por nombre (case insensitive)
+    // Buscar búsqueda por nombre exacto (case insensitive) y activa
     const search = await Search.findOne({ 
       name: { $regex: new RegExp(`^${searchName}$`, 'i') },
       isActive: true 
@@ -21,6 +22,7 @@ router.get("/by-name/:searchName", async (req, res) => {
       });
     }
     
+    // Devolver información de la búsqueda incluyendo IDs técnicos
     res.json({
       success: true,
       search: {
@@ -37,10 +39,10 @@ router.get("/by-name/:searchName", async (req, res) => {
   }
 });
 
-// Aplicar autenticación a todas las rutas de admin
+// Aplicar middleware de autenticación a las rutas de administración
 router.use(requireAuth);
 
-// GET todas las búsquedas
+// Obtener todas las búsquedas ordenadas por fecha de creación (más recientes primero)
 router.get("/", async (req, res) => {
   try {
     const searches = await Search.find().sort({ createdAt: -1 });
@@ -51,15 +53,17 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST crear búsqueda
+// Crear una nueva búsqueda con validación de campos requeridos
 router.post("/", async (req, res) => {
   try {
     const { name, countrySearchId, sectorSearchId } = req.body;
     
+    // Validar que todos los campos requeridos estén presentes
     if (!name || !countrySearchId || !sectorSearchId) {
       return res.status(400).json({ message: "Nombre, countrySearchId y sectorSearchId son requeridos" });
     }
 
+    // Crear nueva búsqueda con los datos proporcionados
     const search = new Search({
       name,
       countrySearchId,
@@ -74,7 +78,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// PATCH actualizar búsqueda
+// Actualizar una búsqueda existente con validación
 router.patch("/:id", async (req, res) => {
   try {
     const { name, countrySearchId, sectorSearchId, isActive } = req.body;
@@ -85,14 +89,14 @@ router.patch("/:id", async (req, res) => {
       return res.status(404).json({ message: "Búsqueda no encontrada" });
     }
     
-    // Preparar datos de actualización
+    // Preparar datos de actualización solo con los campos proporcionados
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     if (countrySearchId !== undefined) updateData.countrySearchId = countrySearchId;
     if (sectorSearchId !== undefined) updateData.sectorSearchId = sectorSearchId;
     if (isActive !== undefined) updateData.isActive = isActive;
     
-    // Actualizar búsqueda
+    // Actualizar búsqueda con validación
     const updated = await Search.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -106,7 +110,7 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
-// DELETE búsqueda
+// Eliminar una búsqueda por ID
 router.delete("/:id", async (req, res) => {
   try {
     await Search.findByIdAndDelete(req.params.id);

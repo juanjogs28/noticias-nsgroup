@@ -1,10 +1,11 @@
+// Router para gestión de horarios de envío de newsletters con autenticación requerida
 const express = require("express");
 const router = express.Router();
 const ScheduleTime = require("../models/scheduleTimes.js");
 const { requireAuth } = require("../middleware/auth.js");
 const { updateScheduledJobs } = require("../scheduler.js");
 
-// Función para asegurar conexión a MongoDB
+// Función para asegurar conexión a MongoDB antes de operaciones de base de datos
 async function ensureConnection() {
   const mongoose = require("mongoose");
   if (mongoose.connection.readyState === 0) {
@@ -18,10 +19,10 @@ async function ensureConnection() {
   }
 }
 
-// Aplicar autenticación a todas las rutas
+// Aplicar middleware de autenticación a todas las rutas de administración
 router.use(requireAuth);
 
-// GET todos los horarios de envío
+// Obtener todos los horarios de envío ordenados por hora
 router.get("/", async (req, res) => {
   try {
     await ensureConnection();
@@ -33,23 +34,25 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST crear nuevo horario
+// Crear un nuevo horario de envío con validación de unicidad
 router.post("/", async (req, res) => {
   try {
     await ensureConnection();
     
     const { time, description } = req.body;
     
+    // Validar que el horario sea proporcionado
     if (!time) {
       return res.status(400).json({ message: "El horario es requerido" });
     }
 
-    // Verificar si ya existe un horario con esa hora
+    // Verificar que no exista ya un horario con esa hora
     const existing = await ScheduleTime.findOne({ time });
     if (existing) {
       return res.status(400).json({ message: "Ya existe un horario configurado para esa hora" });
     }
 
+    // Crear nuevo horario de envío
     const scheduleTime = new ScheduleTime({
       time,
       description: description || ""
@@ -71,16 +74,18 @@ router.post("/", async (req, res) => {
   }
 });
 
-// PATCH actualizar horario
+// Actualizar un horario existente con validación
 router.patch("/:id", async (req, res) => {
   try {
     const { time, description, isActive } = req.body;
-    const updateData = {};
     
+    // Preparar datos de actualización solo con los campos proporcionados
+    const updateData = {};
     if (time !== undefined) updateData.time = time;
     if (description !== undefined) updateData.description = description;
     if (isActive !== undefined) updateData.isActive = isActive;
 
+    // Actualizar horario con validación
     const updated = await ScheduleTime.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -105,7 +110,7 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
-// DELETE eliminar horario
+// Eliminar un horario de envío y actualizar el scheduler
 router.delete("/:id", async (req, res) => {
   try {
     const deleted = await ScheduleTime.findByIdAndDelete(req.params.id);

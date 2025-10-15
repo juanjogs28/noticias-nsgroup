@@ -1,12 +1,13 @@
+// Router para gestión de suscriptores con autenticación requerida
 const express = require("express");
 const router = express.Router();
 const Subscriber = require("../models/subscribers.js");
 const { requireAuth } = require("../middleware/auth.js");
 
-// Aplicar autenticación a todas las rutas de admin
+// Aplicar middleware de autenticación a todas las rutas de administración
 router.use(requireAuth);
 
-// GET todos los suscriptores
+// Obtener todos los suscriptores ordenados por fecha de suscripción (más recientes primero)
 router.get("/", async (req, res) => {
   try {
     const subs = await Subscriber.find().sort({ subscribedAt: -1 });
@@ -17,15 +18,17 @@ router.get("/", async (req, res) => {
   }
 });
 
-// POST crear suscriptor
+// Crear un nuevo suscriptor con validación de email único
 router.post("/", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: "Email requerido" });
 
+    // Verificar que el email no esté ya registrado
     const existing = await Subscriber.findOne({ email: email.toLowerCase() });
     if (existing) return res.status(400).json({ message: "El suscriptor ya existe" });
 
+    // Crear nuevo suscriptor con email en minúsculas
     const subscriber = new Subscriber({
       email: email.toLowerCase(),
     });
@@ -37,7 +40,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-// PATCH actualizar suscriptor
+// Actualizar un suscriptor existente con validación de email único
 router.patch("/:id", async (req, res) => {
   try {
     const { email, isActive } = req.body;
@@ -59,12 +62,12 @@ router.patch("/:id", async (req, res) => {
       }
     }
     
-    // Preparar datos de actualización
+    // Preparar datos de actualización solo con los campos proporcionados
     const updateData = {};
     if (email !== undefined) updateData.email = email.toLowerCase();
     if (isActive !== undefined) updateData.isActive = isActive;
     
-    // Actualizar suscriptor
+    // Actualizar suscriptor con validación
     const updated = await Subscriber.findByIdAndUpdate(
       req.params.id,
       updateData,
@@ -78,7 +81,7 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
-// DELETE suscriptor
+// Eliminar un suscriptor por ID
 router.delete("/:id", async (req, res) => {
   try {
     await Subscriber.findByIdAndDelete(req.params.id);

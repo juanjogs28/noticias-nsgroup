@@ -1,17 +1,18 @@
+// Router para envío manual de newsletters con autenticación requerida
 const express = require("express");
 const router = express.Router();
 const { requireAuth } = require("../middleware/auth.js");
 const { sendDailyNewsletter, sendDailyNewsletterWithResults } = require("../dailyNewsletter.js");
 
-// Aplicar autenticación a todas las rutas
+// Aplicar middleware de autenticación a todas las rutas de administración
 router.use(requireAuth);
 
-// POST enviar newsletter manualmente
+// Enviar newsletter manualmente con captura de resultados detallados
 router.post("/send", async (req, res) => {
   try {
     console.log("🚀 Iniciando envío manual de newsletter...");
     
-    // Ejecutar el envío del newsletter y capturar resultados
+    // Ejecutar el envío del newsletter y capturar resultados detallados
     const result = await sendDailyNewsletterWithResults();
     
     console.log("✅ Newsletter manual enviado exitosamente");
