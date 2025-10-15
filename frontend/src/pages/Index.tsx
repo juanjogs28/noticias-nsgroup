@@ -319,55 +319,62 @@ function canonicalizeUrl(rawUrl: string | undefined): string {
 // Heurística común para detectar si un artículo es de redes sociales
 function isSocialMediaArticle(article: MeltwaterArticle): boolean {
   const sourceName = article.source?.name?.toLowerCase() || '';
+  const url = article.url || '';
   
-  // PRIMERO: Excluir medios tradicionales explícitamente
-  const traditionalSources = ['diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion', 'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'chicagotribune', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'];
+  // PRIMERO: Detectar redes sociales de forma más agresiva
+  const socialKeywords = [
+    'facebook', 'fb', 'instagram', 'insta', 'twitter', 'tweet', 'x.com', 'reddit', 'youtube', 'youtu.be', 
+    'tiktok', 'threads', 'linkedin', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 
+    'twitch', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora', 'social', 'post', 'share', 'like', 
+    'comment', 'follow', 'follower', 'viral', 'trending', 'hashtag', 'mention', 'retweet', 'repost'
+  ];
   
-  if (traditionalSources.some(traditional => sourceName.includes(traditional))) {
+  // Detectar por nombre de fuente
+  if (socialKeywords.some(keyword => sourceName.includes(keyword))) {
+    return true;
+  }
+  
+  // Detectar por URL
+  if (/facebook\.com|instagram\.com|twitter\.com|x\.com|reddit\.com|youtube\.com|youtu\.be|tiktok\.com|threads\.net|linkedin\.com|snapchat\.com|pinterest\.com|telegram\.org|whatsapp\.com|discord\.com|twitch\.tv|vimeo\.com|flickr\.com|tumblr\.com|medium\.com|quora\.com/i.test(url)) {
+    return true;
+  }
+  
+  // Detectar por tipo de contenido
+  const raw: any = article as any;
+  if (raw?.content_type === 'social post' || raw?.content_type === 'repost' || raw?.content_type === 'comment' || raw?.content_type === 'social') {
+    return true;
+  }
+  
+  // Detectar por campos de contenido social
+  const hasSocialFields = raw?.content?.text || raw?.content?.message || raw?.content?.caption || 
+                         raw?.content?.post_text || raw?.content?.status_text || raw?.content?.tweet_text;
+  const hasSocialMetrics = raw?.metrics?.likes || raw?.metrics?.shares || raw?.metrics?.comments || 
+                         raw?.metrics?.retweets || raw?.metrics?.reactions || raw?.metrics?.followers;
+  if (hasSocialFields && hasSocialMetrics) {
+    return true;
+  }
+  
+  // SEGUNDO: Excluir medios tradicionales explícitamente
+  const traditionalKeywords = [
+    'diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 
+    'pais', 'nacion', 'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 
+    'telesur', 'rt', 'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 
+    'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 
+    'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 
+    'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 
+    'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'dailypress', 
+    'hamptonroads', 'pilotonline', 'virginian', 'pilot', 'elpais', 'ovacion', 'montevideo', 'subrayado', 
+    'canal4', 'canal10', 'teledoce', 'sai', 'elobservador', 'ladiaria', 'brecha', 'busqueda', 'republica', 
+    'ultimasnoticias', 'globo', 'folha', 'estadao', 'g1', 'uol', 'ig', 'terra', 'r7', 'band', 'record', 
+    'sbt', 'rede', 'emol', 'latercera', 'mercurio', 'cooperativa', 'biobio', 'mega', 'chilevision', 
+    'canal13', 'tvn', 'eltiempo', 'semana', 'elespectador', 'rcn', 'caracol', 'reforma', 'jornada', 
+    'universal', 'milenio', 'proceso', 'televisa', 'azteca', 'elmundo', 'lavanguardia', 'elperiodico', 
+    'publico', 'eldiario', 'elconfidencial', 'libertaddigital', 'okdiario', 'vozpopuli', 'elespanol'
+  ];
+  
+  if (traditionalKeywords.some(traditional => sourceName.includes(traditional))) {
     return false; // Excluir medios tradicionales
   }
-
-  // SEGUNDO: Verificar si es red social
-  const allowedSources = ['instagram', 'facebook', 'twitter', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin', 'x', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 'twitch', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora'];
-  const socialHosts = new Set([
-    'twitter.com', 'x.com',
-    'instagram.com', 'www.instagram.com',
-    'facebook.com', 'www.facebook.com', 'm.facebook.com',
-    'reddit.com', 'www.reddit.com',
-    'youtube.com', 'www.youtube.com', 'youtu.be',
-    'tiktok.com', 'www.tiktok.com',
-    'threads.net', 'www.threads.net',
-    'linkedin.com', 'www.linkedin.com',
-    'x.com', 'www.x.com',
-    'snapchat.com', 'www.snapchat.com',
-    'pinterest.com', 'www.pinterest.com',
-    'telegram.org', 'www.telegram.org',
-    'whatsapp.com', 'www.whatsapp.com',
-    'discord.com', 'www.discord.com',
-    'twitch.tv', 'www.twitch.tv',
-    'vimeo.com', 'www.vimeo.com',
-    'flickr.com', 'www.flickr.com',
-    'tumblr.com', 'www.tumblr.com',
-    'medium.com', 'www.medium.com',
-    'quora.com', 'www.quora.com'
-  ]);
-  
-  const getHost = (url?: string) => {
-    if (!url) return '';
-    try { return new URL(url).hostname.toLowerCase(); } catch { return ''; }
-  };
-  
-  // @ts-ignore posibles campos crudos
-  const raw: any = article as any;
-  if (raw?.content_type === 'social post' || raw?.content_type === 'repost' || raw?.content_type === 'comment') return true;
-  
-  const host = getHost(article.url);
-  if (host && socialHosts.has(host)) return true;
-  
-  if (allowedSources.some(token => sourceName.includes(token))) return true;
-  
-  const url = article.url || '';
-  if (/instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be|snapchat\.com|pinterest\.com|telegram\.org|whatsapp\.com|discord\.com|twitch\.tv|vimeo\.com|flickr\.com|tumblr\.com|medium\.com|quora\.com)/i.test(url)) return true;
   
   // Si no cumple ninguna condición de red social, NO es red social
   return false;
@@ -493,133 +500,73 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
   const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
   
-  // Fuentes de medios tradicionales permitidas - Lista expandida
+  // Fuentes de medios tradicionales permitidas - Lista optimizada
   const allowedTraditionalSources = [
     // Palabras genéricas
     'diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion',
     
     // Medios argentinos
-    'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'telefe', 'america', 'canal13', 'tn', 'c5n', 'a24', 'cnn', 'fox', 'tyc', 'espn', 'ole', 'tycsports', 'minutouno', 'lanacion', 'clarin', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'telefe', 'america', 'canal13', 'tn', 'c5n', 'a24', 'cnn', 'fox', 'tyc', 'espn', 'ole', 'tycsports', 'minutouno',
+    'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'telefe', 'america', 'canal13', 'tn', 'c5n', 'a24', 'tyc', 'espn', 'ole', 'tycsports', 'minutouno', 'noticias', 'argentinas', 'argentina', 'buenos', 'aires',
     
     // Medios uruguayos
-    'elpais', 'ovacion', 'montevideo', 'subrayado', 'canal4', 'canal10', 'teledoce', 'sai', 'elobservador', 'ladiaria', 'brecha', 'busqueda', 'republica', 'ultimasnoticias', 'elobservador', 'ladiaria', 'brecha', 'busqueda', 'republica', 'ultimasnoticias',
+    'elpais', 'ovacion', 'montevideo', 'subrayado', 'canal4', 'canal10', 'teledoce', 'sai', 'elobservador', 'ladiaria', 'brecha', 'busqueda', 'republica', 'ultimasnoticias', 'uruguay',
     
     // Medios brasileños
-    'globo', 'folha', 'estadao', 'g1', 'uol', 'ig', 'terra', 'r7', 'band', 'record', 'sbt', 'rede', 'tv', 'globo', 'folha', 'estadao', 'g1', 'uol', 'ig', 'terra', 'r7', 'band', 'record', 'sbt', 'rede',
+    'globo', 'folha', 'estadao', 'g1', 'uol', 'ig', 'terra', 'r7', 'band', 'record', 'sbt', 'rede', 'veja', 'istoe', 'epoca',
     
     // Medios chilenos
-    'emol', 'latercera', 'mercurio', 'cooperativa', 'biobio', 'mega', 'chilevision', 'canal13', 'tvn', 'emol', 'latercera', 'mercurio', 'cooperativa', 'biobio', 'mega', 'chilevision', 'canal13', 'tvn',
+    'emol', 'latercera', 'mercurio', 'cooperativa', 'biobio', 'mega', 'chilevision', 'canal13', 'tvn', 'chile', 'santiago',
     
     // Medios colombianos
-    'eltiempo', 'semana', 'elespectador', 'rcn', 'caracol', 'eltiempo', 'semana', 'elespectador', 'rcn', 'caracol',
+    'eltiempo', 'semana', 'elespectador', 'rcn', 'caracol', 'colombia', 'bogota',
     
     // Medios mexicanos
-    'reforma', 'jornada', 'universal', 'milenio', 'proceso', 'televisa', 'azteca', 'reforma', 'jornada', 'universal', 'milenio', 'proceso', 'televisa', 'azteca',
+    'reforma', 'jornada', 'universal', 'milenio', 'proceso', 'televisa', 'azteca', 'mexico', 'df',
     
     // Medios españoles
-    'elpais', 'elmundo', 'abc', 'lavanguardia', 'elperiodico', 'publico', 'eldiario', 'elconfidencial', 'libertaddigital', 'okdiario', 'vozpopuli', 'elespanol', 'elmundo', 'abc', 'lavanguardia', 'elperiodico', 'publico', 'eldiario', 'elconfidencial', 'libertaddigital', 'okdiario', 'vozpopuli', 'elespanol',
-    
-    // Medios internacionales
-    'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot',
+    'elpais', 'elmundo', 'abc', 'lavanguardia', 'elperiodico', 'publico', 'eldiario', 'elconfidencial', 'libertaddigital', 'okdiario', 'vozpopuli', 'elespanol', 'espana', 'madrid', 'barcelona',
     
     // Medios franceses
-    'lemonde', 'lefigaro', 'liberation', 'franceinfo', 'france24', 'tf1', 'france2', 'france3', 'bfmtv', 'cnews', 'lemonde', 'lefigaro', 'liberation', 'franceinfo', 'france24', 'tf1', 'france2', 'france3', 'bfmtv', 'cnews',
+    'lemonde', 'lefigaro', 'liberation', 'franceinfo', 'france24', 'tf1', 'france2', 'france3', 'bfmtv', 'cnews', 'france', 'paris',
     
     // Medios alemanes
-    'spiegel', 'zeit', 'faz', 'sueddeutsche', 'bild', 'welt', 'tagesschau', 'ard', 'zdf', 'spiegel', 'zeit', 'faz', 'sueddeutsche', 'bild', 'welt', 'tagesschau', 'ard', 'zdf',
+    'spiegel', 'zeit', 'faz', 'sueddeutsche', 'bild', 'welt', 'tagesschau', 'ard', 'zdf', 'deutschland', 'berlin', 'munich',
     
     // Medios italianos
-    'corriere', 'repubblica', 'sole24ore', 'ansa', 'rai', 'mediaset', 'la7', 'corriere', 'repubblica', 'sole24ore', 'ansa', 'rai', 'mediaset', 'la7',
+    'corriere', 'repubblica', 'sole24ore', 'ansa', 'rai', 'mediaset', 'la7', 'italia', 'roma', 'milano',
     
     // Medios británicos
-    'guardian', 'telegraph', 'independent', 'mirror', 'sun', 'daily', 'mail', 'times', 'ft', 'guardian', 'telegraph', 'independent', 'mirror', 'sun', 'daily', 'mail', 'times', 'ft',
+    'guardian', 'telegraph', 'independent', 'mirror', 'sun', 'daily', 'mail', 'times', 'ft', 'uk', 'london', 'britain',
     
     // Medios canadienses
-    'globeandmail', 'nationalpost', 'cbc', 'ctv', 'global', 'globeandmail', 'nationalpost', 'cbc', 'ctv', 'global',
+    'globeandmail', 'nationalpost', 'cbc', 'ctv', 'global', 'canada', 'toronto', 'montreal',
     
     // Medios australianos
-    'sydney', 'herald', 'age', 'australian', 'abc', 'sbs', 'nine', 'seven', 'ten', 'sydney', 'herald', 'age', 'australian', 'abc', 'sbs', 'nine', 'seven', 'ten',
+    'sydney', 'herald', 'age', 'australian', 'abc', 'sbs', 'nine', 'seven', 'ten', 'australia', 'melbourne',
     
     // Medios japoneses
-    'asahi', 'yomiuri', 'mainichi', 'nikkei', 'nhk', 'asahi', 'yomiuri', 'mainichi', 'nikkei', 'nhk',
+    'asahi', 'yomiuri', 'mainichi', 'nikkei', 'nhk', 'japan', 'tokyo',
     
     // Medios coreanos
-    'chosun', 'joongang', 'donga', 'kbs', 'mbc', 'sbs', 'chosun', 'joongang', 'donga', 'kbs', 'mbc', 'sbs',
+    'chosun', 'joongang', 'donga', 'kbs', 'mbc', 'sbs', 'korea', 'seoul',
     
     // Medios chinos
-    'xinhua', 'people', 'china', 'daily', 'global', 'times', 'xinhua', 'people', 'china', 'daily', 'global', 'times',
+    'xinhua', 'people', 'china', 'daily', 'global', 'times', 'beijing', 'shanghai',
     
     // Medios rusos
-    'rt', 'sputnik', 'tass', 'ria', 'rt', 'sputnik', 'tass', 'ria',
+    'rt', 'sputnik', 'tass', 'ria', 'russia', 'moscow',
     
     // Medios árabes
-    'aljazeera', 'arab', 'news', 'gulf', 'times', 'khaleej', 'aljazeera', 'arab', 'news', 'gulf', 'times', 'khaleej',
+    'aljazeera', 'arab', 'news', 'gulf', 'times', 'khaleej', 'dubai', 'riyadh',
     
     // Medios africanos
-    'allafrica', 'african', 'news', 'allafrica', 'african', 'news',
+    'allafrica', 'african', 'news', 'africa', 'johannesburg', 'cairo',
     
     // Medios indios
-    'times', 'india', 'hindu', 'indian', 'express', 'times', 'india', 'hindu', 'indian', 'express',
+    'times', 'india', 'hindu', 'indian', 'express',
     
-    // Medios brasileños adicionales
-    'veja', 'istoe', 'epoca', 'veja', 'istoe', 'epoca',
-    
-    // Medios argentinos adicionales
-    'noticias', 'argentinas', 'argentina', 'buenos', 'aires', 'noticias', 'argentinas', 'argentina', 'buenos', 'aires',
-    
-    // Medios uruguayos adicionales
-    'uruguay', 'montevideo', 'uruguay', 'montevideo',
-    
-    // Medios chilenos adicionales
-    'chile', 'santiago', 'chile', 'santiago',
-    
-    // Medios colombianos adicionales
-    'colombia', 'bogota', 'colombia', 'bogota',
-    
-    // Medios mexicanos adicionales
-    'mexico', 'mexico', 'df', 'mexico', 'df',
-    
-    // Medios españoles adicionales
-    'espana', 'madrid', 'barcelona', 'espana', 'madrid', 'barcelona',
-    
-    // Medios franceses adicionales
-    'france', 'paris', 'france', 'paris',
-    
-    // Medios alemanes adicionales
-    'deutschland', 'berlin', 'munich', 'deutschland', 'berlin', 'munich',
-    
-    // Medios italianos adicionales
-    'italia', 'roma', 'milano', 'italia', 'roma', 'milano',
-    
-    // Medios británicos adicionales
-    'uk', 'london', 'britain', 'uk', 'london', 'britain',
-    
-    // Medios canadienses adicionales
-    'canada', 'toronto', 'montreal', 'canada', 'toronto', 'montreal',
-    
-    // Medios australianos adicionales
-    'australia', 'sydney', 'melbourne', 'australia', 'sydney', 'melbourne',
-    
-    // Medios japoneses adicionales
-    'japan', 'tokyo', 'japan', 'tokyo',
-    
-    // Medios coreanos adicionales
-    'korea', 'seoul', 'korea', 'seoul',
-    
-    // Medios chinos adicionales
-    'china', 'beijing', 'shanghai', 'china', 'beijing', 'shanghai',
-    
-    // Medios rusos adicionales
-    'russia', 'moscow', 'russia', 'moscow',
-    
-    // Medios árabes adicionales
-    'arab', 'dubai', 'riyadh', 'arab', 'dubai', 'riyadh',
-    
-    // Medios africanos adicionales
-    'africa', 'johannesburg', 'cairo', 'africa', 'johannesburg', 'cairo',
-    
-    // Medios indios adicionales
-    'india', 'mumbai', 'delhi', 'india', 'mumbai', 'delhi'
+    // Medios internacionales
+    'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'
   ];
   
   // Filtrar artículos - SOLO medios tradicionales permitidos para panel País
