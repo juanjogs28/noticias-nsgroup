@@ -716,7 +716,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   console.log('  Artículos ya mostrados (lista):', Array.from(shownArticles));
   
   // Fuentes de redes sociales permitidas (nombres legibles)
-  const allowedSources = ['instagram', 'facebook', 'twitter', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin'];
+  const allowedSources = ['instagram', 'facebook', 'twitter', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin', 'x', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 'twitch', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora'];
 
   // Dominios sociales reconocidos para URL
   const socialHosts = new Set([
@@ -727,7 +727,19 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     'youtube.com', 'www.youtube.com', 'youtu.be',
     'tiktok.com', 'www.tiktok.com',
     'threads.net', 'www.threads.net',
-    'linkedin.com', 'www.linkedin.com'
+    'linkedin.com', 'www.linkedin.com',
+    'x.com', 'www.x.com',
+    'snapchat.com', 'www.snapchat.com',
+    'pinterest.com', 'www.pinterest.com',
+    'telegram.org', 'www.telegram.org',
+    'whatsapp.com', 'www.whatsapp.com',
+    'discord.com', 'www.discord.com',
+    'twitch.tv', 'www.twitch.tv',
+    'vimeo.com', 'www.vimeo.com',
+    'flickr.com', 'www.flickr.com',
+    'tumblr.com', 'www.tumblr.com',
+    'medium.com', 'www.medium.com',
+    'quora.com', 'www.quora.com'
   ]);
 
   const getHost = (url?: string) => {
@@ -758,7 +770,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
 
     // 4) Heurística por URL path - SOLO URLs de redes sociales
     const url = article.url || '';
-    if (/instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be)/i.test(url)) return true;
+    if (/instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be|snapchat\.com|pinterest\.com|telegram\.org|whatsapp\.com|discord\.com|twitch\.tv|vimeo\.com|flickr\.com|tumblr\.com|medium\.com|quora\.com)/i.test(url)) return true;
 
     // 5) Detección por campos de contenido social - SOLO si tiene métricas sociales
     const raw: any = article as any;
@@ -1566,8 +1578,8 @@ export default function Index() {
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
               <div className="news-grid-dashboard">
                 {(() => {
-                  // Sección 3: Redes Sociales - Solo artículos que NO fueron mostrados en la sección País
-                  const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, 300);
+                  // Sección 3: Redes Sociales - Solo artículos de redes sociales del SECTOR
+                  const articles = getUniqueSocialMediaArticles(sectorArticles, shownArticles, 300);
                   console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
                   articles.forEach((article, index) => {
                     console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);
