@@ -740,43 +740,9 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     return (d || '').toLowerCase();
   };
 
+  // Usar la función global isSocialMediaArticle que es más estricta
   const isSocialArticle = (article: MeltwaterArticle) => {
-    const sourceName = article.source?.name?.toLowerCase() || '';
-    
-    // PRIMERO: Excluir medios tradicionales explícitamente
-    const traditionalSources = ['diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion', 'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'chicagotribune', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'];
-    
-    if (traditionalSources.some(traditional => sourceName.includes(traditional))) {
-      return false; // Excluir medios tradicionales
-    }
-
-    // SEGUNDO: Verificar si es red social
-    // 1) Por tipo de contenido - SOLO posts sociales
-    // @ts-ignore: raw field may exist from API adaptation
-    if (article && (article as any).content_type === 'social post') return true;
-    if (article && (article as any).content_type === 'repost') return true;
-
-    // 2) Por dominio de la URL - SOLO dominios de redes sociales
-    const host = getHost(article.url);
-    if (host && socialHosts.has(host)) return true;
-
-    // 3) Por nombre de la fuente - SOLO fuentes de redes sociales
-    if (allowedSources.some(token => sourceName.includes(token))) return true;
-
-    // 4) Heurística por URL path - SOLO URLs de redes sociales
-    const url = article.url || '';
-    if (/instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be|snapchat\.com|pinterest\.com|telegram\.org|whatsapp\.com|discord\.com|twitch\.tv|vimeo\.com|flickr\.com|tumblr\.com|medium\.com|quora\.com)/i.test(url)) return true;
-
-    // 5) Detección por campos de contenido social - SOLO si tiene métricas sociales
-    const raw: any = article as any;
-    const hasSocialFields = raw?.content?.text || raw?.content?.message || raw?.content?.caption || 
-                           raw?.content?.post_text || raw?.content?.status_text || raw?.content?.tweet_text;
-    const hasSocialMetrics = raw?.metrics?.likes || raw?.metrics?.shares || raw?.metrics?.comments || 
-                           raw?.metrics?.retweets || raw?.metrics?.reactions;
-    if (hasSocialFields && hasSocialMetrics) return true;
-
-    // Si no cumple ninguna condición de red social, NO es red social
-    return false;
+    return isSocialMediaArticle(article);
   };
   
   // Filtrar artículos solo sociales
@@ -799,32 +765,24 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   console.log(`  Total artículos: ${articles.length}`);
   console.log(`  Artículos sociales detectados: ${socialMediaArticles.length}`);
   console.log(`  Artículos sociales completos: ${completeSocialArticles.length}`);
-  console.log('  Fuentes detectadas:', [...new Set(socialMediaArticles.map(a => a.source.name))]);
-  console.log('  URLs de redes:', socialMediaArticles.slice(0, 5).map(a => a.url));
+  console.log('  Fuentes sociales detectadas:', [...new Set(socialMediaArticles.map(a => a.source.name))]);
+  console.log('  URLs de redes sociales:', socialMediaArticles.slice(0, 5).map(a => a.url));
   
-  // Debug: Analizar por qué no se detectan otras redes
-  const allSources = [...new Set(articles.map(a => a.source.name))];
-  console.log('  Todas las fuentes disponibles:', allSources);
-  
-  // Debug: Verificar detección por cada método
-  const byContentType = articles.filter(a => (a as any).content_type === 'social post');
-  const byHost = articles.filter(a => {
-    const host = getHost(a.url);
-    return host && socialHosts.has(host);
-  });
-  const bySourceName = articles.filter(a => {
+  // Debug: Verificar que NO hay medios tradicionales en la selección
+  const traditionalInSocial = socialMediaArticles.filter(a => {
     const sourceName = a.source?.name?.toLowerCase() || '';
-    return allowedSources.some(token => sourceName.includes(token));
-  });
-  const byUrlRegex = articles.filter(a => {
-    const url = a.url || '';
-    return /instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be|snapchat\.com|pinterest\.com|telegram\.org|whatsapp\.com|discord\.com|twitch\.tv|vimeo\.com|flickr\.com|tumblr\.com|medium\.com|quora\.com)/i.test(url);
+    const traditionalKeywords = ['diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'clarin', 'lanacion', 'infobae', 'bbc', 'cnn', 'reuters'];
+    return traditionalKeywords.some(traditional => sourceName.includes(traditional));
   });
   
-  console.log('  Por content_type:', byContentType.length);
-  console.log('  Por host:', byHost.length);
-  console.log('  Por nombre fuente:', bySourceName.length);
-  console.log('  Por URL regex:', byUrlRegex.length);
+  if (traditionalInSocial.length > 0) {
+    console.log('  ⚠️  ADVERTENCIA: Se detectaron medios tradicionales en redes sociales:');
+    traditionalInSocial.forEach(a => {
+      console.log(`    - ${a.title} | Fuente: ${a.source.name}`);
+    });
+  } else {
+    console.log('  ✅ No se detectaron medios tradicionales en la selección de redes sociales');
+  }
 
   // Ordenar únicamente por engagement (usar solo los completos)
   const sortedArticles = completeSocialArticles.sort((a, b) => {
@@ -839,11 +797,11 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   // Tomar el límite solicitado
   let result = uniqueArticles.slice(0, limit);
 
-  // Rellenar hasta 50 artículos: ser más permisivo para conseguir más artículos
+  // Rellenar hasta el límite SOLO con artículos de redes sociales
   if (result.length < limit) {
     const selectedIds = new Set(result.map(a => generateArticleId(a)));
 
-    // 1) Intentar con más posts sociales ordenados por engagement
+    // 1) Intentar con más posts sociales completos ordenados por engagement
     const moreSocialCandidates = [...completeSocialArticles]
       .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
 
@@ -857,9 +815,8 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     }
 
     // 2) Si aún faltan, usar TODOS los artículos sociales por engagement
-    let allSocialCandidates: MeltwaterArticle[] = [];
     if (result.length < limit) {
-      allSocialCandidates = [...socialMediaArticles]
+      const allSocialCandidates = [...socialMediaArticles]
         .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
       
       for (const candidate of allSocialCandidates) {
@@ -872,21 +829,12 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
       }
     }
 
-    // 3) Si aún faltan, permitir duplicados sociales
+    // 3) Si aún faltan, permitir duplicados sociales (pero SOLO redes sociales)
     if (result.length < limit) {
+      const allSocialCandidates = [...socialMediaArticles]
+        .sort((a, b) => (b.engagementScore || 0) - (a.engagementScore || 0));
+      
       for (const candidate of allSocialCandidates) {
-        if (result.length >= limit) break;
-        const id = generateArticleId(candidate);
-        if (!selectedIds.has(id)) {
-          result.push(candidate);
-          selectedIds.add(id);
-        }
-      }
-    }
-
-    // 4) Como último recurso, usar cualquier artículo disponible
-    if (result.length < limit) {
-      for (const candidate of articles) {
         if (result.length >= limit) break;
         const id = generateArticleId(candidate);
         if (!selectedIds.has(id)) {
