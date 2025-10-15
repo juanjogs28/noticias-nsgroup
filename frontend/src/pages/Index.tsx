@@ -318,6 +318,16 @@ function canonicalizeUrl(rawUrl: string | undefined): string {
 
 // Heurística común para detectar si un artículo es de redes sociales
 function isSocialMediaArticle(article: MeltwaterArticle): boolean {
+  const sourceName = article.source?.name?.toLowerCase() || '';
+  
+  // PRIMERO: Excluir medios tradicionales explícitamente
+  const traditionalSources = ['diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion', 'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'chicagotribune', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'];
+  
+  if (traditionalSources.some(traditional => sourceName.includes(traditional))) {
+    return false; // Excluir medios tradicionales
+  }
+
+  // SEGUNDO: Verificar si es red social
   const allowedSources = ['instagram', 'facebook', 'twitter', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin', 'x', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 'twitch', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora'];
   const socialHosts = new Set([
     'twitter.com', 'x.com',
@@ -341,19 +351,25 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     'medium.com', 'www.medium.com',
     'quora.com', 'www.quora.com'
   ]);
+  
   const getHost = (url?: string) => {
     if (!url) return '';
     try { return new URL(url).hostname.toLowerCase(); } catch { return ''; }
   };
+  
   // @ts-ignore posibles campos crudos
   const raw: any = article as any;
   if (raw?.content_type === 'social post' || raw?.content_type === 'repost' || raw?.content_type === 'comment') return true;
+  
   const host = getHost(article.url);
   if (host && socialHosts.has(host)) return true;
-  const sourceName = article.source?.name?.toLowerCase() || '';
+  
   if (allowedSources.some(token => sourceName.includes(token))) return true;
+  
   const url = article.url || '';
   if (/instagram\.com|facebook\.com|twitter\.com|x\.com|reddit\.com|tiktok\.com|threads\.net|(youtube\.com|youtu\.be|snapchat\.com|pinterest\.com|telegram\.org|whatsapp\.com|discord\.com|twitch\.tv|vimeo\.com|flickr\.com|tumblr\.com|medium\.com|quora\.com)/i.test(url)) return true;
+  
+  // Si no cumple ninguna condición de red social, NO es red social
   return false;
 }
 
