@@ -767,6 +767,16 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   };
 
   const isSocialArticle = (article: MeltwaterArticle) => {
+    const sourceName = article.source?.name?.toLowerCase() || '';
+    
+    // PRIMERO: Excluir medios tradicionales explícitamente
+    const traditionalSources = ['diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion', 'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'chicagotribune', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'];
+    
+    if (traditionalSources.some(traditional => sourceName.includes(traditional))) {
+      return false; // Excluir medios tradicionales
+    }
+
+    // SEGUNDO: Verificar si es red social
     // 1) Por tipo de contenido - SOLO posts sociales
     // @ts-ignore: raw field may exist from API adaptation
     if (article && (article as any).content_type === 'social post') return true;
@@ -777,7 +787,6 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     if (host && socialHosts.has(host)) return true;
 
     // 3) Por nombre de la fuente - SOLO fuentes de redes sociales
-    const sourceName = article.source?.name?.toLowerCase() || '';
     if (allowedSources.some(token => sourceName.includes(token))) return true;
 
     // 4) Heurística por URL path - SOLO URLs de redes sociales
@@ -792,13 +801,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
                            raw?.metrics?.retweets || raw?.metrics?.reactions;
     if (hasSocialFields && hasSocialMetrics) return true;
 
-    // EXCLUIR medios tradicionales explícitamente
-    const traditionalSources = ['diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion', 'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'chicagotribune', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'];
-    
-    if (traditionalSources.some(traditional => sourceName.includes(traditional))) {
-      return false; // Excluir medios tradicionales
-    }
-
+    // Si no cumple ninguna condición de red social, NO es red social
     return false;
   };
   
