@@ -334,6 +334,6 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`   - Frontend: http://localhost:5173`);
   console.log(`   - Vercel: https://noticias-nsgroup-newsroom.vercel.app`);
   console.log(`   - Railway: https://noticias-nsgroup-production.up.railway.app`);
-  console.log(`📊 VERSIÓN: 2.0.0 - Límite de API aumentado a 500 artículos`);
+  console.log(`📊 VERSIÓN: 2.1.0 - Límite de API optimizado a 1000 artículos por petición`);
   console.log(`🔧 Servidor escuchando en 0.0.0.0:${PORT} para Railway`);
 });
