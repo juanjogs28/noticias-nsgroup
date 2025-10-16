@@ -166,9 +166,8 @@ function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
       const isSocial = isSocialMedia(sourceName);
       const isTraditional = isTraditionalMedia(sourceName);
       
-      // AJUSTE TEMPORAL: Incluir tanto medios tradicionales como redes sociales
-      // para mostrar más noticias mientras se ajustan las reglas
-      const shouldInclude = isTraditional || isSocial;
+      // Panel Ecosocial: SOLO medios tradicionales (mantener reglas)
+      const shouldInclude = isTraditional && !isSocial;
       
       if (isSocial) {
         console.log(`  ⚠️ Incluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
