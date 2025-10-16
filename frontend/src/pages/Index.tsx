@@ -426,6 +426,7 @@ function filterUniqueArticles(articles: MeltwaterArticle[], shownArticles: Set<s
     }
 
     // Si es un artículo nuevo, lo agregamos
+
     uniqueArticles.push(article);
     newShownArticles.add(`id:${articleId}`);
     if (canonicalUrlKey) newShownArticles.add(`url:${canonicalUrlKey}`);
@@ -595,11 +596,18 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'
   ];
   
-  // AJUSTE TEMPORAL: Incluir TODAS las noticias para mostrar más contenido
+  // FILTRO MENOS RESTRICTIVO: Incluir más medios tradicionales
   const filteredArticles = articles.filter(article => {
     const sourceName = article.source?.name?.toLowerCase() || '';
     
-    // Incluir tanto medios tradicionales como redes sociales temporalmente
+    // Excluir solo redes sociales explícitas, incluir todo lo demás
+    const isExplicitSocial = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora'].some(social => sourceName.includes(social));
+    
+    if (isExplicitSocial) {
+      console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
+      return false;
+    }
+    
     console.log(`  ✅ Incluido: ${article.title} | Fuente: ${article.source?.name}`);
     return true;
   });
