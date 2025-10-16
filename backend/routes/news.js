@@ -112,11 +112,11 @@ async function getSearchResults(searchId) {
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     
-    // Estrategia optimizada: solo 3 peticiones para carga rápida
+    // Estrategia optimizada: múltiples peticiones con diferentes offsets
     const dateRanges = [
-      { name: "última semana", days: 7 },
-      { name: "último mes", days: 30 },
-      { name: "últimos 3 meses", days: 90 }
+      { name: "última semana", days: 7, offset: 0 },
+      { name: "último mes", days: 30, offset: 0 },
+      { name: "últimos 3 meses", days: 90, offset: 0 }
     ];
     
     for (let i = 0; i < dateRanges.length; i++) {
@@ -149,6 +149,9 @@ async function getSearchResults(searchId) {
             start: startDate,
             end: end,
             limit: 1000, // Límite por petición para evitar saturar la API
+            offset: range.offset, // Parámetro de paginación
+            page: 1, // Página actual
+            pageSize: 1000, // Tamaño de página
             // Agregar parámetros adicionales para obtener más resultados
             language: "es", // Idioma español
             content_type: "news", // Tipo de contenido
@@ -166,8 +169,14 @@ async function getSearchResults(searchId) {
           const documents = data.result?.documents || [];
           
           // Debug detallado de la respuesta de Meltwater
-          // Logs reducidos para evitar rate limit de Railway
           console.log(`✅ Petición ${i + 1} exitosa: ${documents.length} artículos (${range.name})`);
+          console.log(`🔍 DEBUG - Estructura de respuesta:`);
+          console.log(`   - documents.length: ${documents.length}`);
+          console.log(`   - result.total: ${data.result?.total || 'No disponible'}`);
+          console.log(`   - result.count: ${data.result?.count || 'No disponible'}`);
+          console.log(`   - result.offset: ${data.result?.offset || 'No disponible'}`);
+          console.log(`   - result.limit: ${data.result?.limit || 'No disponible'}`);
+          console.log(`   - Parámetros enviados: limit=${1000}, offset=${range.offset}, pageSize=${1000}`);
           
           // Agregar documentos únicos (evitar duplicados)
           const newDocuments = documents.filter(doc => 
