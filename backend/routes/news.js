@@ -154,7 +154,7 @@ async function getSearchResults(searchId) {
             tz: "America/Montevideo",
             start: startDate,
             end: end,
-            limit: 1000, // Límite por petición para evitar saturar la API
+            limit: 100, // Límite máximo que respeta Meltwater por petición
             offset: range.offset, // Usar offset para paginación
             // Parámetros optimizados para obtener más variedad
             language: "es", // Idioma español
