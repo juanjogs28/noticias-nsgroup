@@ -32,9 +32,8 @@ export const usePagination = (options: UsePaginationOptions = {}) => {
   }, [initialPageSize]);
 
   const getPaginatedItems = useCallback((items: any[]) => {
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return items.slice(0, endIndex);
+    // Mostrar TODAS las noticias disponibles sin paginación restrictiva
+    return items;
   }, [currentPage, pageSize]);
 
   const hasMore = useCallback((items: any[]) => {
