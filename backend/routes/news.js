@@ -135,7 +135,7 @@ async function getSearchResults(searchId) {
         await new Promise(resolve => setTimeout(resolve, delay));
       }
       
-      console.log(`🔍 Petición ${i + 1}/${dateRanges.length}: ${range.name} (${range.days} días)`);
+      console.log(`🔍 Petición ${i + 1}/${dateRanges.length}: ${range.name} (${range.days} días) - Offset: ${range.offset}`);
       
       try {
         const startDate = new Date(now.getTime() - range.days * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
@@ -154,7 +154,7 @@ async function getSearchResults(searchId) {
             tz: "America/Montevideo",
             start: startDate,
             end: end,
-            limit: 10, // Usar el límite real de la API (10 artículos)
+            limit: 1000, // Límite por petición para evitar saturar la API
             offset: range.offset, // Usar offset para paginación
             // Parámetros optimizados para obtener más variedad
             language: "es", // Idioma español
@@ -173,7 +173,7 @@ async function getSearchResults(searchId) {
           const documents = data.result?.documents || [];
           
           // Debug detallado de la respuesta de Meltwater
-          console.log(`✅ Petición ${i + 1} exitosa: ${documents.length} artículos (${range.name})`);
+          console.log(`✅ Petición ${i + 1} exitosa: ${documents.length} artículos (${range.name}) - Total acumulado: ${allDocuments.length}`);
           console.log(`🔍 DEBUG - Estructura de respuesta:`);
           console.log(`   - documents.length: ${documents.length}`);
           console.log(`   - result.total: ${data.result?.total || 'No disponible'}`);

@@ -524,7 +524,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   console.log('  Artículos ya mostrados (lista):', Array.from(shownArticles));
   
   // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
-  const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
+  const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora'];
   
   // Fuentes de medios tradicionales permitidas - Lista expandida y más inclusiva
   const allowedTraditionalSources = [
@@ -607,9 +607,11 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   const filteredArticles = articles.filter(article => {
     const sourceName = article.source?.name?.toLowerCase() || '';
     
-    // 1. Excluir redes sociales
-    const isSocial = isSocialMediaArticle(article);
-    if (isSocial) {
+    // 1. Excluir redes sociales usando la lista excludedSources
+    const isExcludedSocial = excludedSources.some(excluded => 
+      sourceName.includes(excluded)
+    );
+    if (isExcludedSocial) {
       console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
       return false;
     }
@@ -735,9 +737,6 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   console.log('  Artículos ya mostrados:', shownArticles.size);
   console.log('  Artículos ya mostrados (lista):', Array.from(shownArticles));
   
-  // Fuentes de redes sociales permitidas (nombres legibles)
-  const allowedSources = ['instagram', 'facebook', 'twitter', 'reddit', 'youtube', 'tiktok', 'threads', 'linkedin', 'x', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 'twitch', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora'];
-
   // Dominios sociales reconocidos para URL
   const socialHosts = new Set([
     'twitter.com', 'x.com',
