@@ -377,7 +377,7 @@ export default function PersonalizedNews() {
                 Información especializada y análisis del sector empresarial
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(sectorPagination.getPaginatedItems(sectorArticles), shownSectorArticles, 50)} title="Noticias Sectoriales" />
+            <NewsList articles={getUniqueTopArticles(sectorPagination.getPaginatedItems(sectorArticles), shownSectorArticles, 500)} title="Noticias Sectoriales" />
             <LoadMoreButton 
               onClick={() => sectorPagination.increasePageSize()}
               loading={loading}
@@ -402,7 +402,7 @@ export default function PersonalizedNews() {
                 Análisis y reportes de la situación económica y empresarial nacional
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(ecosocialPagination.getPaginatedItems(ecosocialArticles), shownEcosocialArticles, 50)} title="Impacto Social" />
+            <NewsList articles={getUniqueTopArticles(ecosocialPagination.getPaginatedItems(ecosocialArticles), shownEcosocialArticles, 500)} title="Impacto Social" />
             <LoadMoreButton 
               onClick={() => ecosocialPagination.increasePageSize()}
               loading={loading}
@@ -427,7 +427,7 @@ export default function PersonalizedNews() {
                 Contenido con mayor impacto y participación de la audiencia
               </p>
             </div>
-            <NewsList articles={getUniqueTopArticles(engagementPagination.getPaginatedItems(engagementArticles), shownEngagementArticles, 50)} title="Alto Engagement" />
+            <NewsList articles={getUniqueTopArticles(engagementPagination.getPaginatedItems(engagementArticles), shownEngagementArticles, 500)} title="Alto Engagement" />
             <LoadMoreButton 
               onClick={() => engagementPagination.increasePageSize()}
               loading={loading}

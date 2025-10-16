@@ -1397,7 +1397,7 @@ export default function Index() {
                 console.log(`  📊 sectorArticles totales: ${sectorArticles.length}`);
                 console.log(`  🧹 sectorTraditional (sin redes): ${sectorTraditional.length}`);
 
-                const dynamicLimit = calculateDynamicLimit(sectorTraditional.length, 167);
+                const dynamicLimit = calculateDynamicLimit(sectorTraditional.length, 500);
                 const articles = getUniqueTopArticles(sectorTraditional, shownArticles, dynamicLimit);
                 // Marcar como mostrados para evitar duplicados con las siguientes secciones
                 markShown(shownArticles, articles);
@@ -1474,7 +1474,7 @@ export default function Index() {
                 console.log('🚀 INICIANDO getUniqueTopPaisArticles con:', paisArticles.length, 'artículos del país');
                 console.log('🚀 ARTÍCULOS DEL PAÍS DISPONIBLES:', paisArticles.map(a => `${a.title} | ${a.source.name}`));
                 // Sección 2: País - Mostrar artículos del país (medios tradicionales) ordenados por SocialEcho/ContentScore
-                const dynamicLimit = calculateDynamicLimit(paisArticles.length, 167);
+                const dynamicLimit = calculateDynamicLimit(paisArticles.length, 500);
                 const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, dynamicLimit);
                 // Marcar como mostrados para evitar duplicados con la sección de redes
                 markShown(shownArticles, articles);
@@ -1574,7 +1574,7 @@ export default function Index() {
                 {(() => {
                   // Sección 3: Redes Sociales - Solo artículos de redes sociales (combinar sector + país)
                   const allArticles = [...sectorArticles, ...paisArticles];
-                  const dynamicLimit = calculateDynamicLimit(allArticles.length, 166);
+                  const dynamicLimit = calculateDynamicLimit(allArticles.length, 500);
                   const articles = getUniqueSocialMediaArticles(allArticles, shownArticles, dynamicLimit);
                   console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
                   articles.forEach((article, index) => {
