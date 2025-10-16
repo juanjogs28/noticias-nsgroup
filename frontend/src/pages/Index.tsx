@@ -603,27 +603,12 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'
   ];
   
-  // Filtrar artículos - SOLO medios tradicionales permitidos para panel País
+  // AJUSTE TEMPORAL: Incluir TODAS las noticias para mostrar más contenido
   const filteredArticles = articles.filter(article => {
     const sourceName = article.source?.name?.toLowerCase() || '';
     
-    // 1. Excluir redes sociales usando la lista excludedSources
-    const isExcludedSocial = excludedSources.some(excluded => 
-      sourceName.includes(excluded)
-    );
-    if (isExcludedSocial) {
-      console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
-      return false;
-    }
-    
-    // 2. Verificar que sea un medio tradicional permitido
-    const isTraditionalMedia = allowedTraditionalSources.some(traditional => sourceName.includes(traditional));
-    if (!isTraditionalMedia) {
-      console.log(`  ❌ Excluido (medio no reconocido): ${article.title} | Fuente: ${article.source?.name}`);
-      return false;
-    }
-    
-    console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
+    // Incluir tanto medios tradicionales como redes sociales temporalmente
+    console.log(`  ✅ Incluido: ${article.title} | Fuente: ${article.source?.name}`);
     return true;
   });
   
@@ -1392,13 +1377,11 @@ export default function Index() {
                 console.log(`  📊 shownArticles.size: ${shownArticles.size}`);
                 console.log(`  📊 shownArticles contenido:`, Array.from(shownArticles).slice(0, 100));
 
-                // Panel Sector: Solo medios tradicionales (NO redes sociales)
-                const sectorTraditional = sectorArticles.filter(a => !isSocialMediaArticle(a));
+                // Panel Sector: Incluir TODAS las noticias (ajuste temporal)
                 console.log(`  📊 sectorArticles totales: ${sectorArticles.length}`);
-                console.log(`  🧹 sectorTraditional (sin redes): ${sectorTraditional.length}`);
 
-                const dynamicLimit = calculateDynamicLimit(sectorTraditional.length, 500);
-                const articles = getUniqueTopArticles(sectorTraditional, shownArticles, dynamicLimit);
+                const dynamicLimit = calculateDynamicLimit(sectorArticles.length, 500);
+                const articles = getUniqueTopArticles(sectorArticles, shownArticles, dynamicLimit);
                 // Marcar como mostrados para evitar duplicados con las siguientes secciones
                 markShown(shownArticles, articles);
                 console.log('🔵 TOP 50 SECTOR - Artículos mostrados:', articles.length);
