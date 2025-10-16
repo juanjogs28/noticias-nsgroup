@@ -6,7 +6,7 @@ interface UsePaginationOptions {
 }
 
 export const usePagination = (options: UsePaginationOptions = {}) => {
-  const { initialPageSize = 60, maxPageSize = 200 } = options;
+  const { initialPageSize = 100, maxPageSize = 500 } = options;
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
 

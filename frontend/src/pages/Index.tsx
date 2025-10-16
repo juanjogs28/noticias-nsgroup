@@ -960,7 +960,7 @@ function calculateRelevantMetrics(articles: MeltwaterArticle[]) {
     avgSentiment,
     uniqueSources: Math.max(uniqueSources, 0),
     topTopic: mostFrequentKeyword,
-    sortedArticles: sortedArticles.slice(0, 100) // Top 100 artículos por ContentScore
+    sortedArticles: sortedArticles.slice(0, 500) // Top 500 artículos por ContentScore
   };
 }
 
