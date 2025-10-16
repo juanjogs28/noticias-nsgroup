@@ -180,7 +180,7 @@ async function getSearchResults(searchId) {
           console.log(`   - result.count: ${data.result?.count || 'No disponible'}`);
           console.log(`   - result.offset: ${data.result?.offset || 'No disponible'}`);
           console.log(`   - result.limit: ${data.result?.limit || 'No disponible'}`);
-          console.log(`   - Parámetros enviados: limit=${10}, offset=${range.offset}`);
+          console.log(`   - Parámetros enviados: limit=1000, offset=${range.offset}`);
           
 
           // Agregar todos los documentos (la paginación ya maneja la unicidad)
