@@ -195,9 +195,9 @@ export default function PersonalizedNews() {
   const [shownEngagementArticles, setShownEngagementArticles] = useState<Set<string>>(new Set());
 
   // Paginación para cada sección (distribución proporcional para 500 total)
-  const ecosocialPagination = usePagination({ initialPageSize: 20, maxPageSize: 167 });
-  const engagementPagination = usePagination({ initialPageSize: 20, maxPageSize: 167 });
-  const sectorPagination = usePagination({ initialPageSize: 20, maxPageSize: 166 });
+  const ecosocialPagination = usePagination({ initialPageSize: 60, maxPageSize: 200 });
+  const engagementPagination = usePagination({ initialPageSize: 60, maxPageSize: 200 });
+  const sectorPagination = usePagination({ initialPageSize: 60, maxPageSize: 200 });
 
   useEffect(() => {
     const email = localStorage.getItem("userEmail");

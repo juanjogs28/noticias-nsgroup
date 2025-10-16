@@ -298,7 +298,7 @@ function extractWordsFromText(text: string): string[] {
     .replace(/[^\w\s]/g, ' ')
     .split(/\s+/)
     .filter(word => word.length > 3 && !['para', 'con', 'del', 'las', 'los', 'una', 'uno', 'que', 'por', 'sus', 'son', 'más', 'como', 'esta', 'este', 'pero', 'también', 'puede', 'ser', 'hacer', 'tener', 'hacer', 'decir', 'saber', 'ver', 'dar', 'ir', 'venir', 'estar', 'haber', 'poder', 'querer', 'deber', 'parecer', 'quedar', 'hablar', 'llegar', 'pasar', 'seguir', 'encontrar', 'pensar', 'vivir', 'sentir', 'tratar', 'mirar', 'ayudar', 'trabajar', 'jugar', 'mover', 'parar', 'empezar', 'acabar', 'volver', 'entrar', 'salir', 'subir', 'bajar', 'cambiar', 'buscar', 'encontrar', 'perder', 'ganar', 'creer', 'saber', 'conocer', 'entender', 'aprender', 'enseñar', 'estudiar', 'leer', 'escribir', 'hablar', 'escuchar', 'ver', 'mirar', 'sentir', 'tocar', 'oler', 'gustar', 'preferir', 'elegir', 'decidir', 'aceptar', 'rechazar', 'permitir', 'prohibir', 'obligar', 'forzar', 'convencer', 'persuadir', 'intentar', 'lograr', 'conseguir', 'obtener', 'recibir', 'dar', 'ofrecer', 'presentar', 'mostrar', 'explicar', 'describir', 'contar', 'narrar', 'relatar', 'informar', 'comunicar', 'expresar', 'manifestar', 'declarar', 'afirmar', 'negar', 'confirmar', 'desmentir', 'admitir', 'reconocer', 'confesar', 'ocultar', 'esconder', 'mostrar', 'revelar', 'descubrir', 'encontrar', 'buscar', 'investigar', 'estudiar', 'analizar', 'examinar', 'revisar', 'verificar', 'comprobar', 'confirmar', 'validar', 'aprobar', 'rechazar', 'aceptar', 'recibir', 'tomar', 'coger', 'agarrar', 'sostener', 'mantener', 'conservar', 'guardar', 'almacenar', 'depositar', 'colocar', 'poner', 'situar', 'ubicar', 'localizar', 'encontrar', 'buscar', 'hallar', 'descubrir', 'encontrar', 'detectar', 'percibir', 'notar', 'observar', 'ver', 'mirar', 'contemplar', 'admirar', 'apreciar', 'valorar', 'estimar', 'considerar', 'pensar', 'reflexionar', 'meditar', 'contemplar', 'considerar', 'evaluar', 'juzgar', 'valorar', 'apreciar', 'estimar', 'considerar', 'tener', 'poseer', 'disponer', 'contar', 'disponer', 'tener', 'poseer', 'ser', 'estar', 'haber', 'existir', 'vivir', 'morir', 'nacer', 'crecer', 'desarrollar', 'evolucionar', 'cambiar', 'transformar', 'convertir', 'volver', 'regresar', 'retornar', 'volver', 'regresar', 'retornar', 'volver', 'regresar', 'retornar'].includes(word))
-    .slice(0, 10); // Limitar a 10 palabras por artículo
+    .slice(0, 60); // Limitar a 60 palabras por artículo
 }
 
 // Normaliza el título para comparar artículos equivalentes entre fuentes distintas
@@ -508,8 +508,8 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
   
   console.log(`  📊 Resultado final: ${result.length} artículos`);
   
-  // Log de los primeros 5 artículos para debug
-  result.slice(0, 5).forEach((article, index) => {
+  // Log de los primeros 60 artículos para debug
+  result.slice(0, 60).forEach((article, index) => {
     console.log(`    ${index + 1}. ${article.title} | Fuente: ${article.source.name} | ContentScore: ${article.contentScore?.toFixed(3)}`);
   });
 
@@ -800,7 +800,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   console.log(`  Artículos sociales detectados: ${socialMediaArticles.length}`);
   console.log(`  Artículos sociales completos: ${completeSocialArticles.length}`);
   console.log('  Fuentes sociales detectadas:', [...new Set(socialMediaArticles.map(a => a.source.name))]);
-  console.log('  URLs de redes sociales:', socialMediaArticles.slice(0, 5).map(a => a.url));
+  console.log('  URLs de redes sociales:', socialMediaArticles.slice(0, 60).map(a => a.url));
   
   // Debug: Analizar por qué se filtran artículos
   const filteredOut = socialMediaArticles.filter(article => {
@@ -817,7 +817,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   console.log(`  Artículos filtrados por datos incompletos: ${filteredOut.length}`);
   if (filteredOut.length > 0) {
     console.log('  Ejemplos de artículos filtrados:');
-    filteredOut.slice(0, 3).forEach((article, index) => {
+    filteredOut.slice(0, 60).forEach((article, index) => {
       console.log(`    ${index + 1}. "${article.title}" | Desc: ${article.description?.length || 0} chars | Img: ${article.urlToImage ? 'Sí' : 'No'}`);
     });
   }
@@ -960,7 +960,7 @@ function calculateRelevantMetrics(articles: MeltwaterArticle[]) {
     avgSentiment,
     uniqueSources: Math.max(uniqueSources, 0),
     topTopic: mostFrequentKeyword,
-    sortedArticles: sortedArticles.slice(0, 10) // Top 10 artículos por ContentScore
+    sortedArticles: sortedArticles.slice(0, 100) // Top 100 artículos por ContentScore
   };
 }
 
@@ -1390,7 +1390,7 @@ export default function Index() {
                 console.log('🔵 DEBUG SECTOR - Estado inicial:');
                 console.log(`  📊 sectorArticles disponibles: ${sectorArticles.length}`);
                 console.log(`  📊 shownArticles.size: ${shownArticles.size}`);
-                console.log(`  📊 shownArticles contenido:`, Array.from(shownArticles).slice(0, 10));
+                console.log(`  📊 shownArticles contenido:`, Array.from(shownArticles).slice(0, 60));
 
                 // Excluir redes sociales del panel sector
                 const sectorNonSocial = sectorArticles.filter(a => !isSocialMediaArticle(a));
@@ -1507,7 +1507,7 @@ export default function Index() {
               .replace(/[^\w\s]/g, ' ')
               .split(/\s+/)
               .filter(word => word.length > 3 && !['para', 'con', 'del', 'las', 'los', 'una', 'uno', 'que', 'por', 'sus', 'son', 'más', 'como', 'esta', 'este', 'pero', 'también', 'puede', 'ser', 'hacer', 'tener', 'hacer', 'decir', 'saber', 'ver', 'dar', 'ir', 'venir', 'estar', 'haber', 'poder', 'querer', 'deber', 'parecer', 'quedar', 'hablar', 'llegar', 'pasar', 'seguir', 'encontrar', 'pensar', 'vivir', 'sentir', 'tratar', 'mirar', 'ayudar', 'trabajar', 'jugar', 'mover', 'parar', 'empezar', 'acabar', 'volver', 'entrar', 'salir', 'subir', 'bajar', 'cambiar', 'buscar', 'encontrar', 'perder', 'ganar', 'creer', 'saber', 'conocer', 'entender', 'aprender', 'enseñar', 'estudiar', 'leer', 'escribir', 'hablar', 'escuchar', 'ver', 'mirar', 'sentir', 'tocar', 'oler', 'gustar', 'preferir', 'elegir', 'decidir', 'aceptar', 'rechazar', 'permitir', 'prohibir', 'obligar', 'forzar', 'convencer', 'persuadir', 'intentar', 'lograr', 'conseguir', 'obtener', 'recibir', 'dar', 'ofrecer', 'presentar', 'mostrar', 'explicar', 'describir', 'contar', 'narrar', 'relatar', 'informar', 'comunicar', 'expresar', 'manifestar', 'declarar', 'afirmar', 'negar', 'confirmar', 'desmentir', 'admitir', 'reconocer', 'confesar', 'ocultar', 'esconder', 'mostrar', 'revelar', 'descubrir', 'encontrar', 'buscar', 'investigar', 'estudiar', 'analizar', 'examinar', 'revisar', 'verificar', 'comprobar', 'confirmar', 'validar', 'aprobar', 'rechazar', 'aceptar', 'recibir', 'tomar', 'coger', 'agarrar', 'sostener', 'mantener', 'conservar', 'guardar', 'almacenar', 'depositar', 'colocar', 'poner', 'situar', 'ubicar', 'localizar', 'encontrar', 'buscar', 'hallar', 'descubrir', 'encontrar', 'detectar', 'percibir', 'notar', 'observar', 'ver', 'mirar', 'contemplar', 'admirar', 'apreciar', 'valorar', 'estimar', 'considerar', 'pensar', 'reflexionar', 'meditar', 'contemplar', 'considerar', 'evaluar', 'juzgar', 'valorar', 'apreciar', 'estimar', 'considerar', 'tener', 'poseer', 'disponer', 'contar', 'disponer', 'tener', 'poseer', 'ser', 'estar', 'haber', 'existir', 'vivir', 'morir', 'nacer', 'crecer', 'desarrollar', 'evolucionar', 'cambiar', 'transformar', 'convertir', 'volver', 'regresar', 'retornar', 'volver', 'regresar', 'retornar', 'volver', 'regresar', 'retornar'].includes(word))
-              .slice(0, 10); // Limitar a 10 palabras por artículo
+              .slice(0, 60); // Limitar a 60 palabras por artículo
           };
           
           // Intentar usar keyphrases primero, luego extraer de títulos y descripciones
@@ -1528,7 +1528,7 @@ export default function Index() {
           console.log('🔍 DEBUG NUBE DE PALABRAS:');
           console.log(`  📊 Artículos del país: ${paisArticles.length}`);
           console.log(`  📊 Palabras extraídas: ${words.length}`);
-          console.log(`  📊 Primeras 5 palabras:`, words.slice(0, 5));
+          console.log(`  📊 Primeras 60 palabras:`, words.slice(0, 60));
           
           if (words.length === 0) {
             console.log('⚠️  No hay palabras para nube de palabras');

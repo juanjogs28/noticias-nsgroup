@@ -140,7 +140,7 @@ export interface NewsResponse {
   articles: NewsArticle[];
 }
 
-export const fetchTopHeadlines = async (country: string = 'us', pageSize: number = 10): Promise<NewsResponse> => {
+export const fetchTopHeadlines = async (country: string = 'us', pageSize: number = 60): Promise<NewsResponse> => {
   const url = URUGUAY_API_URL;
   
   try {
@@ -183,7 +183,7 @@ export const fetchTopHeadlines = async (country: string = 'us', pageSize: number
   }
 };
 
-export const searchNews = async (query: string, pageSize: number = 10): Promise<NewsResponse> => {
+export const searchNews = async (query: string, pageSize: number = 60): Promise<NewsResponse> => {
   // Real API call to NewsAPI
   const url = `${NEWS_API_BASE_URL}/everything?q=${encodeURIComponent(query)}&pageSize=${pageSize}&sortBy=publishedAt&apiKey=${NEWS_API_KEY}`;
   
