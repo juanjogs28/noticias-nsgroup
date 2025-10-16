@@ -112,26 +112,17 @@ async function getSearchResults(searchId) {
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     
-    // Estrategia optimizada: 18 peticiones para obtener más artículos (Meltwater solo devuelve 10 por petición)
+    // Estrategia optimizada: solo 9 peticiones para evitar saturar la API
     const dateRanges = [
       { name: "última semana", days: 7, offset: 0 },
       { name: "última semana", days: 7, offset: 10 },
       { name: "última semana", days: 7, offset: 20 },
-      { name: "última semana", days: 7, offset: 30 },
-      { name: "última semana", days: 7, offset: 40 },
       { name: "último mes", days: 30, offset: 0 },
       { name: "último mes", days: 30, offset: 10 },
       { name: "último mes", days: 30, offset: 20 },
-      { name: "último mes", days: 30, offset: 30 },
-      { name: "último mes", days: 30, offset: 40 },
       { name: "últimos 3 meses", days: 90, offset: 0 },
       { name: "últimos 3 meses", days: 90, offset: 10 },
-      { name: "últimos 3 meses", days: 90, offset: 20 },
-      { name: "últimos 3 meses", days: 90, offset: 30 },
-      { name: "últimos 3 meses", days: 90, offset: 40 },
-      { name: "últimos 3 meses", days: 90, offset: 50 },
-      { name: "últimos 3 meses", days: 90, offset: 60 },
-      { name: "últimos 3 meses", days: 90, offset: 70 }
+      { name: "últimos 3 meses", days: 90, offset: 20 }
     ];
     
     for (let i = 0; i < dateRanges.length; i++) {
@@ -163,7 +154,7 @@ async function getSearchResults(searchId) {
             tz: "America/Montevideo",
             start: startDate,
             end: end,
-            limit: 100, // Límite máximo que respeta Meltwater por petición
+            limit: 1000, // Límite por petición para evitar saturar la API
             offset: range.offset, // Usar offset para paginación
             // Parámetros optimizados para obtener más variedad
             language: "es", // Idioma español
