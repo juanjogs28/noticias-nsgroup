@@ -113,25 +113,22 @@ async function getSearchResults(searchId) {
     const end = now.toISOString().slice(0, 19);
     
 
-    // Estrategia optimizada: solo 9 peticiones para evitar saturar la API
+    // Estrategia conservadora: solo 6 peticiones para evitar error 429
     const dateRanges = [
       { name: "última semana", days: 7, offset: 0 },
       { name: "última semana", days: 7, offset: 10 },
-      { name: "última semana", days: 7, offset: 20 },
       { name: "último mes", days: 30, offset: 0 },
       { name: "último mes", days: 30, offset: 10 },
-      { name: "último mes", days: 30, offset: 20 },
       { name: "últimos 3 meses", days: 90, offset: 0 },
-      { name: "últimos 3 meses", days: 90, offset: 10 },
-      { name: "últimos 3 meses", days: 90, offset: 20 }
+      { name: "últimos 3 meses", days: 90, offset: 10 }
     ];
     
     for (let i = 0; i < dateRanges.length; i++) {
       const range = dateRanges[i];
       
-      // Delay entre peticiones para respetar rate limit de Meltwater
+      // Delay mínimo entre peticiones (solo 500ms)
       if (i > 0) {
-        const delay = 2000; // 2 segundos entre peticiones para evitar error 429
+        const delay = 500; // 500ms entre peticiones
         console.log(`⏳ Esperando ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
