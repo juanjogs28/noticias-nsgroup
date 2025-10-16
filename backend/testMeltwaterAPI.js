@@ -39,7 +39,7 @@ async function testMeltwaterAPI() {
           tz: "America/Montevideo",
           start: startDate,
           end: end,
-          limit: 2000,
+          limit: 3000,
           language: "es",
           content_type: "news",
           sort: "relevance",

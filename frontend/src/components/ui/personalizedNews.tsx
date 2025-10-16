@@ -54,10 +54,16 @@ function calculateSimpleContentScore(article: Article, allArticles: Article[]): 
     sourceName.includes(source) || source.includes(sourceName)
   );
   
-  // Bonus adicional para fuentes de noticias tradicionales
-  const sourceBonus = isTraditionalSource ? 30 : 0;
+  // Bonus más inclusivo para fuentes de noticias tradicionales
+  const sourceBonus = isTraditionalSource ? 15 : 5; // Reducir bonus pero dar algo a todas las fuentes
 
-  return (reach * 0.35) + (engagement * 0.25) + (views * 0.20) + (sourceBonus * 0.20);
+  // Factor de frescura: artículos más recientes tienen bonus
+  const articleDate = new Date(article.publishedAt);
+  const now = new Date();
+  const hoursDiff = (now.getTime() - articleDate.getTime()) / (1000 * 60 * 60);
+  const freshnessBonus = Math.max(0, 10 * (1 - hoursDiff / 168)); // Bonus decreciente en 7 días
+
+  return (reach * 0.30) + (engagement * 0.30) + (views * 0.20) + (sourceBonus * 0.10) + freshnessBonus;
 }
 
 // Función para ordenar artículos por ContentScore

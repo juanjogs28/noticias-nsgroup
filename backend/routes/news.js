@@ -148,7 +148,7 @@ async function getSearchResults(searchId) {
             tz: "America/Montevideo",
             start: startDate,
             end: end,
-            limit: 2000, // Límite máximo para obtener más artículos
+            limit: 3000, // Límite máximo para obtener más artículos
             // Agregar parámetros adicionales para obtener más resultados
             language: "es", // Idioma español
             content_type: "news", // Tipo de contenido

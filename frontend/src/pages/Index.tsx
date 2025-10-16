@@ -202,21 +202,35 @@ function calculateContentScore(article: MeltwaterArticle, allArticles: Meltwater
     sourceName.includes(source) || source.includes(sourceName)
   );
   
-  // Bonus adicional para fuentes de noticias tradicionales
-  const sourceBonus = isTraditionalSource ? 0.3 : 0;
+  // Bonus más inclusivo para fuentes de noticias tradicionales
+  const sourceBonus = isTraditionalSource ? 0.15 : 0.05; // Reducir bonus pero dar algo a todas las fuentes
 
-  // Pesos ajustables según estrategia
-  // Estrategia: 35% Visibilidad (Reach), 25% Engagement, 20% Impacto (AVE), 10% Views, 10% Bonus de fuente
-  const w1 = 0.35; // Reach - Visibilidad
-  const w2 = 0.25; // Engagement - Relevancia para usuario
+  // Pesos más balanceados para incluir más artículos
+  // Estrategia: 30% Visibilidad (Reach), 30% Engagement, 20% Impacto (AVE), 15% Views, 5% Bonus de fuente
+  const w1 = 0.30; // Reach - Visibilidad
+  const w2 = 0.30; // Engagement - Relevancia para usuario (aumentado)
   const w3 = 0.20; // AVE - Impacto mediático
-  const w4 = 0.10; // Views - Consumo real
-  const w5 = 0.10; // Source Bonus - Fuentes tradicionales
+  const w4 = 0.15; // Views - Consumo real (aumentado)
+  const w5 = 0.05; // Source Bonus - Fuentes tradicionales (reducido)
 
-  // Calcular ContentScore compuesto con bonus de fuente
-  const contentScore = w1 * reachNorm + w2 * engagementNorm + w3 * aveNorm + w4 * viewsNorm + w5 * sourceBonus;
+  // Factor de frescura: artículos más recientes tienen bonus
+  const articleDate = new Date(article.publishedAt);
+  const now = new Date();
+  const hoursDiff = (now.getTime() - articleDate.getTime()) / (1000 * 60 * 60);
+  const freshnessBonus = Math.max(0, 0.1 * (1 - hoursDiff / 168)); // Bonus decreciente en 7 días
+  
+  // Factor de completitud: artículos con más datos tienen bonus
+  const completenessBonus = 0.05 * (
+    (article.title && article.title.length > 10 ? 1 : 0) +
+    (article.description && article.description.length > 20 ? 1 : 0) +
+    (article.urlToImage && article.urlToImage !== '/placeholder.svg' ? 1 : 0) +
+    (article.url && article.url.length > 10 ? 1 : 0)
+  );
 
-  return contentScore;
+  // Calcular ContentScore compuesto con bonus de fuente, frescura y completitud
+  const contentScore = w1 * reachNorm + w2 * engagementNorm + w3 * aveNorm + w4 * viewsNorm + w5 * sourceBonus + freshnessBonus + completenessBonus;
+
+  return Math.min(1, contentScore); // Limitar a 1.0 máximo
 }
 
 // Función para ordenar artículos por ContentScore
@@ -500,30 +514,38 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
   const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin'];
   
-  // Fuentes de medios tradicionales permitidas - Lista optimizada
+  // Fuentes de medios tradicionales permitidas - Lista expandida y más inclusiva
   const allowedTraditionalSources = [
-    // Palabras genéricas
+    // Palabras genéricas (más inclusivas)
     'diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion',
+    'portal', 'site', 'web', 'online', 'digital', 'noticias', 'informacion', 'actualidad', 'periodico', 'gaceta',
+    'boletin', 'revista', 'publicacion', 'comunicacion', 'informe', 'reporte', 'cronica', 'articulo', 'nota',
     
-    // Medios argentinos
+    // Medios argentinos (expandido)
     'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'telefe', 'america', 'canal13', 'tn', 'c5n', 'a24', 'tyc', 'espn', 'ole', 'tycsports', 'minutouno', 'noticias', 'argentinas', 'argentina', 'buenos', 'aires',
+    'rosario', 'cordoba', 'mendoza', 'tucuman', 'salta', 'jujuy', 'laplata', 'mar', 'del', 'plata', 'neuquen', 'rio', 'negro', 'bariloche', 'ushuaia', 'tierra', 'fuego',
     
-    // Medios uruguayos
+    // Medios uruguayos (expandido)
     'elpais', 'ovacion', 'montevideo', 'subrayado', 'canal4', 'canal10', 'teledoce', 'sai', 'elobservador', 'ladiaria', 'brecha', 'busqueda', 'republica', 'ultimasnoticias', 'uruguay',
+    'paysandu', 'salto', 'colonia', 'maldonado', 'punta', 'este', 'rivera', 'artigas', 'tacuarembo', 'durazno', 'florida', 'soriano', 'rio', 'negro', 'treinta', 'tres',
     
-    // Medios brasileños
+    // Medios brasileños (expandido)
     'globo', 'folha', 'estadao', 'g1', 'uol', 'ig', 'terra', 'r7', 'band', 'record', 'sbt', 'rede', 'veja', 'istoe', 'epoca',
+    'sao', 'paulo', 'rio', 'janeiro', 'brasilia', 'salvador', 'fortaleza', 'belo', 'horizonte', 'manaus', 'curitiba', 'recife', 'porto', 'alegre', 'belem', 'goiania', 'guarulhos', 'campinas', 'sao', 'luis', 'sao', 'goncalo', 'maceio', 'duque', 'caxias', 'natal', 'teresina', 'campo', 'grande', 'nova', 'iguacu', 'sao', 'bernardo', 'santo', 'andre', 'joao', 'pessoa', 'jaboatao', 'santos', 'ribeirao', 'preto', 'uberlandia', 'sorocaba', 'niteroi', 'cuiaba', 'aracaju', 'feira', 'santana', 'joinville', 'apucarana', 'londrina', 'anapolis', 'porto', 'velho', 'serra', 'cariacica', 'vila', 'velha', 'camaçari', 'macapa', 'vitoria', 'florianopolis', 'campina', 'grande', 'blumenau', 'santa', 'luzia', 'volta', 'redonda', 'novo', 'hamburgo', 'caucaia', 'sao', 'joao', 'meriti', 'magué', 'duque', 'caxias', 'sao', 'jose', 'dos', 'pinhais', 'sao', 'jose', 'dos', 'campos', 'mossoro', 'diadema', 'sao', 'vicente', 'carapicuiba', 'betim', 'franca', 'sao', 'caetano', 'do', 'sul', 'suzano', 'taboao', 'serra', 'taubate', 'santa', 'barbara', 'd', 'oeste', 'rio', 'branco', 'cabo', 'frio', 'aracatuba', 'sao', 'bernardo', 'do', 'campo', 'sao', 'jose', 'do', 'rio', 'preto', 'sao', 'jose', 'dos', 'pinhais', 'sao', 'jose', 'dos', 'campos', 'sao', 'jose', 'do', 'rio', 'preto', 'sao', 'jose', 'dos', 'pinhais', 'sao', 'jose', 'dos', 'campos', 'sao', 'jose', 'do', 'rio', 'preto',
     
-    // Medios chilenos
+    // Medios chilenos (expandido)
     'emol', 'latercera', 'mercurio', 'cooperativa', 'biobio', 'mega', 'chilevision', 'canal13', 'tvn', 'chile', 'santiago',
+    'valparaiso', 'concepcion', 'la', 'serena', 'antofagasta', 'temuco', 'rancagua', 'talca', 'arica', 'iquique', 'calama', 'copiapo', 'vallenar', 'ovalle', 'valdivia', 'osorno', 'puerto', 'montt', 'coyhaique', 'punta', 'arenas',
     
-    // Medios colombianos
+    // Medios colombianos (expandido)
     'eltiempo', 'semana', 'elespectador', 'rcn', 'caracol', 'colombia', 'bogota',
+    'medellin', 'cali', 'barranquilla', 'cartagena', 'cucuta', 'bucaramanga', 'pereira', 'santa', 'marta', 'ibague', 'pasto', 'manizales', 'villavicencio', 'neiva', 'armenia', 'popayan', 'valledupar', 'monteria', 'sincelejo', 'tunja', 'florencia', 'yopal', 'arauca', 'mitu', 'leticia', 'inirida', 'puerto', 'carreno', 'san', 'jose', 'del', 'guaviare', 'yopal', 'arauca', 'mitu', 'leticia', 'inirida', 'puerto', 'carreno', 'san', 'jose', 'del', 'guaviare',
     
-    // Medios mexicanos
+    // Medios mexicanos (expandido)
     'reforma', 'jornada', 'universal', 'milenio', 'proceso', 'televisa', 'azteca', 'mexico', 'df',
+    'guadalajara', 'monterrey', 'puebla', 'tijuana', 'leon', 'juarez', 'torreon', 'queretaro', 'san', 'luis', 'potosi', 'merida', 'mexicali', 'aguascalientes', 'acapulco', 'cuernavaca', 'saltillo', 'hermosillo', 'victoria', 'durango', 'chihuahua', 'tampico', 'veracruz', 'oaxaca', 'tuxtla', 'gutierrez', 'campeche', 'chetumal', 'colima', 'villahermosa', 'xalapa', 'pachuca', 'toluca', 'cuernavaca', 'chilpancingo', 'tlaxcala', 'zacatecas', 'colima', 'aguascalientes', 'san', 'luis', 'potosi', 'zacatecas', 'colima', 'aguascalientes', 'san', 'luis', 'potosi',
     
-    // Medios españoles
+    // Medios españoles (expandido)
     'elpais', 'elmundo', 'abc', 'lavanguardia', 'elperiodico', 'publico', 'eldiario', 'elconfidencial', 'libertaddigital', 'okdiario', 'vozpopuli', 'elespanol', 'espana', 'madrid', 'barcelona',
     
     // Medios franceses
@@ -1064,7 +1086,7 @@ export default function Index() {
         const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
             countryId,
             sectorId,
-          limit: 300  // Solicitar 300 artículos para cada sección
+          limit: 500  // Solicitar 500 artículos para cada sección
           });
 
           if (response.data.success) {
@@ -1110,7 +1132,7 @@ export default function Index() {
         if (email) {
           const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { 
             email,
-            limit: 300  // Solicitar 300 artículos para cada sección
+            limit: 500  // Solicitar 500 artículos para cada sección
           });
           if (response.data.success) {
             // Log de la respuesta cruda de la API
