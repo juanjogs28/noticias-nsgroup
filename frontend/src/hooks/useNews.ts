@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchTopHeadlines, NewsResponse } from '@/services/newsService';
 
-export const useNews = (country: string = 'us', pageSize: number = 60) => {
+export const useNews = (country: string = 'us', pageSize: number = 500) => {
   return useQuery({
     queryKey: ['news', country, pageSize],
     queryFn: () => fetchTopHeadlines(country, pageSize),

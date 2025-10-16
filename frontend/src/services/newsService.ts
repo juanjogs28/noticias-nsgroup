@@ -140,7 +140,7 @@ export interface NewsResponse {
   articles: NewsArticle[];
 }
 
-export const fetchTopHeadlines = async (country: string = 'us', pageSize: number = 60): Promise<NewsResponse> => {
+export const fetchTopHeadlines = async (country: string = 'us', pageSize: number = 500): Promise<NewsResponse> => {
   const url = URUGUAY_API_URL;
   
   try {
@@ -183,7 +183,7 @@ export const fetchTopHeadlines = async (country: string = 'us', pageSize: number
   }
 };
 
-export const searchNews = async (query: string, pageSize: number = 60): Promise<NewsResponse> => {
+export const searchNews = async (query: string, pageSize: number = 500): Promise<NewsResponse> => {
   // Real API call to NewsAPI
   const url = `${NEWS_API_BASE_URL}/everything?q=${encodeURIComponent(query)}&pageSize=${pageSize}&sortBy=publishedAt&apiKey=${NEWS_API_KEY}`;
   
@@ -242,7 +242,7 @@ export const filterUniqueArticles = (articles: NewsArticle[], shownArticles: Set
 };
 
 // Función para obtener artículos únicos ordenados por ContentScore
-export const getUniqueTopArticles = (articles: NewsArticle[], shownArticles: Set<string>, limit: number = 25): NewsArticle[] => {
+export const getUniqueTopArticles = (articles: NewsArticle[], shownArticles: Set<string>, limit: number = 500): NewsArticle[] => {
   // Primero ordenar por ContentScore
   const sortedArticles = sortArticlesByContentScore(articles);
 

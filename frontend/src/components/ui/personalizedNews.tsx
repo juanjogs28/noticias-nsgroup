@@ -273,9 +273,8 @@ export default function PersonalizedNews() {
         const paisFiltered = adaptResults(paisRaw); // Solo medios tradicionales
         const engagementFiltered = adaptResultsForEngagement(paisRaw); // Solo redes sociales
         
-        // Dividir medios tradicionales del país en dos grupos
-        const mitad = Math.ceil(paisFiltered.length / 2);
-        const ecosocialFiltered = paisFiltered.slice(0, mitad);
+        // Usar TODOS los medios tradicionales del país para ecosocial
+        const ecosocialFiltered = paisFiltered;
         
         console.log('📊 Artículos cargados (DESPUÉS del filtrado):');
         console.log(`  🔹 Sector: ${sectorFiltered.length} artículos (solo medios tradicionales)`);
