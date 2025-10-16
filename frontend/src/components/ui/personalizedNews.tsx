@@ -99,7 +99,7 @@ function filterUniqueArticles(articles: Article[], shownArticles: Set<string>): 
 }
 
 // Función para obtener artículos únicos ordenados por ContentScore
-function getUniqueTopArticles(articles: Article[], shownArticles: Set<string>, limit: number = 5): Article[] {
+function getUniqueTopArticles(articles: Article[], shownArticles: Set<string>, limit: number = 25): Article[] {
   // Primero ordenar por ContentScore
   const sortedArticles = sortArticlesByScore(articles);
 
@@ -194,10 +194,10 @@ export default function PersonalizedNews() {
   const [shownEcosocialArticles, setShownEcosocialArticles] = useState<Set<string>>(new Set());
   const [shownEngagementArticles, setShownEngagementArticles] = useState<Set<string>>(new Set());
 
-  // Paginación para cada sección
-  const ecosocialPagination = usePagination({ initialPageSize: 15, maxPageSize: 50 });
-  const engagementPagination = usePagination({ initialPageSize: 15, maxPageSize: 50 });
-  const sectorPagination = usePagination({ initialPageSize: 15, maxPageSize: 50 });
+  // Paginación para cada sección (distribución proporcional para 500 total)
+  const ecosocialPagination = usePagination({ initialPageSize: 20, maxPageSize: 167 });
+  const engagementPagination = usePagination({ initialPageSize: 20, maxPageSize: 167 });
+  const sectorPagination = usePagination({ initialPageSize: 20, maxPageSize: 166 });
 
   useEffect(() => {
     const email = localStorage.getItem("userEmail");

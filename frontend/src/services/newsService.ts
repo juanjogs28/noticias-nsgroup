@@ -242,7 +242,7 @@ export const filterUniqueArticles = (articles: NewsArticle[], shownArticles: Set
 };
 
 // Función para obtener artículos únicos ordenados por ContentScore
-export const getUniqueTopArticles = (articles: NewsArticle[], shownArticles: Set<string>, limit: number = 5): NewsArticle[] => {
+export const getUniqueTopArticles = (articles: NewsArticle[], shownArticles: Set<string>, limit: number = 25): NewsArticle[] => {
   // Primero ordenar por ContentScore
   const sortedArticles = sortArticlesByContentScore(articles);
 

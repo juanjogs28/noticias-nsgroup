@@ -453,8 +453,20 @@ function markShown(shown: Set<string>, articles: MeltwaterArticle[]): void {
   }
 }
 
+// Función para calcular límite dinámico basado en artículos disponibles
+function calculateDynamicLimit(availableArticles: number, defaultLimit: number = 167): number {
+  // Si hay pocos artículos, usar todos
+  if (availableArticles <= 50) return availableArticles;
+  
+  // Si hay artículos suficientes, usar el límite por defecto
+  if (availableArticles >= defaultLimit) return defaultLimit;
+  
+  // Si hay artículos intermedios, usar el 80% de los disponibles
+  return Math.floor(availableArticles * 0.8);
+}
+
 // Función para obtener artículos únicos ordenados por ContentScore
-function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 50): MeltwaterArticle[] {
+function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 167): MeltwaterArticle[] {
   console.log(`🔍 getUniqueTopArticles - INICIANDO:`);
   console.log(`  📊 Total artículos de entrada: ${articles.length}`);
   console.log(`  📊 Artículos ya mostrados: ${shownArticles.size}`);
@@ -505,7 +517,7 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
 }
 
 // Función específica para obtener artículos del país ordenados por socialEchoScore
-function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 50): MeltwaterArticle[] {
+function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 167): MeltwaterArticle[] {
   console.log('🔍 DEBUG getUniqueTopPaisArticles - INICIANDO FUNCIÓN - VERSION FIXED');
   console.log('  Total artículos de entrada:', articles.length);
   console.log('  Artículos ya mostrados:', shownArticles.size);
@@ -717,7 +729,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
 }
 
 // Función específica para obtener artículos de redes sociales ordenados por engagement
-function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 50): MeltwaterArticle[] {
+function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 166): MeltwaterArticle[] {
   console.log('🔍 DEBUG getUniqueSocialMediaArticles - INICIANDO FUNCIÓN');
   console.log('  Total artículos de entrada:', articles.length);
   console.log('  Artículos ya mostrados:', shownArticles.size);
@@ -1385,7 +1397,8 @@ export default function Index() {
                 const sectorNonSocial = sectorArticles.filter(a => !isSocialMediaArticle(a));
                 console.log(`  🧹 sectorNonSocial (sin redes): ${sectorNonSocial.length}`);
 
-                const articles = getUniqueTopArticles(sectorNonSocial, shownArticles, 300);
+                const dynamicLimit = calculateDynamicLimit(sectorNonSocial.length, 167);
+                const articles = getUniqueTopArticles(sectorNonSocial, shownArticles, dynamicLimit);
                 // Marcar como mostrados para evitar duplicados con las siguientes secciones
                 markShown(shownArticles, articles);
                 console.log('🔵 TOP 50 SECTOR - Artículos mostrados:', articles.length);
@@ -1461,7 +1474,8 @@ export default function Index() {
                 console.log('🚀 INICIANDO getUniqueTopPaisArticles con:', paisArticles.length, 'artículos del país');
                 console.log('🚀 ARTÍCULOS DEL PAÍS DISPONIBLES:', paisArticles.map(a => `${a.title} | ${a.source.name}`));
                 // Sección 2: País - Mostrar artículos del país (medios tradicionales) ordenados por SocialEcho/ContentScore
-                const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, 300);
+                const dynamicLimit = calculateDynamicLimit(paisArticles.length, 167);
+                const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, dynamicLimit);
                 // Marcar como mostrados para evitar duplicados con la sección de redes
                 markShown(shownArticles, articles);
                 console.log('🟢 TOP 50 PAÍS - Artículos mostrados:', articles.length);
@@ -1560,7 +1574,8 @@ export default function Index() {
                 {(() => {
                   // Sección 3: Redes Sociales - Solo artículos de redes sociales (combinar sector + país)
                   const allArticles = [...sectorArticles, ...paisArticles];
-                  const articles = getUniqueSocialMediaArticles(allArticles, shownArticles, 300);
+                  const dynamicLimit = calculateDynamicLimit(allArticles.length, 166);
+                  const articles = getUniqueSocialMediaArticles(allArticles, shownArticles, dynamicLimit);
                   console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
                   articles.forEach((article, index) => {
                     console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);
