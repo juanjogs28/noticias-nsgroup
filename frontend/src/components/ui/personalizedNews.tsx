@@ -141,7 +141,7 @@ function isTraditionalMedia(sourceName: string): boolean {
   return traditionalSources.some(traditional => lowerSource.includes(traditional));
 }
 
-// Convierte los documentos raw a objetos Article con filtrado de redes sociales
+// Convierte los documentos raw a objetos Article con filtrado de medios tradicionales
 function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
   return raw
     .map((doc) => {
@@ -166,15 +166,55 @@ function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
       const isSocial = isSocialMedia(sourceName);
       const isTraditional = isTraditionalMedia(sourceName);
       
-      // Incluir medios tradicionales Y redes sociales (menos restrictivo)
-      const shouldInclude = isTraditional || !isSocial;
+      // REGLAS ORIGINALES RESTAURADAS:
+      // - Panel Sector: Solo medios tradicionales
+      // - Panel País: Solo medios tradicionales  
+      // - Panel Engagement: Solo redes sociales
+      const shouldInclude = isTraditional && !isSocial;
       
-      if (isSocial && !isTraditional) {
-        console.log(`  ⚠️ Red social incluida: ${article.title} | Fuente: ${article.source?.name}`);
+      if (isSocial) {
+        console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
       } else if (isTraditional) {
-        console.log(`  ✅ Medio tradicional: ${article.title} | Fuente: ${article.source?.name}`);
+        console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
       } else {
-        console.log(`  ✅ Fuente incluida: ${article.title} | Fuente: ${article.source?.name}`);
+        console.log(`  ❌ Excluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`);
+      }
+      
+      return shouldInclude;
+    });
+}
+
+// Convierte los documentos raw a objetos Article con filtrado de SOLO redes sociales
+function adaptResultsForEngagement(raw: RawMeltwaterDocument[]): Article[] {
+  return raw
+    .map((doc) => {
+      let title = "Sin título";
+      if (typeof doc.content === "object" && doc.content) title = doc.content.title ?? title;
+
+      let description = "";
+      if (typeof doc.content === "string") description = doc.content;
+      else if (typeof doc.content === "object" && doc.content) description = doc.content.summary || "";
+
+      return {
+        title,
+        url: doc.url,
+        urlToImage: typeof doc.content === "object" && doc.content?.image ? doc.content.image : "/placeholder.svg",
+        description,
+        publishedAt: doc.published_date,
+        source: { name: doc.source?.name || "Fuente desconocida" },
+      };
+    })
+    .filter(article => {
+      const sourceName = article.source?.name || '';
+      const isSocial = isSocialMedia(sourceName);
+      
+      // Panel Engagement: SOLO redes sociales
+      const shouldInclude = isSocial;
+      
+      if (isSocial) {
+        console.log(`  ✅ Incluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
+      } else {
+        console.log(`  ❌ Excluido (no es red social): ${article.title} | Fuente: ${article.source?.name}`);
       }
       
       return shouldInclude;
@@ -228,17 +268,20 @@ export default function PersonalizedNews() {
         engagementPagination.resetPagination();
         sectorPagination.resetPagination();
         
-        // Debug logging
-        const sectorFiltered = adaptResults(res.data.sector || []);
-        const paisFiltered = adaptResults(paisRaw);
+        // Debug logging con filtros correctos por panel
+        const sectorFiltered = adaptResults(res.data.sector || []); // Solo medios tradicionales
+        const paisFiltered = adaptResults(paisRaw); // Solo medios tradicionales
+        const engagementFiltered = adaptResultsForEngagement(paisRaw); // Solo redes sociales
+        
+        // Dividir medios tradicionales del país en dos grupos
+        const mitad = Math.ceil(paisFiltered.length / 2);
         const ecosocialFiltered = paisFiltered.slice(0, mitad);
-        const engagementFiltered = paisFiltered.slice(mitad);
         
         console.log('📊 Artículos cargados (DESPUÉS del filtrado):');
-        console.log(`  🔹 Sector: ${sectorFiltered.length} artículos`);
-        console.log(`  🔹 País total: ${paisFiltered.length} artículos`);
-        console.log(`  🔹 Ecosocial: ${ecosocialFiltered.length} artículos`);
-        console.log(`  🔹 Engagement: ${engagementFiltered.length} artículos`);
+        console.log(`  🔹 Sector: ${sectorFiltered.length} artículos (solo medios tradicionales)`);
+        console.log(`  🔹 País total: ${paisFiltered.length} artículos (solo medios tradicionales)`);
+        console.log(`  🔹 Ecosocial: ${ecosocialFiltered.length} artículos (solo medios tradicionales)`);
+        console.log(`  🔹 Engagement: ${engagementFiltered.length} artículos (solo redes sociales)`);
         console.log(`  🔹 Total: ${sectorFiltered.length + ecosocialFiltered.length + engagementFiltered.length} artículos`);
         
         // Actualizar con artículos filtrados

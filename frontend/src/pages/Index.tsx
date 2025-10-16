@@ -1392,11 +1392,13 @@ export default function Index() {
                 console.log(`  📊 shownArticles.size: ${shownArticles.size}`);
                 console.log(`  📊 shownArticles contenido:`, Array.from(shownArticles).slice(0, 100));
 
-                // Incluir TODAS las noticias del sector (incluyendo redes sociales)
+                // Panel Sector: Solo medios tradicionales (NO redes sociales)
+                const sectorTraditional = sectorArticles.filter(a => !isSocialMediaArticle(a));
                 console.log(`  📊 sectorArticles totales: ${sectorArticles.length}`);
+                console.log(`  🧹 sectorTraditional (sin redes): ${sectorTraditional.length}`);
 
-                const dynamicLimit = calculateDynamicLimit(sectorArticles.length, 167);
-                const articles = getUniqueTopArticles(sectorArticles, shownArticles, dynamicLimit);
+                const dynamicLimit = calculateDynamicLimit(sectorTraditional.length, 167);
+                const articles = getUniqueTopArticles(sectorTraditional, shownArticles, dynamicLimit);
                 // Marcar como mostrados para evitar duplicados con las siguientes secciones
                 markShown(shownArticles, articles);
                 console.log('🔵 TOP 50 SECTOR - Artículos mostrados:', articles.length);
