@@ -340,7 +340,6 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     'facebook', 'fb', 'instagram', 'insta', 'twitter', 'tweet', 'x.com', 'reddit', 'youtube', 'youtu.be', 
     'tiktok', 'threads', 'linkedin', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 
     'twitch', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora', 'social', 'post', 'share', 'like', 
-    'comment', 'follow', 'follower', 'viral', 'trending', 'hashtag', 'mention', 'retweet', 'repost'
   ];
   
   // Detectar por nombre de fuente

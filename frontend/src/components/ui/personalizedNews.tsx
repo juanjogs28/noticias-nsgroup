@@ -166,18 +166,16 @@ function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
       const isSocial = isSocialMedia(sourceName);
       const isTraditional = isTraditionalMedia(sourceName);
       
-      // REGLAS ORIGINALES RESTAURADAS:
-      // - Panel Sector: Solo medios tradicionales
-      // - Panel País: Solo medios tradicionales  
-      // - Panel Engagement: Solo redes sociales
-      const shouldInclude = isTraditional && !isSocial;
+      // AJUSTE TEMPORAL: Incluir tanto medios tradicionales como redes sociales
+      // para mostrar más noticias mientras se ajustan las reglas
+      const shouldInclude = isTraditional || isSocial;
       
       if (isSocial) {
-        console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
+        console.log(`  ⚠️ Incluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
       } else if (isTraditional) {
         console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
       } else {
-        console.log(`  ❌ Excluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`);
+        console.log(`  ✅ Incluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`);
       }
       
       return shouldInclude;
