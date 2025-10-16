@@ -112,6 +112,7 @@ async function getSearchResults(searchId) {
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     
+
     // Estrategia optimizada: solo 9 peticiones para evitar saturar la API
     const dateRanges = [
       { name: "última semana", days: 7, offset: 0 },
@@ -128,9 +129,9 @@ async function getSearchResults(searchId) {
     for (let i = 0; i < dateRanges.length; i++) {
       const range = dateRanges[i];
       
-      // Delay mínimo entre peticiones (solo 500ms)
+      // Delay entre peticiones para respetar rate limit de Meltwater
       if (i > 0) {
-        const delay = 500; // 500ms entre peticiones
+        const delay = 2000; // 2 segundos entre peticiones para evitar error 429
         console.log(`⏳ Esperando ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
