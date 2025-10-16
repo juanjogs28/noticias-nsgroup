@@ -434,17 +434,14 @@ function filterUniqueArticles(articles: MeltwaterArticle[], shownArticles: Set<s
   return uniqueArticles;
 }
 
-// Marca artículos como mostrados en un Set con claves por id y por título normalizado
+// Marca artículos como mostrados en un Set con claves por id y URL (MENOS RESTRICTIVO)
 function markShown(shown: Set<string>, articles: MeltwaterArticle[]): void {
   for (const article of articles) {
     const id = generateArticleId(article);
     const canonicalUrlKey = canonicalizeUrl(article.url);
-    const titleKey = normalizeTitleForKey(article.title);
-    const descKey = normalizeDescription(article.description);
+    // SOLO marcar por ID y URL para permitir más artículos
     shown.add(`id:${id}`);
     if (canonicalUrlKey) shown.add(`url:${canonicalUrlKey}`);
-    if (titleKey) shown.add(`title:${titleKey}`);
-    if (descKey) shown.add(`desc:${descKey}`);
   }
 }
 
