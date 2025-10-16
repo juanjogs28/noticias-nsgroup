@@ -112,11 +112,17 @@ async function getSearchResults(searchId) {
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     
-    // Estrategia optimizada: múltiples peticiones con diferentes offsets
+    // Estrategia optimizada: solo 9 peticiones para evitar saturar la API
     const dateRanges = [
       { name: "última semana", days: 7, offset: 0 },
+      { name: "última semana", days: 7, offset: 10 },
+      { name: "última semana", days: 7, offset: 20 },
       { name: "último mes", days: 30, offset: 0 },
-      { name: "últimos 3 meses", days: 90, offset: 0 }
+      { name: "último mes", days: 30, offset: 10 },
+      { name: "último mes", days: 30, offset: 20 },
+      { name: "últimos 3 meses", days: 90, offset: 0 },
+      { name: "últimos 3 meses", days: 90, offset: 10 },
+      { name: "últimos 3 meses", days: 90, offset: 20 }
     ];
     
     for (let i = 0; i < dateRanges.length; i++) {
@@ -148,11 +154,9 @@ async function getSearchResults(searchId) {
             tz: "America/Montevideo",
             start: startDate,
             end: end,
-            limit: 1000, // Límite por petición para evitar saturar la API
-            offset: range.offset, // Parámetro de paginación
-            page: 1, // Página actual
-            pageSize: 1000, // Tamaño de página
-            // Agregar parámetros adicionales para obtener más resultados
+            limit: 10, // Usar el límite real de la API (10 artículos)
+            offset: range.offset, // Usar offset para paginación
+            // Parámetros optimizados para obtener más variedad
             language: "es", // Idioma español
             content_type: "news", // Tipo de contenido
             sort: "relevance", // Ordenar por relevancia
@@ -176,7 +180,7 @@ async function getSearchResults(searchId) {
           console.log(`   - result.count: ${data.result?.count || 'No disponible'}`);
           console.log(`   - result.offset: ${data.result?.offset || 'No disponible'}`);
           console.log(`   - result.limit: ${data.result?.limit || 'No disponible'}`);
-          console.log(`   - Parámetros enviados: limit=${1000}, offset=${range.offset}, pageSize=${1000}`);
+          console.log(`   - Parámetros enviados: limit=${10}, offset=${range.offset}`);
           
           // Agregar documentos únicos (evitar duplicados)
           const newDocuments = documents.filter(doc => 
@@ -186,10 +190,10 @@ async function getSearchResults(searchId) {
           allDocuments.push(...newDocuments);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
-          if (allDocuments.length >= 300) {
-            console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
-            break;
-          }
+      if (allDocuments.length >= 90) {
+        console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
+        break;
+      }
         } else {
           // Logs reducidos para errores
           console.log(`⚠️  Error ${res.status} en petición ${i + 1}`);
