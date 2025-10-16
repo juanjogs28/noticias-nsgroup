@@ -99,7 +99,7 @@ function filterUniqueArticles(articles: Article[], shownArticles: Set<string>): 
 }
 
 // Función para obtener artículos únicos ordenados por ContentScore
-function getUniqueTopArticles(articles: Article[], shownArticles: Set<string>, limit: number = 25): Article[] {
+function getUniqueTopArticles(articles: Article[], shownArticles: Set<string>, limit: number = 500): Article[] {
   // Primero ordenar por ContentScore
   const sortedArticles = sortArticlesByScore(articles);
 
@@ -166,15 +166,15 @@ function adaptResults(raw: RawMeltwaterDocument[]): Article[] {
       const isSocial = isSocialMedia(sourceName);
       const isTraditional = isTraditionalMedia(sourceName);
       
-      // Incluir solo medios tradicionales o fuentes no reconocidas como redes sociales
-      const shouldInclude = !isSocial && (isTraditional || !isSocialMedia(sourceName));
+      // Incluir medios tradicionales Y redes sociales (menos restrictivo)
+      const shouldInclude = isTraditional || !isSocial;
       
-      if (isSocial) {
-        console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
-      } else if (shouldInclude) {
-        console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
+      if (isSocial && !isTraditional) {
+        console.log(`  ⚠️ Red social incluida: ${article.title} | Fuente: ${article.source?.name}`);
+      } else if (isTraditional) {
+        console.log(`  ✅ Medio tradicional: ${article.title} | Fuente: ${article.source?.name}`);
       } else {
-        console.log(`  ❌ Excluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`);
+        console.log(`  ✅ Fuente incluida: ${article.title} | Fuente: ${article.source?.name}`);
       }
       
       return shouldInclude;
@@ -195,6 +195,7 @@ export default function PersonalizedNews() {
   const [shownEngagementArticles, setShownEngagementArticles] = useState<Set<string>>(new Set());
 
   // Paginación para cada sección (distribución proporcional para 500 total)
+
   const ecosocialPagination = usePagination({ initialPageSize: 100, maxPageSize: 500 });
   const engagementPagination = usePagination({ initialPageSize: 100, maxPageSize: 500 });
   const sectorPagination = usePagination({ initialPageSize: 100, maxPageSize: 500 });

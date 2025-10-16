@@ -454,7 +454,7 @@ function markShown(shown: Set<string>, articles: MeltwaterArticle[]): void {
 }
 
 // Función para calcular límite dinámico basado en artículos disponibles
-function calculateDynamicLimit(availableArticles: number, defaultLimit: number = 167): number {
+function calculateDynamicLimit(availableArticles: number, defaultLimit: number = 500): number {
   // Si hay pocos artículos, usar todos
   if (availableArticles <= 50) return availableArticles;
   
@@ -466,7 +466,7 @@ function calculateDynamicLimit(availableArticles: number, defaultLimit: number =
 }
 
 // Función para obtener artículos únicos ordenados por ContentScore
-function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 167): MeltwaterArticle[] {
+function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 500): MeltwaterArticle[] {
   console.log(`🔍 getUniqueTopArticles - INICIANDO:`);
   console.log(`  📊 Total artículos de entrada: ${articles.length}`);
   console.log(`  📊 Artículos ya mostrados: ${shownArticles.size}`);
@@ -517,7 +517,7 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
 }
 
 // Función específica para obtener artículos del país ordenados por socialEchoScore
-function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 167): MeltwaterArticle[] {
+function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 500): MeltwaterArticle[] {
   console.log('🔍 DEBUG getUniqueTopPaisArticles - INICIANDO FUNCIÓN - VERSION FIXED');
   console.log('  Total artículos de entrada:', articles.length);
   console.log('  Artículos ya mostrados:', shownArticles.size);
@@ -731,7 +731,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
 }
 
 // Función específica para obtener artículos de redes sociales ordenados por engagement
-function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 166): MeltwaterArticle[] {
+function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticles: Set<string>, limit: number = 500): MeltwaterArticle[] {
   console.log('🔍 DEBUG getUniqueSocialMediaArticles - INICIANDO FUNCIÓN');
   console.log('  Total artículos de entrada:', articles.length);
   console.log('  Artículos ya mostrados:', shownArticles.size);
@@ -1392,12 +1392,11 @@ export default function Index() {
                 console.log(`  📊 shownArticles.size: ${shownArticles.size}`);
                 console.log(`  📊 shownArticles contenido:`, Array.from(shownArticles).slice(0, 100));
 
-                // Excluir redes sociales del panel sector
-                const sectorNonSocial = sectorArticles.filter(a => !isSocialMediaArticle(a));
-                console.log(`  🧹 sectorNonSocial (sin redes): ${sectorNonSocial.length}`);
+                // Incluir TODAS las noticias del sector (incluyendo redes sociales)
+                console.log(`  📊 sectorArticles totales: ${sectorArticles.length}`);
 
-                const dynamicLimit = calculateDynamicLimit(sectorNonSocial.length, 167);
-                const articles = getUniqueTopArticles(sectorNonSocial, shownArticles, dynamicLimit);
+                const dynamicLimit = calculateDynamicLimit(sectorArticles.length, 167);
+                const articles = getUniqueTopArticles(sectorArticles, shownArticles, dynamicLimit);
                 // Marcar como mostrados para evitar duplicados con las siguientes secciones
                 markShown(shownArticles, articles);
                 console.log('🔵 TOP 50 SECTOR - Artículos mostrados:', articles.length);
