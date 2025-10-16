@@ -407,7 +407,7 @@ function normalizeDescription(desc: string | undefined): string {
     .slice(0, 140); // limitar para claves estables
 }
 
-// Función para filtrar artículos duplicados
+// Función para filtrar artículos duplicados (MENOS RESTRICTIVA)
 function filterUniqueArticles(articles: MeltwaterArticle[], shownArticles: Set<string>): MeltwaterArticle[] {
   const uniqueArticles: MeltwaterArticle[] = [];
   const newShownArticles = new Set<string>();
@@ -415,24 +415,20 @@ function filterUniqueArticles(articles: MeltwaterArticle[], shownArticles: Set<s
   for (const article of articles) {
     const articleId = generateArticleId(article);
     const canonicalUrlKey = canonicalizeUrl(article.url);
-    const titleKey = normalizeTitleForKey(article.title);
-    const descKey = normalizeDescription(article.description);
+    
+    // SOLO verificar por ID y URL (menos restrictivo)
     const seenById = shownArticles.has(`id:${articleId}`) || newShownArticles.has(`id:${articleId}`);
     const seenByCanonical = canonicalUrlKey !== '' && (shownArticles.has(`url:${canonicalUrlKey}`) || newShownArticles.has(`url:${canonicalUrlKey}`));
-    const seenByTitle = titleKey !== '' && (shownArticles.has(`title:${titleKey}`) || newShownArticles.has(`title:${titleKey}`));
-    const seenByDesc = descKey !== '' && (shownArticles.has(`desc:${descKey}`) || newShownArticles.has(`desc:${descKey}`));
 
-    // Si el artículo ya fue mostrado, lo saltamos
-    if (seenById || seenByCanonical || seenByTitle || seenByDesc) {
+    // Si el artículo ya fue mostrado por ID o URL, lo saltamos
+    if (seenById || seenByCanonical) {
       continue;
     }
 
     // Si es un artículo nuevo, lo agregamos
-      uniqueArticles.push(article);
+    uniqueArticles.push(article);
     newShownArticles.add(`id:${articleId}`);
     if (canonicalUrlKey) newShownArticles.add(`url:${canonicalUrlKey}`);
-    if (titleKey) newShownArticles.add(`title:${titleKey}`);
-    if (descKey) newShownArticles.add(`desc:${descKey}`);
   }
 
   return uniqueArticles;
