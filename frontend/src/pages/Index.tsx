@@ -508,8 +508,8 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
   
   console.log(`  📊 Resultado final: ${result.length} artículos`);
   
-  // Log de los primeros 60 artículos para debug
-  result.slice(0, 60).forEach((article, index) => {
+  // Log de los primeros 100 artículos para debug
+  result.slice(0, 100).forEach((article, index) => {
     console.log(`    ${index + 1}. ${article.title} | Fuente: ${article.source.name} | ContentScore: ${article.contentScore?.toFixed(3)}`);
   });
 
@@ -800,7 +800,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   console.log(`  Artículos sociales detectados: ${socialMediaArticles.length}`);
   console.log(`  Artículos sociales completos: ${completeSocialArticles.length}`);
   console.log('  Fuentes sociales detectadas:', [...new Set(socialMediaArticles.map(a => a.source.name))]);
-  console.log('  URLs de redes sociales:', socialMediaArticles.slice(0, 60).map(a => a.url));
+  console.log('  URLs de redes sociales:', socialMediaArticles.slice(0, 100).map(a => a.url));
   
   // Debug: Analizar por qué se filtran artículos
   const filteredOut = socialMediaArticles.filter(article => {
@@ -817,7 +817,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   console.log(`  Artículos filtrados por datos incompletos: ${filteredOut.length}`);
   if (filteredOut.length > 0) {
     console.log('  Ejemplos de artículos filtrados:');
-    filteredOut.slice(0, 60).forEach((article, index) => {
+    filteredOut.slice(0, 100).forEach((article, index) => {
       console.log(`    ${index + 1}. "${article.title}" | Desc: ${article.description?.length || 0} chars | Img: ${article.urlToImage ? 'Sí' : 'No'}`);
     });
   }
@@ -1390,7 +1390,7 @@ export default function Index() {
                 console.log('🔵 DEBUG SECTOR - Estado inicial:');
                 console.log(`  📊 sectorArticles disponibles: ${sectorArticles.length}`);
                 console.log(`  📊 shownArticles.size: ${shownArticles.size}`);
-                console.log(`  📊 shownArticles contenido:`, Array.from(shownArticles).slice(0, 60));
+                console.log(`  📊 shownArticles contenido:`, Array.from(shownArticles).slice(0, 100));
 
                 // Excluir redes sociales del panel sector
                 const sectorNonSocial = sectorArticles.filter(a => !isSocialMediaArticle(a));
@@ -1528,7 +1528,7 @@ export default function Index() {
           console.log('🔍 DEBUG NUBE DE PALABRAS:');
           console.log(`  📊 Artículos del país: ${paisArticles.length}`);
           console.log(`  📊 Palabras extraídas: ${words.length}`);
-          console.log(`  📊 Primeras 60 palabras:`, words.slice(0, 60));
+          console.log(`  📊 Primeras 100 palabras:`, words.slice(0, 100));
           
           if (words.length === 0) {
             console.log('⚠️  No hay palabras para nube de palabras');
