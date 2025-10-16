@@ -182,12 +182,8 @@ async function getSearchResults(searchId) {
           console.log(`   - result.limit: ${data.result?.limit || 'No disponible'}`);
           console.log(`   - Parámetros enviados: limit=${10}, offset=${range.offset}`);
           
-          // Agregar documentos únicos (evitar duplicados)
-          const newDocuments = documents.filter(doc => 
-            !allDocuments.some(existing => existing.id === doc.id)
-          );
-          
-          allDocuments.push(...newDocuments);
+          // Agregar todos los documentos (la paginación ya maneja la unicidad)
+          allDocuments.push(...documents);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
       if (allDocuments.length >= 90) {
