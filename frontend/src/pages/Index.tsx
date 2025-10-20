@@ -757,9 +757,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   
   // Filtrar posts sociales con datos básicos (muy permisivo)
   const completeSocialArticles = socialMediaArticles.filter(article => {
-    const hasValidTitle = article.title && article.title.trim().length > 1 && 
-                         !article.title.includes('Post sobre:') && 
-                         !article.title.includes('Post de');
+    const hasValidTitle = article.title && article.title.trim().length > 1;
     const hasValidDescription = article.description && article.description.trim().length > 1;
     const hasValidImage = article.urlToImage && article.urlToImage !== '/placeholder.svg';
     const hasValidUrl = article.url && article.url.trim().length > 5;
