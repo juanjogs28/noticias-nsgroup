@@ -33,13 +33,12 @@ router.post("/clear-cache", async (req, res) => {
   try {
     console.log("🧹 Iniciando limpieza de caché desde Railway...");
     
-    // Importar el modelo de caché para operaciones de limpieza
-    const CachedNews = require("../models/cachedNews.js");
+    // CACHÉ COMPLETAMENTE ELIMINADO - No usar caché
+    // const CachedNews = require("../models/cachedNews.js");
+    // const result = await CachedNews.deleteMany({});
+    const result = { deletedCount: 0 }; // Caché eliminado
     
-    // Limpiar todo el caché almacenado
-    const result = await CachedNews.deleteMany({});
-    
-    console.log(`✅ Cache limpiado desde Railway: ${result.deletedCount} entradas eliminadas`);
+    console.log(`✅ Caché completamente eliminado - No hay caché que limpiar`);
     
     res.json({
       success: true,
