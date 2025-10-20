@@ -82,7 +82,7 @@ async function getSearchResults(searchId) {
 
   try {
     // CACHÉ DESHABILITADO TEMPORALMENTE - Forzar nuevas peticiones para límite de 800
-    console.log(`🔍 CACHÉ DESHABILITADO - Haciendo peticiones directas a Meltwater para searchId: ${searchId}`);
+    console.log(`🔍 CACHÉ DESHABILITADO - Haciendo peticiones directas a Meltwater para searchId: ${searchId} - LÍMITE: 800 ARTÍCULOS`);
     
     // TODO: Rehabilitar caché cuando se estabilice el límite de 800
     // const cachedArticles = await CacheService.getCachedArticles(searchId, 24);
