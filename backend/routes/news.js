@@ -188,7 +188,7 @@ async function getSearchResults(searchId) {
           allDocuments.push(...documents);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
-      if (allDocuments.length >= 90) {
+      if (allDocuments.length >= 800) {
         console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
         break;
       }
