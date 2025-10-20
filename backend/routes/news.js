@@ -74,8 +74,8 @@ async function ensureConnection() {
 
 // Función principal para obtener resultados de búsqueda con estrategia de caché y fallback
 async function getSearchResults(searchId) {
-  // Usar servicio de caché para obtener artículos
-  const CacheService = require("../services/cacheService");
+  // CACHÉ DESHABILITADO TEMPORALMENTE - No importar CacheService
+  // const CacheService = require("../services/cacheService");
   
   // Declarar fuera del try para evitar referencia no definida en catch/fallback
   let allDocuments = [];
