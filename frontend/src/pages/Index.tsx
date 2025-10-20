@@ -465,10 +465,9 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
   const sortedArticles = sortArticlesByContentScore(articles);
   console.log(`  📊 Artículos ordenados por ContentScore: ${sortedArticles.length}`);
 
-  // FILTRO DE DUPLICADOS DESHABILITADO TEMPORALMENTE
-  // const uniqueArticles = filterUniqueArticles(sortedArticles, shownArticles);
-  const uniqueArticles = sortedArticles; // No filtrar duplicados
-  console.log(`  📊 Artículos sin filtrar duplicados: ${uniqueArticles.length}`);
+  // Filtrar duplicados
+  const uniqueArticles = filterUniqueArticles(sortedArticles, shownArticles);
+  console.log(`  📊 Artículos únicos después de filtrar duplicados: ${uniqueArticles.length}`);
 
   // Tomar el límite solicitado
   let result = uniqueArticles.slice(0, limit);
@@ -624,11 +623,10 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   
   console.log('  Artículos combinados:', combinedArticles.length);
 
-  // FILTRO DE DUPLICADOS DESHABILITADO TEMPORALMENTE
-  // const uniqueArticles = filterUniqueArticles(combinedArticles, shownArticles);
-  const uniqueArticles = combinedArticles; // No filtrar duplicados
+  // Filtrar duplicados
+  const uniqueArticles = filterUniqueArticles(combinedArticles, shownArticles);
   
-  console.log('  Artículos sin filtrar duplicados:', uniqueArticles.length);
+  console.log('  Artículos únicos después de filtrar duplicados:', uniqueArticles.length);
 
   // Tomar el límite solicitado
   let result = uniqueArticles.slice(0, limit);
@@ -755,18 +753,19 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     return isSocialMediaArticle(article);
   };
   
-  // FILTROS DESHABILITADOS TEMPORALMENTE - Incluir TODOS los artículos
-  // const socialMediaArticles = articles.filter(isSocialArticle);
-  const socialMediaArticles = articles; // Incluir todos los artículos
+  // Filtrar artículos solo sociales
+  const socialMediaArticles = articles.filter(isSocialArticle);
   
-  // const completeSocialArticles = socialMediaArticles.filter(article => {
-  //   const hasValidTitle = article.title && article.title.trim().length > 1;
-  //   const hasValidDescription = article.description && article.description.trim().length > 1;
-  //   const hasValidImage = article.urlToImage && article.urlToImage !== '/placeholder.svg';
-  //   const hasValidUrl = article.url && article.url.trim().length > 5;
-  //   return hasValidTitle || hasValidDescription || hasValidImage || hasValidUrl;
-  // });
-  const completeSocialArticles = socialMediaArticles; // Incluir todos los artículos
+  // Filtrar posts sociales con datos básicos (muy permisivo)
+  const completeSocialArticles = socialMediaArticles.filter(article => {
+    const hasValidTitle = article.title && article.title.trim().length > 1;
+    const hasValidDescription = article.description && article.description.trim().length > 1;
+    const hasValidImage = article.urlToImage && article.urlToImage !== '/placeholder.svg';
+    const hasValidUrl = article.url && article.url.trim().length > 5;
+    
+    // Ser muy permisivo: cualquier dato válido es suficiente
+    return hasValidTitle || hasValidDescription || hasValidImage || hasValidUrl;
+  });
   
   // Debug: Log de detección de redes sociales
   console.log('🔍 DEBUG REDES SOCIALES:');
@@ -819,9 +818,8 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     return engagementB - engagementA; // Orden descendente (mayor engagement primero)
   });
 
-  // FILTRO DE DUPLICADOS DESHABILITADO TEMPORALMENTE
-  // const uniqueArticles = filterUniqueArticles(sortedArticles, shownArticles);
-  const uniqueArticles = sortedArticles; // No filtrar duplicados
+  // Filtrar duplicados
+  const uniqueArticles = filterUniqueArticles(sortedArticles, shownArticles);
 
   // Tomar el límite solicitado
   let result = uniqueArticles.slice(0, limit);
