@@ -145,7 +145,7 @@ async function getSearchResults(searchId) {
             tz: "America/Montevideo",
             start: startDate,
             end: end,
-            limit: 100, // Límite reducido para evitar rate limiting
+            limit: 500, // Límite moderado para obtener más artículos
             offset: range.offset, // Usar offset para paginación
             // Parámetros optimizados para obtener más variedad
             language: "es", // Idioma español
