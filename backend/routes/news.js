@@ -81,29 +81,25 @@ async function getSearchResults(searchId) {
   let allDocuments = [];
 
   try {
-    // Usar caché más agresivo para evitar peticiones repetidas a Meltwater
-    console.log(`🔍 Verificando caché para searchId: ${searchId}`);
+    // CACHÉ DESHABILITADO TEMPORALMENTE - Forzar nuevas peticiones para límite de 800
+    console.log(`🔍 CACHÉ DESHABILITADO - Haciendo peticiones directas a Meltwater para searchId: ${searchId}`);
     
-    // Verificar si el caché tiene datos de Meltwater reales y suficientes (24 horas de caché)
-    const cachedArticles = await CacheService.getCachedArticles(searchId, 24); // 24 horas de caché
-    if (cachedArticles && cachedArticles.length > 0) {
-      // Verificar si son datos reales de Meltwater
-      const isFromMeltwater = cachedArticles.some(article => 
-        article.id && !article.id.startsWith('fallback_') && !article.id.startsWith('social_')
-      );
-      
-      // Usar caché si tiene artículos reales (mínimo 10 para ser más permisivo)
-      if (isFromMeltwater && cachedArticles.length >= 10) {
-        console.log(`📦 Usando cache REAL de Meltwater para searchId: ${searchId} (${cachedArticles.length} artículos)`);
-        return { result: { documents: cachedArticles } };
-      } else {
-        console.log(`⚠️  Cache insuficiente (${cachedArticles.length} < 10 artículos), forzando nuevas peticiones`);
-        // Limpiar caché insuficiente
-        await CacheService.clearCacheForSearchId(searchId);
-      }
-    }
+    // TODO: Rehabilitar caché cuando se estabilice el límite de 800
+    // const cachedArticles = await CacheService.getCachedArticles(searchId, 24);
+    // if (cachedArticles && cachedArticles.length > 0) {
+    //   const isFromMeltwater = cachedArticles.some(article => 
+    //     article.id && !article.id.startsWith('fallback_') && !article.id.startsWith('social_')
+    //   );
+    //   if (isFromMeltwater && cachedArticles.length >= 10) {
+    //     console.log(`📦 Usando cache REAL de Meltwater para searchId: ${searchId} (${cachedArticles.length} artículos)`);
+    //     return { result: { documents: cachedArticles } };
+    //   } else {
+    //     console.log(`⚠️  Cache insuficiente (${cachedArticles.length} < 10 artículos), forzando nuevas peticiones`);
+    //     await CacheService.clearCacheForSearchId(searchId);
+    //   }
+    // }
 
-    // Si no hay cache, hacer múltiples peticiones con diferentes rangos de fechas
+    // Hacer múltiples peticiones con diferentes rangos de fechas
     console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (sin cache) - estrategia múltiple`);
     console.log(`🔍 DEBUG - MELTWATER_TOKEN configurado: ${MELTWATER_TOKEN ? 'Sí' : 'No'}`);
     console.log(`🔍 DEBUG - MELTWATER_API_URL: ${MELTWATER_API_URL}`);
@@ -219,8 +215,8 @@ async function getSearchResults(searchId) {
     if (allDocuments.length > 0) {
       console.log(`✅ Meltwater: ${allDocuments.length} artículos obtenidos`);
       
-      // Guardar en cache
-      await CacheService.saveCachedArticles(searchId, allDocuments, true);
+      // CACHÉ DESHABILITADO TEMPORALMENTE - No guardar en caché
+      // await CacheService.saveCachedArticles(searchId, allDocuments, true);
       return { result: { documents: allDocuments } };
     } else {
       console.log(`⚠️  Todas las peticiones de Meltwater fallaron o devolvieron 0 artículos`);
@@ -237,8 +233,8 @@ async function getSearchResults(searchId) {
     // Usar solo noticias reales de Meltwater
     console.log(`✅ Usando ${allDocuments.length} artículos reales de Meltwater`);
     
-    // Guardar artículos reales en cache
-    await CacheService.saveCachedArticles(searchId, allDocuments, true);
+    // CACHÉ DESHABILITADO TEMPORALMENTE - No guardar en caché
+    // await CacheService.saveCachedArticles(searchId, allDocuments, true);
     
     return { result: { documents: allDocuments } };
 }
