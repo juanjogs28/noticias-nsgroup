@@ -147,13 +147,13 @@ async function getSearchResults(searchId) {
             end: end,
             limit: 500, // Límite moderado para obtener más artículos
             offset: range.offset, // Usar offset para paginación
-            // Parámetros optimizados para obtener más variedad
+            // Parámetros optimizados para evitar comentarios y duplicados
             language: "es", // Idioma español
-            content_type: "news", // Tipo de contenido
+            content_type: "news", // Solo noticias principales
             sort: "relevance", // Ordenar por relevancia
-            include_social: true, // Incluir redes sociales
-            include_blog: true, // Incluir blogs
-            include_forum: true // Incluir foros
+            include_social: false, // Excluir redes sociales para evitar comentarios
+            include_blog: false, // Excluir blogs para evitar comentarios
+            include_forum: false // Excluir foros para evitar comentarios
           }),
         });
 
@@ -175,8 +175,23 @@ async function getSearchResults(searchId) {
           console.log(`   - Respuesta completa:`, JSON.stringify(data, null, 2));
           
 
-          // Agregar todos los documentos (la paginación ya maneja la unicidad)
-          allDocuments.push(...documents);
+          // Filtrar comentarios y respuestas para evitar duplicados
+          const filteredDocuments = documents.filter(doc => {
+            // Excluir comentarios, respuestas y posts sociales
+            const isComment = doc.content_type === 'comment' || 
+                             doc.content_type === 'reply' || 
+                             doc.content_type === 'social post';
+            const hasCommentKeywords = doc.title?.toLowerCase().includes('comentario') ||
+                                     doc.title?.toLowerCase().includes('respuesta') ||
+                                     doc.title?.toLowerCase().includes('reply');
+            
+            return !isComment && !hasCommentKeywords;
+          });
+          
+          console.log(`   - Artículos filtrados: ${filteredDocuments.length} de ${documents.length} (eliminados ${documents.length - filteredDocuments.length} comentarios)`);
+          
+          // Agregar documentos filtrados
+          allDocuments.push(...filteredDocuments);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
       if (allDocuments.length >= 800) {
