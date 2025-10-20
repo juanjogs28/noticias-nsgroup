@@ -109,25 +109,19 @@ async function getSearchResults(searchId) {
     const end = now.toISOString().slice(0, 19);
     
 
-    // Estrategia: 9 peticiones con offsets moderados para obtener más artículos sin saturar la API
+    // Estrategia: 3 peticiones con offsets moderados para evitar rate limiting
     const dateRanges = [
       { name: "última semana", days: 7, offset: 0 },
-      { name: "última semana", days: 7, offset: 20 },
-      { name: "última semana", days: 7, offset: 40 },
       { name: "último mes", days: 30, offset: 0 },
-      { name: "último mes", days: 30, offset: 20 },
-      { name: "último mes", days: 30, offset: 40 },
-      { name: "últimos 3 meses", days: 90, offset: 0 },
-      { name: "últimos 3 meses", days: 90, offset: 20 },
-      { name: "últimos 3 meses", days: 90, offset: 40 }
+      { name: "últimos 3 meses", days: 90, offset: 0 }
     ];
     
     for (let i = 0; i < dateRanges.length; i++) {
       const range = dateRanges[i];
       
-      // Delay mínimo entre peticiones (solo 500ms)
+      // Delay aumentado entre peticiones para evitar rate limiting
       if (i > 0) {
-        const delay = 500; // 500ms entre peticiones
+        const delay = 2000; // 2 segundos entre peticiones
         console.log(`⏳ Esperando ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       }
@@ -151,7 +145,7 @@ async function getSearchResults(searchId) {
             tz: "America/Montevideo",
             start: startDate,
             end: end,
-            limit: 1000, // Límite por petición para evitar saturar la API
+            limit: 100, // Límite reducido para evitar rate limiting
             offset: range.offset, // Usar offset para paginación
             // Parámetros optimizados para obtener más variedad
             language: "es", // Idioma español
