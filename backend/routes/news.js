@@ -435,18 +435,18 @@ router.get("/clear-cache", async (req, res) => {
   try {
     await ensureConnection();
     
-    const CacheService = require("../services/cacheService");
+    // CACHÉ DESHABILITADO TEMPORALMENTE - No limpiar caché
+    // const CacheService = require("../services/cacheService");
+    // const deletedCount = await CacheService.clearAllCache();
+    const deletedCount = 0; // Caché deshabilitado
     
-    // Limpiar todo el caché
-    const deletedCount = await CacheService.clearAllCache();
-    
-    console.log(`🧹 Cache limpiado: ${deletedCount} entradas eliminadas`);
+    console.log(`🧹 Cache deshabilitado - No hay caché que limpiar`);
     
     res.json({
       success: true,
-      message: `Cache limpiado exitosamente. ${deletedCount} entradas eliminadas.`,
+      message: `Cache deshabilitado - No hay caché que limpiar`,
       deletedCount: deletedCount,
-      note: "Las próximas peticiones intentarán obtener datos reales de Meltwater"
+      note: "Caché deshabilitado temporalmente - Peticiones directas a Meltwater"
     });
   } catch (error) {
     console.error("❌ Error limpiando cache:", error);
