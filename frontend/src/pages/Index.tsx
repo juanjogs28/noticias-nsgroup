@@ -142,7 +142,23 @@ function adaptResults(raw: any[]): MeltwaterArticle[] {
         (doc.metrics?.social_echo ? 
           (doc.metrics.social_echo.x || 0) + 
           (doc.metrics.social_echo.facebook || 0) + 
-          (doc.metrics.social_echo.reddit || 0) : 0),
+          (doc.metrics.social_echo.reddit || 0) + 
+          (doc.metrics.social_echo.instagram || 0) + 
+          (doc.metrics.social_echo.linkedin || 0) + 
+          (doc.metrics.social_echo.tiktok || 0) + 
+          (doc.metrics.social_echo.youtube || 0) + 
+          (doc.metrics.social_echo.threads || 0) + 
+          (doc.metrics.social_echo.snapchat || 0) + 
+          (doc.metrics.social_echo.pinterest || 0) + 
+          (doc.metrics.social_echo.telegram || 0) + 
+          (doc.metrics.social_echo.whatsapp || 0) + 
+          (doc.metrics.social_echo.discord || 0) + 
+          (doc.metrics.social_echo.twitch || 0) + 
+          (doc.metrics.social_echo.vimeo || 0) + 
+          (doc.metrics.social_echo.flickr || 0) + 
+          (doc.metrics.social_echo.tumblr || 0) + 
+          (doc.metrics.social_echo.medium || 0) + 
+          (doc.metrics.social_echo.quora || 0) : 0),
       location: doc.location ? {
         country_code: doc.location.country_code
       } : undefined,
@@ -353,11 +369,117 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
   const sourceName = article.source?.name?.toLowerCase() || '';
   const url = article.url || '';
   
-  // PRIMERO: Detectar redes sociales de forma más agresiva
+  // PRIMERO: Detectar redes sociales de forma MÁS AGRESIVA E INCLUSIVA
   const socialKeywords = [
+    // Redes sociales principales
     'facebook', 'fb', 'instagram', 'insta', 'twitter', 'tweet', 'x.com', 'reddit', 'youtube', 'youtu.be', 
     'tiktok', 'threads', 'linkedin', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 
-    'twitch', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora', 'social', 'post', 'share', 'like', 
+    'twitch', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora', 'social', 'post', 'share', 'like',
+    
+    // Redes sociales adicionales
+    'mastodon', 'bluesky', 'truth social', 'parler', 'gab', 'rumble', 'odysee', 'bitchute', 'dailymotion',
+    'vkontakte', 'vk', 'odnoklassniki', 'ok', 'weibo', 'wechat', 'qq', 'line', 'kakao', 'naver',
+    'mixi', 'ameba', 'hatena', 'note', 'qiita', 'zenn', 'dev.to', 'hashnode', 'substack', 'ghost',
+    'wordpress', 'blogger', 'tumblr', 'livejournal', 'xanga', 'myspace', 'friendster', 'hi5',
+    'bebo', 'orkut', 'google+', 'google plus', 'g+', 'plus.google', 'plus.google.com',
+    
+    // Plataformas de video
+    'dailymotion', 'vimeo', 'twitch', 'youtube', 'youtu.be', 'tiktok', 'instagram', 'reels',
+    'shorts', 'stories', 'live', 'streaming', 'broadcast', 'webcast', 'podcast', 'radio',
+    
+    // Plataformas de audio
+    'spotify', 'apple music', 'soundcloud', 'bandcamp', 'mixcloud', 'audiomack', 'reverbnation',
+    'last.fm', 'pandora', 'iheartradio', 'tunein', 'radio.com', 'radio.net', 'radio.garden',
+    
+    // Plataformas de imágenes
+    'flickr', 'instagram', 'pinterest', 'behance', 'dribbble', 'deviantart', 'artstation',
+    '500px', 'unsplash', 'pexels', 'pixabay', 'shutterstock', 'getty', 'istock',
+    
+    // Plataformas de noticias sociales
+    'reddit', 'hacker news', 'hn', 'news.ycombinator', 'slashdot', 'digg', 'stumbleupon',
+    'delicious', 'bookmark', 'favorite', 'save', 'pin', 'bookmark', 'tag', 'hashtag',
+    
+    // Plataformas de mensajería
+    'telegram', 'whatsapp', 'signal', 'wickr', 'threema', 'element', 'matrix', 'riot',
+    'discord', 'slack', 'teams', 'zoom', 'skype', 'hangouts', 'meet', 'duo',
+    
+    // Plataformas de foros
+    'forum', 'forums', 'board', 'boards', 'community', 'communities', 'group', 'groups',
+    'discussion', 'discussions', 'chat', 'chats', 'room', 'rooms', 'channel', 'channels',
+    
+    // Plataformas de blogs
+    'blog', 'blogs', 'blogger', 'wordpress', 'wix', 'squarespace', 'weebly', 'ghost',
+    'jekyll', 'hugo', 'gatsby', 'next.js', 'nuxt', 'svelte', 'vue', 'react', 'angular',
+    
+    // Plataformas de e-commerce social
+    'etsy', 'ebay', 'amazon', 'mercado libre', 'mercadolibre', 'olx', 'gumtree',
+    'craigslist', 'facebook marketplace', 'marketplace', 'shop', 'store', 'storefront',
+    
+    // Plataformas de citas
+    'tinder', 'bumble', 'hinge', 'match', 'okcupid', 'plenty of fish', 'pof', 'zoosk',
+    'eharmony', 'elitesingles', 'silversingles', 'ourtime', 'seniorpeoplemeet',
+    
+    // Plataformas de gaming
+    'steam', 'epic games', 'origin', 'uplay', 'gog', 'itch.io', 'gamejolt', 'indiedb',
+    'roblox', 'minecraft', 'fortnite', 'pubg', 'apex legends', 'valorant', 'league of legends',
+    'dota', 'csgo', 'overwatch', 'world of warcraft', 'final fantasy', 'call of duty',
+    
+    // Plataformas de educación
+    'coursera', 'udemy', 'edx', 'khan academy', 'skillshare', 'masterclass', 'linkedin learning',
+    'pluralsight', 'codecademy', 'freecodecamp', 'the odin project', 'scrimba', 'egghead',
+    
+    // Plataformas de trabajo
+    'linkedin', 'indeed', 'glassdoor', 'monster', 'careerbuilder', 'ziprecruiter', 'angel.co',
+    'crunchbase', 'pitchbook', 'cb insights', 'techcrunch', 'venturebeat', 'wired',
+    
+    // Plataformas de crowdfunding
+    'kickstarter', 'indiegogo', 'gofundme', 'patreon', 'ko-fi', 'buymeacoffee', 'paypal',
+    'venmo', 'cashapp', 'zelle', 'apple pay', 'google pay', 'samsung pay',
+    
+    // Plataformas de criptomonedas
+    'bitcoin', 'ethereum', 'crypto', 'cryptocurrency', 'blockchain', 'nft', 'nfts',
+    'opensea', 'foundation', 'superrare', 'rarible', 'nifty gateway', 'makersplace',
+    
+    // Plataformas de fitness
+    'strava', 'myfitnesspal', 'fitbit', 'apple watch', 'samsung health', 'google fit',
+    'nike run club', 'adidas running', 'under armour', 'garmin', 'polar', 'suunto',
+    
+    // Plataformas de viajes
+    'tripadvisor', 'booking', 'airbnb', 'vrbo', 'expedia', 'priceline', 'kayak', 'skyscanner',
+    'google flights', 'momondo', 'cheaptickets', 'hotels.com', 'marriott', 'hilton',
+    
+    // Plataformas de comida
+    'yelp', 'zomato', 'swiggy', 'ubereats', 'doordash', 'grubhub', 'postmates', 'caviar',
+    'seamless', 'chownow', 'toast', 'square', 'clover', 'shopify', 'woocommerce',
+    
+    // Palabras genéricas de redes sociales
+    'social', 'social media', 'social network', 'social networking', 'social platform',
+    'post', 'posts', 'posting', 'share', 'sharing', 'like', 'likes', 'liking', 'love',
+    'loves', 'loving', 'heart', 'hearts', 'favorite', 'favorites', 'bookmark', 'bookmarks',
+    'save', 'saves', 'saving', 'pin', 'pins', 'pinning', 'tag', 'tags', 'tagging',
+    'mention', 'mentions', 'mentioning', 'reply', 'replies', 'replying', 'comment',
+    'comments', 'commenting', 'retweet', 'retweets', 'retweeting', 'repost', 'reposts',
+    'reposting', 'quote', 'quotes', 'quoting', 'thread', 'threads', 'threading',
+    'story', 'stories', 'stories', 'reel', 'reels', 'reeling', 'live', 'lives', 'living',
+    'stream', 'streams', 'streaming', 'broadcast', 'broadcasts', 'broadcasting',
+    'webcast', 'webcasts', 'webcasting', 'podcast', 'podcasts', 'podcasting',
+    'radio', 'radios', 'radioing', 'tv', 'television', 'televisions', 'channel',
+    'channels', 'channeling', 'show', 'shows', 'showing', 'program', 'programs',
+    'programming', 'episode', 'episodes', 'season', 'seasons', 'series', 'seriess',
+    'movie', 'movies', 'film', 'films', 'video', 'videos', 'audio', 'audios',
+    'image', 'images', 'picture', 'pictures', 'photo', 'photos', 'photograph',
+    'photographs', 'snapshot', 'snapshots', 'screenshot', 'screenshots', 'meme',
+    'memes', 'gif', 'gifs', 'emoji', 'emojis', 'sticker', 'stickers', 'animation',
+    'animations', 'cartoon', 'cartoons', 'comic', 'comics', 'manga', 'mangas',
+    'anime', 'animes', 'game', 'games', 'gaming', 'gamer', 'gamers', 'player',
+    'players', 'playing', 'play', 'plays', 'played', 'playable', 'playability',
+    'score', 'scores', 'scoring', 'scored', 'high score', 'high scores', 'leaderboard',
+    'leaderboards', 'rank', 'ranks', 'ranking', 'ranked', 'level', 'levels',
+    'leveling', 'leveled', 'experience', 'experiences', 'exp', 'xp', 'points',
+    'point', 'pointing', 'pointed', 'achievement', 'achievements', 'trophy',
+    'trophies', 'badge', 'badges', 'medal', 'medals', 'award', 'awards',
+    'prize', 'prizes', 'reward', 'rewards', 'bonus', 'bonuses', 'bonus points',
+    'bonus points', 'bonus points', 'bonus points', 'bonus points', 'bonus points'
   ];
   
   // Detectar por nombre de fuente
@@ -365,8 +487,8 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     return true;
   }
   
-  // Detectar por URL
-  if (/facebook\.com|instagram\.com|twitter\.com|x\.com|reddit\.com|youtube\.com|youtu\.be|tiktok\.com|threads\.net|linkedin\.com|snapchat\.com|pinterest\.com|telegram\.org|whatsapp\.com|discord\.com|twitch\.tv|vimeo\.com|flickr\.com|tumblr\.com|medium\.com|quora\.com/i.test(url)) {
+  // Detectar por URL (MUCHO MÁS INCLUSIVO)
+  if (/facebook\.com|instagram\.com|twitter\.com|x\.com|reddit\.com|youtube\.com|youtu\.be|tiktok\.com|threads\.net|linkedin\.com|snapchat\.com|pinterest\.com|telegram\.org|whatsapp\.com|discord\.com|twitch\.tv|vimeo\.com|flickr\.com|tumblr\.com|medium\.com|quora\.com|mastodon\.|bluesky\.|truth\.social|parler\.|gab\.|rumble\.|odysee\.|bitchute\.|dailymotion\.|vkontakte\.|vk\.|odnoklassniki\.|ok\.|weibo\.|wechat\.|qq\.|line\.|kakao\.|naver\.|mixi\.|ameba\.|hatena\.|note\.|qiita\.|zenn\.|dev\.to|hashnode\.|substack\.|ghost\.|wordpress\.|blogger\.|livejournal\.|xanga\.|myspace\.|friendster\.|hi5\.|bebo\.|orkut\.|plus\.google|spotify\.|apple\.music|soundcloud\.|bandcamp\.|mixcloud\.|audiomack\.|reverbnation\.|last\.fm|pandora\.|iheartradio\.|tunein\.|radio\.com|radio\.net|radio\.garden|behance\.|dribbble\.|deviantart\.|artstation\.|500px\.|unsplash\.|pexels\.|pixabay\.|shutterstock\.|getty\.|istock\.|hacker\.news|news\.ycombinator|slashdot\.|digg\.|stumbleupon\.|delicious\.|signal\.|wickr\.|threema\.|element\.|matrix\.|riot\.|slack\.|teams\.|zoom\.|skype\.|hangouts\.|meet\.|duo\.|wix\.|squarespace\.|weebly\.|jekyll\.|hugo\.|gatsby\.|next\.js|nuxt\.|svelte\.|vue\.|react\.|angular\.|etsy\.|ebay\.|amazon\.|mercado\.libre|mercadolibre\.|olx\.|gumtree\.|craigslist\.|marketplace\.|tinder\.|bumble\.|hinge\.|match\.|okcupid\.|plenty\.of\.fish|pof\.|zoosk\.|eharmony\.|elitesingles\.|silversingles\.|ourtime\.|seniorpeoplemeet\.|steam\.|epic\.games|origin\.|uplay\.|gog\.|itch\.io|gamejolt\.|indiedb\.|roblox\.|minecraft\.|fortnite\.|pubg\.|apex\.legends|valorant\.|league\.of\.legends|dota\.|csgo\.|overwatch\.|world\.of\.warcraft|final\.fantasy|call\.of\.duty|coursera\.|udemy\.|edx\.|khan\.academy|skillshare\.|masterclass\.|linkedin\.learning|pluralsight\.|codecademy\.|freecodecamp\.|the\.odin\.project|scrimba\.|egghead\.|indeed\.|glassdoor\.|monster\.|careerbuilder\.|ziprecruiter\.|angel\.co|crunchbase\.|pitchbook\.|cb\.insights|techcrunch\.|venturebeat\.|wired\.|kickstarter\.|indiegogo\.|gofundme\.|patreon\.|ko-fi\.|buymeacoffee\.|paypal\.|venmo\.|cashapp\.|zelle\.|apple\.pay|google\.pay|samsung\.pay|bitcoin\.|ethereum\.|crypto\.|cryptocurrency\.|blockchain\.|nft\.|nfts\.|opensea\.|foundation\.|superrare\.|rarible\.|nifty\.gateway|makersplace\.|strava\.|myfitnesspal\.|fitbit\.|apple\.watch|samsung\.health|google\.fit|nike\.run\.club|adidas\.running|under\.armour|garmin\.|polar\.|suunto\.|tripadvisor\.|booking\.|airbnb\.|vrbo\.|expedia\.|priceline\.|kayak\.|skyscanner\.|google\.flights|momondo\.|cheaptickets\.|hotels\.com|marriott\.|hilton\.|yelp\.|zomato\.|swiggy\.|ubereats\.|doordash\.|grubhub\.|postmates\.|caviar\.|seamless\.|chownow\.|toast\.|square\.|clover\.|shopify\.|woocommerce\./i.test(url)) {
     return true;
   }
   
@@ -468,8 +590,20 @@ function calculateDynamicLimit(availableArticles: number, defaultLimit: number =
   // Si hay artículos suficientes, usar el límite por defecto
   if (availableArticles >= defaultLimit) return defaultLimit;
   
-  // Si hay artículos intermedios, usar el 95% de los disponibles (más permisivo)
-  return Math.floor(availableArticles * 0.95);
+  // Si hay artículos intermedios, usar el 98% de los disponibles (MUY permisivo)
+  return Math.floor(availableArticles * 0.98);
+}
+
+// Función específica para calcular límite dinámico para redes sociales (MÁS PERMISIVO)
+function calculateSocialMediaLimit(availableArticles: number, defaultLimit: number = 500): number {
+  // Para redes sociales, ser MUCHO más permisivo
+  if (availableArticles <= 10) return availableArticles;
+  
+  // Si hay artículos suficientes, usar el límite por defecto
+  if (availableArticles >= defaultLimit) return defaultLimit;
+  
+  // Si hay artículos intermedios, usar el 99% de los disponibles (EXTREMADAMENTE permisivo)
+  return Math.floor(availableArticles * 0.99);
 }
 
 // Función para obtener artículos únicos ordenados por ContentScore
@@ -533,107 +667,334 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
   const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora'];
   
-  // Fuentes de medios tradicionales permitidas - Lista expandida y más inclusiva
+  // Fuentes de medios tradicionales permitidas - Lista híbrida MUY INCLUSIVA
   const allowedTraditionalSources = [
-    // Palabras genéricas (más inclusivas)
-    'diario', 'newspaper', 'news', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'media', 'pais', 'nacion',
-    'portal', 'site', 'web', 'online', 'digital', 'noticias', 'informacion', 'actualidad', 'periodico', 'gaceta',
-    'boletin', 'revista', 'publicacion', 'comunicacion', 'informe', 'reporte', 'cronica', 'articulo', 'nota',
+    // === PALABRAS GENÉRICAS DE MEDIOS TRADICIONALES ===
+    'diario', 'newspaper', 'radio', 'tv', 'television', 'magazine', 'journal', 'press', 'pais', 'nacion',
+    'periodico', 'gaceta', 'boletin', 'revista', 'publicacion', 'comunicacion', 'informe', 'reporte', 'cronica',
+    'news', 'noticias', 'media', 'prensa', 'periodismo', 'informacion', 'actualidad', 'hechos', 'sucesos',
+    'canal', 'channel', 'emisora', 'estacion', 'programa', 'show', 'especial', 'documental', 'reportaje',
+    'editorial', 'opinion', 'columna', 'articulo', 'nota', 'entrevista', 'investigacion', 'analisis',
+    'digital', 'online', 'web', 'portal', 'sitio', 'plataforma', 'redaccion', 'equipo', 'staff',
     
-    // Medios argentinos (expandido)
-    'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'rt', 'telefe', 'america', 'canal13', 'tn', 'c5n', 'a24', 'tyc', 'espn', 'ole', 'tycsports', 'minutouno', 'noticias', 'argentinas', 'argentina', 'buenos', 'aires',
-    'rosario', 'cordoba', 'mendoza', 'tucuman', 'salta', 'jujuy', 'laplata', 'mar', 'del', 'plata', 'neuquen', 'rio', 'negro', 'bariloche', 'ushuaia', 'tierra', 'fuego',
+    // === MEDIOS ARGENTINOS (EXPANDIDO) ===
+    'clarin', 'lanacion', 'infobae', 'pagina12', 'ambito', 'cronista', 'perfil', 'telesur', 'telefe', 'america', 
+    'canal13', 'tn', 'c5n', 'a24', 'tyc', 'espn', 'ole', 'tycsports', 'minutouno', 'rosario3', 'uno', 'rionegro',
+    'lavoz', 'losandes', 'rionegro', 'neuquen', 'patagonia', 'santacruz', 'tierradelfuego', 'chubut', 'rio',
+    'cordoba', 'tucuman', 'salta', 'jujuy', 'santiago', 'catamarca', 'larioja', 'sanluis', 'mendoza',
+    'san juan', 'san juan', 'entre rios', 'corrientes', 'misiones', 'formosa', 'chaco', 'santa fe',
+    'buenos aires', 'capital', 'conurbano', 'zona norte', 'zona sur', 'zona oeste', 'la plata', 'mar del plata',
+    'tandil', 'olavarria', 'azul', 'tres arroyos', 'bahia blanca', 'necochea', 'pinamar', 'villa carlos paz',
     
-    // Medios uruguayos (expandido)
-    'elpais', 'ovacion', 'montevideo', 'subrayado', 'canal4', 'canal10', 'teledoce', 'sai', 'elobservador', 'ladiaria', 'brecha', 'busqueda', 'republica', 'ultimasnoticias', 'uruguay',
-    'paysandu', 'salto', 'colonia', 'maldonado', 'punta', 'este', 'rivera', 'artigas', 'tacuarembo', 'durazno', 'florida', 'soriano', 'rio', 'negro', 'treinta', 'tres',
+    // === MEDIOS URUGUAYOS (EXPANDIDO) ===
+    'elpais', 'ovacion', 'montevideo', 'subrayado', 'canal4', 'canal10', 'teledoce', 'sai', 'elobservador', 
+    'ladiaria', 'brecha', 'busqueda', 'republica', 'ultimasnoticias', 'el pais', 'la republica', 'el observador',
+    'la diaria', 'brecha', 'busqueda', 'ultimas noticias', 'ovacion', 'subrayado', 'canal 4', 'canal 10',
+    'tele doce', 'sai', 'el observador', 'la diaria', 'brecha', 'busqueda', 'republica', 'ultimas noticias',
     
-    // Medios brasileños (expandido)
-    'globo', 'folha', 'estadao', 'g1', 'uol', 'ig', 'terra', 'r7', 'band', 'record', 'sbt', 'rede', 'veja', 'istoe', 'epoca',
-    'sao', 'paulo', 'rio', 'janeiro', 'brasilia', 'salvador', 'fortaleza', 'belo', 'horizonte', 'manaus', 'curitiba', 'recife', 'porto', 'alegre', 'belem', 'goiania', 'guarulhos', 'campinas', 'sao', 'luis', 'sao', 'goncalo', 'maceio', 'duque', 'caxias', 'natal', 'teresina', 'campo', 'grande', 'nova', 'iguacu', 'sao', 'bernardo', 'santo', 'andre', 'joao', 'pessoa', 'jaboatao', 'santos', 'ribeirao', 'preto', 'uberlandia', 'sorocaba', 'niteroi', 'cuiaba', 'aracaju', 'feira', 'santana', 'joinville', 'apucarana', 'londrina', 'anapolis', 'porto', 'velho', 'serra', 'cariacica', 'vila', 'velha', 'camaçari', 'macapa', 'vitoria', 'florianopolis', 'campina', 'grande', 'blumenau', 'santa', 'luzia', 'volta', 'redonda', 'novo', 'hamburgo', 'caucaia', 'sao', 'joao', 'meriti', 'magué', 'duque', 'caxias', 'sao', 'jose', 'dos', 'pinhais', 'sao', 'jose', 'dos', 'campos', 'mossoro', 'diadema', 'sao', 'vicente', 'carapicuiba', 'betim', 'franca', 'sao', 'caetano', 'do', 'sul', 'suzano', 'taboao', 'serra', 'taubate', 'santa', 'barbara', 'd', 'oeste', 'rio', 'branco', 'cabo', 'frio', 'aracatuba', 'sao', 'bernardo', 'do', 'campo', 'sao', 'jose', 'do', 'rio', 'preto', 'sao', 'jose', 'dos', 'pinhais', 'sao', 'jose', 'dos', 'campos', 'sao', 'jose', 'do', 'rio', 'preto', 'sao', 'jose', 'dos', 'pinhais', 'sao', 'jose', 'dos', 'campos', 'sao', 'jose', 'do', 'rio', 'preto',
+    // === MEDIOS BRASILEÑOS (EXPANDIDO) ===
+    'globo', 'folha', 'estadao', 'g1', 'uol', 'ig', 'terra', 'r7', 'band', 'record', 'sbt', 'rede', 'veja', 
+    'istoe', 'epoca', 'exame', 'valor', 'o globo', 'folha de sao paulo', 'estado de sao paulo', 'g1', 'uol',
+    'ig', 'terra', 'r7', 'band', 'record', 'sbt', 'rede globo', 'veja', 'istoe', 'epoca', 'exame', 'valor',
+    'jornal', 'jornal', 'noticias', 'noticias', 'informacao', 'informacao', 'atualidade', 'atualidade',
     
-    // Medios chilenos (expandido)
-    'emol', 'latercera', 'mercurio', 'cooperativa', 'biobio', 'mega', 'chilevision', 'canal13', 'tvn', 'chile', 'santiago',
-    'valparaiso', 'concepcion', 'la', 'serena', 'antofagasta', 'temuco', 'rancagua', 'talca', 'arica', 'iquique', 'calama', 'copiapo', 'vallenar', 'ovalle', 'valdivia', 'osorno', 'puerto', 'montt', 'coyhaique', 'punta', 'arenas',
+    // === MEDIOS CHILENOS (EXPANDIDO) ===
+    'emol', 'latercera', 'mercurio', 'cooperativa', 'biobio', 'mega', 'chilevision', 'tvn', 'canal 13',
+    'chilevision', 'mega', 'tvn', 'canal 13', 'cooperativa', 'biobio', 'la tercera', 'el mercurio',
+    'emol', 'la tercera', 'el mercurio', 'cooperativa', 'biobio', 'mega', 'chilevision', 'tvn',
     
-    // Medios colombianos (expandido)
-    'eltiempo', 'semana', 'elespectador', 'rcn', 'caracol', 'colombia', 'bogota',
-    'medellin', 'cali', 'barranquilla', 'cartagena', 'cucuta', 'bucaramanga', 'pereira', 'santa', 'marta', 'ibague', 'pasto', 'manizales', 'villavicencio', 'neiva', 'armenia', 'popayan', 'valledupar', 'monteria', 'sincelejo', 'tunja', 'florencia', 'yopal', 'arauca', 'mitu', 'leticia', 'inirida', 'puerto', 'carreno', 'san', 'jose', 'del', 'guaviare', 'yopal', 'arauca', 'mitu', 'leticia', 'inirida', 'puerto', 'carreno', 'san', 'jose', 'del', 'guaviare',
+    // === MEDIOS COLOMBIANOS (EXPANDIDO) ===
+    'eltiempo', 'semana', 'elespectador', 'rcn', 'caracol', 'el tiempo', 'semana', 'el espectador', 'rcn',
+    'caracol', 'noticias', 'informacion', 'actualidad', 'hechos', 'sucesos', 'colombia', 'bogota', 'medellin',
+    'cali', 'barranquilla', 'cartagena', 'bucaramanga', 'pereira', 'manizales', 'ibague', 'pasto', 'villavicencio',
     
-    // Medios mexicanos (expandido)
-    'reforma', 'jornada', 'universal', 'milenio', 'proceso', 'televisa', 'azteca', 'mexico', 'df',
-    'guadalajara', 'monterrey', 'puebla', 'tijuana', 'leon', 'juarez', 'torreon', 'queretaro', 'san', 'luis', 'potosi', 'merida', 'mexicali', 'aguascalientes', 'acapulco', 'cuernavaca', 'saltillo', 'hermosillo', 'victoria', 'durango', 'chihuahua', 'tampico', 'veracruz', 'oaxaca', 'tuxtla', 'gutierrez', 'campeche', 'chetumal', 'colima', 'villahermosa', 'xalapa', 'pachuca', 'toluca', 'cuernavaca', 'chilpancingo', 'tlaxcala', 'zacatecas', 'colima', 'aguascalientes', 'san', 'luis', 'potosi', 'zacatecas', 'colima', 'aguascalientes', 'san', 'luis', 'potosi',
+    // === MEDIOS MEXICANOS (EXPANDIDO) ===
+    'reforma', 'jornada', 'universal', 'milenio', 'proceso', 'televisa', 'azteca', 'reforma', 'la jornada',
+    'el universal', 'milenio', 'proceso', 'televisa', 'azteca', 'noticias', 'informacion', 'actualidad',
+    'hechos', 'sucesos', 'mexico', 'ciudad de mexico', 'guadalajara', 'monterrey', 'puebla', 'tijuana',
+    'leon', 'juarez', 'torreon', 'queretaro', 'san luis potosi', 'merida', 'mexicali', 'aguascalientes',
     
-    // Medios españoles (expandido)
-    'elpais', 'elmundo', 'abc', 'lavanguardia', 'elperiodico', 'publico', 'eldiario', 'elconfidencial', 'libertaddigital', 'okdiario', 'vozpopuli', 'elespanol', 'espana', 'madrid', 'barcelona',
+    // === MEDIOS ESPAÑOLES (EXPANDIDO) ===
+    'elpais', 'elmundo', 'abc', 'lavanguardia', 'elperiodico', 'publico', 'eldiario', 'elconfidencial', 
+    'libertaddigital', 'okdiario', 'vozpopuli', 'elespanol', 'el pais', 'el mundo', 'abc', 'la vanguardia',
+    'el periodico', 'publico', 'el diario', 'el confidencial', 'libertad digital', 'ok diario', 'voz populi',
+    'el español', 'noticias', 'informacion', 'actualidad', 'hechos', 'sucesos', 'espana', 'madrid', 'barcelona',
+    'valencia', 'sevilla', 'bilbao', 'zaragoza', 'malaga', 'murcia', 'palma', 'las palmas', 'granada', 'alicante',
     
-    // Medios franceses
-    'lemonde', 'lefigaro', 'liberation', 'franceinfo', 'france24', 'tf1', 'france2', 'france3', 'bfmtv', 'cnews', 'france', 'paris',
+    // === MEDIOS INTERNACIONALES PRINCIPALES ===
+    'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'dw', 'france24', 'euronews', 'sky', 'itv', 
+    'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 
+    'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 
+    'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'dailypress', 'hamptonroads', 
+    'pilotonline', 'virginian', 'pilot', 'associated press', 'agence france presse', 'agencia efe',
+    'deutsche welle', 'france 24', 'euro news', 'sky news', 'itv', 'channel 4', 'abc news', 'cbs news',
+    'nbc news', 'fox news', 'msnbc', 'cnbc', 'bloomberg', 'wall street journal', 'new york times',
+    'washington post', 'usa today', 'los angeles times', 'chicago tribune', 'boston globe', 'philadelphia',
+    'dallas news', 'seattle times', 'denver post', 'arizona central', 'miami herald', 'orlando sentinel',
     
-    // Medios alemanes
-    'spiegel', 'zeit', 'faz', 'sueddeutsche', 'bild', 'welt', 'tagesschau', 'ard', 'zdf', 'deutschland', 'berlin', 'munich',
+    // === MEDIOS FRANCESES (EXPANDIDO) ===
+    'lemonde', 'lefigaro', 'liberation', 'franceinfo', 'tf1', 'france2', 'france3', 'bfmtv', 'cnews', 'le monde',
+    'le figaro', 'liberation', 'france info', 'tf1', 'france 2', 'france 3', 'bfm tv', 'c news', 'noticias',
+    'informacion', 'actualidad', 'hechos', 'sucesos', 'francia', 'paris', 'lyon', 'marseille', 'toulouse',
+    'nice', 'nantes', 'strasbourg', 'montpellier', 'bordeaux', 'lille', 'rennes', 'reims', 'le havre',
     
-    // Medios italianos
-    'corriere', 'repubblica', 'sole24ore', 'ansa', 'rai', 'mediaset', 'la7', 'italia', 'roma', 'milano',
+    // === MEDIOS ALEMANES (EXPANDIDO) ===
+    'spiegel', 'zeit', 'faz', 'sueddeutsche', 'bild', 'welt', 'tagesschau', 'ard', 'zdf', 'der spiegel',
+    'die zeit', 'frankfurter allgemeine', 'suddeutsche zeitung', 'bild', 'die welt', 'tagesschau', 'ard', 'zdf',
+    'noticias', 'informacion', 'actualidad', 'hechos', 'sucesos', 'alemania', 'berlin', 'hamburgo', 'munich',
+    'colonia', 'frankfurt', 'stuttgart', 'dusseldorf', 'dortmund', 'essen', 'leipzig', 'bremen', 'dresden',
     
-    // Medios británicos
-    'guardian', 'telegraph', 'independent', 'mirror', 'sun', 'daily', 'mail', 'times', 'ft', 'uk', 'london', 'britain',
+    // === MEDIOS ITALIANOS (EXPANDIDO) ===
+    'corriere', 'repubblica', 'sole24ore', 'rai', 'mediaset', 'la7', 'corriere della sera', 'la repubblica',
+    'il sole 24 ore', 'rai', 'mediaset', 'la 7', 'noticias', 'informacion', 'actualidad', 'hechos', 'sucesos',
+    'italia', 'roma', 'milan', 'napoles', 'turin', 'palermo', 'genova', 'bolonia', 'florencia', 'venecia',
     
-    // Medios canadienses
-    'globeandmail', 'nationalpost', 'cbc', 'ctv', 'global', 'canada', 'toronto', 'montreal',
+    // === MEDIOS BRITÁNICOS (EXPANDIDO) ===
+    'guardian', 'telegraph', 'independent', 'mirror', 'sun', 'daily', 'mail', 'times', 'ft', 'the guardian',
+    'the telegraph', 'the independent', 'the mirror', 'the sun', 'daily mail', 'the times', 'financial times',
+    'noticias', 'informacion', 'actualidad', 'hechos', 'sucesos', 'reino unido', 'londres', 'birmingham',
+    'manchester', 'glasgow', 'edimburgo', 'liverpool', 'leeds', 'sheffield', 'bristol', 'newcastle',
     
-    // Medios australianos
-    'sydney', 'herald', 'age', 'australian', 'abc', 'sbs', 'nine', 'seven', 'ten', 'australia', 'melbourne',
+    // === MEDIOS CANADIENSES (EXPANDIDO) ===
+    'globeandmail', 'nationalpost', 'cbc', 'ctv', 'global', 'globe and mail', 'national post', 'cbc', 'ctv',
+    'global', 'noticias', 'informacion', 'actualidad', 'hechos', 'sucesos', 'canada', 'toronto', 'montreal',
+    'vancouver', 'calgary', 'ottawa', 'edmonton', 'winnipeg', 'quebec', 'hamilton', 'kitchener', 'london',
     
-    // Medios japoneses
-    'asahi', 'yomiuri', 'mainichi', 'nikkei', 'nhk', 'japan', 'tokyo',
+    // === MEDIOS AUSTRALIANOS (EXPANDIDO) ===
+    'sydney', 'herald', 'age', 'australian', 'sbs', 'nine', 'seven', 'ten', 'sydney morning herald', 'the age',
+    'the australian', 'sbs', 'channel 9', 'channel 7', 'channel 10', 'noticias', 'informacion', 'actualidad',
+    'hechos', 'sucesos', 'australia', 'sydney', 'melbourne', 'brisbane', 'perth', 'adelaide', 'gold coast',
+    'newcastle', 'wollongong', 'geelong', 'hobart', 'darwin', 'canberra', 'townsville', 'cairns',
     
-    // Medios coreanos
-    'chosun', 'joongang', 'donga', 'kbs', 'mbc', 'sbs', 'korea', 'seoul',
+    // === MEDIOS ASIÁTICOS (EXPANDIDO) ===
+    'asahi', 'yomiuri', 'mainichi', 'nikkei', 'nhk', 'chosun', 'joongang', 'donga', 'kbs', 'mbc', 'sbs', 
+    'xinhua', 'people', 'asahi shimbun', 'yomiuri shimbun', 'mainichi shimbun', 'nikkei', 'nhk', 'chosun ilbo',
+    'joongang ilbo', 'donga ilbo', 'kbs', 'mbc', 'sbs', 'xinhua', 'people daily', 'noticias', 'informacion',
+    'actualidad', 'hechos', 'sucesos', 'japon', 'corea', 'china', 'tokio', 'seul', 'pekin', 'shanghai',
     
-    // Medios chinos
-    'xinhua', 'people', 'china', 'daily', 'global', 'times', 'beijing', 'shanghai',
+    // === MEDIOS RUSOS Y ÁRABES (EXPANDIDO) ===
+    'rt', 'sputnik', 'tass', 'ria', 'aljazeera', 'allafrica', 'russia today', 'sputnik', 'tass', 'ria novosti',
+    'al jazeera', 'all africa', 'noticias', 'informacion', 'actualidad', 'hechos', 'sucesos', 'rusia', 'moscu',
+    'san petersburgo', 'novosibirsk', 'ekaterinburgo', 'kazan', 'nizhny novgorod', 'chelyabinsk', 'omsk',
     
-    // Medios rusos
-    'rt', 'sputnik', 'tass', 'ria', 'russia', 'moscow',
+    // === MEDIOS LATINOAMERICANOS ADICIONALES ===
+    'ecuador', 'peru', 'chile', 'uruguay', 'paraguay', 'bolivia', 'venezuela', 'panama', 'costa rica',
+    'guatemala', 'honduras', 'el salvador', 'nicaragua', 'belice', 'haiti', 'republica dominicana', 'cuba',
+    'puerto rico', 'jamaica', 'trinidad', 'tobago', 'barbados', 'guyana', 'suriname', 'french guiana',
     
-    // Medios árabes
-    'aljazeera', 'arab', 'news', 'gulf', 'times', 'khaleej', 'dubai', 'riyadh',
+    // === MEDIOS EUROPEOS ADICIONALES ===
+    'portugal', 'espana', 'francia', 'italia', 'alemania', 'reino unido', 'irlanda', 'holanda', 'belgica',
+    'suiza', 'austria', 'suecia', 'noruega', 'dinamarca', 'finlandia', 'islandia', 'polonia', 'republica checa',
+    'hungria', 'rumania', 'bulgaria', 'croacia', 'eslovenia', 'eslovakia', 'lituania', 'letonia', 'estonia',
+    'grecia', 'chipre', 'malta', 'luxemburgo', 'liechtenstein', 'monaco', 'andorra', 'san marino', 'vaticano',
     
-    // Medios africanos
-    'allafrica', 'african', 'news', 'africa', 'johannesburg', 'cairo',
+    // === MEDIOS AFRICANOS ===
+    'sudafrica', 'egipto', 'nigeria', 'kenia', 'ghana', 'senegal', 'marruecos', 'tunez', 'argelia', 'libia',
+    'sudan', 'etiopia', 'uganda', 'tanzania', 'zambia', 'zimbabwe', 'botswana', 'namibia', 'lesotho', 'swazilandia',
     
-    // Medios indios
-    'times', 'india', 'hindu', 'indian', 'express',
+    // === MEDIOS OCEÁNICOS ===
+    'nueva zelanda', 'fiji', 'papua nueva guinea', 'samoa', 'tonga', 'vanuatu', 'salomon', 'kiribati', 'tuvalu',
+    'nauru', 'palau', 'marshall', 'micronesia', 'polinesia', 'melanesia', 'oceania', 'pacifico', 'oceano',
     
-    // Medios internacionales
-    'bbc', 'cnn', 'reuters', 'ap', 'afp', 'efe', 'ansa', 'dpa', 'xinhua', 'ria', 'itar', 'tass', 'sputnik', 'aljazeera', 'dw', 'france24', 'euronews', 'sky', 'itv', 'channel4', 'abc', 'cbs', 'nbc', 'fox', 'msnbc', 'cnbc', 'bloomberg', 'wsj', 'nytimes', 'washingtonpost', 'usatoday', 'latimes', 'chicagotribune', 'bostonglobe', 'philly', 'dallasnews', 'seattletimes', 'denverpost', 'azcentral', 'miamiherald', 'orlandosentinel', 'sun', 'baltimoresun', 'dailypress', 'hamptonroads', 'pilotonline', 'virginian', 'pilot'
+    // === MEDIOS ESPECIALIZADOS ===
+    'deportes', 'sports', 'deporte', 'futbol', 'football', 'basketball', 'tennis', 'golf', 'cricket', 'rugby',
+    'hockey', 'baseball', 'volleyball', 'handball', 'waterpolo', 'natacion', 'atletismo', 'ciclismo', 'motociclismo',
+    'automovilismo', 'formula', 'nascar', 'indy', 'rally', 'rallye', 'rallying', 'rallying', 'rallying',
+    'economia', 'economy', 'finanzas', 'finance', 'negocios', 'business', 'mercado', 'market', 'bolsa', 'stock',
+    'tecnologia', 'technology', 'ciencia', 'science', 'salud', 'health', 'medicina', 'medicine', 'educacion',
+    'education', 'cultura', 'culture', 'arte', 'art', 'musica', 'music', 'cine', 'cinema', 'teatro', 'theater',
+    'literatura', 'literature', 'libros', 'books', 'revista', 'magazine', 'periodico', 'newspaper', 'radio',
+    'television', 'tv', 'canal', 'channel', 'programa', 'program', 'show', 'especial', 'special', 'documental',
+    'documentary', 'reportaje', 'report', 'entrevista', 'interview', 'opinion', 'editorial', 'columna', 'column',
+    'articulo', 'article', 'nota', 'note', 'informe', 'report', 'analisis', 'analysis', 'investigacion', 'investigation',
+    'cronica', 'chronicle', 'suceso', 'event', 'hecho', 'fact', 'noticia', 'news', 'informacion', 'information',
+    'actualidad', 'current', 'presente', 'present', 'ahora', 'now', 'hoy', 'today', 'ayer', 'yesterday', 'mañana',
+    'tomorrow', 'semana', 'week', 'mes', 'month', 'año', 'year', 'decada', 'decade', 'siglo', 'century', 'milenio',
+    'millennium', 'epoca', 'era', 'tiempo', 'time', 'momento', 'moment', 'instante', 'instant', 'segundo', 'second',
+    'minuto', 'minute', 'hora', 'hour', 'dia', 'day', 'noche', 'night', 'madrugada', 'dawn', 'amanecer', 'sunrise',
+    'atardecer', 'sunset', 'anochecer', 'dusk', 'crepusculo', 'twilight', 'alba', 'dawn', 'aurora', 'aurora',
+    'ocaso', 'sunset', 'poniente', 'west', 'oriente', 'east', 'norte', 'north', 'sur', 'south', 'este', 'east',
+    'oeste', 'west', 'noreste', 'northeast', 'noroeste', 'northwest', 'sureste', 'southeast', 'suroeste', 'southwest',
+    'centro', 'center', 'medio', 'middle', 'mitad', 'half', 'parte', 'part', 'seccion', 'section', 'area', 'zona',
+    'region', 'region', 'pais', 'country', 'nacion', 'nation', 'estado', 'state', 'provincia', 'province',
+    'departamento', 'department', 'municipio', 'municipality', 'ciudad', 'city', 'pueblo', 'town', 'villa',
+    'village', 'aldea', 'hamlet', 'caserio', 'settlement', 'asentamiento', 'colonia', 'colony', 'barrio',
+    'neighborhood', 'distrito', 'district', 'sector', 'sector', 'zona', 'zone', 'area', 'area', 'lugar', 'place',
+    'sitio', 'site', 'ubicacion', 'location', 'posicion', 'position', 'coordenadas', 'coordinates', 'latitud',
+    'latitude', 'longitud', 'longitude', 'altitud', 'altitude', 'elevacion', 'elevation', 'nivel', 'level',
+    'profundidad', 'depth', 'altura', 'height', 'ancho', 'width', 'largo', 'length', 'alto', 'high', 'bajo',
+    'low', 'grande', 'big', 'pequeño', 'small', 'mediano', 'medium', 'medio', 'middle', 'mitad', 'half',
+    'completo', 'complete', 'incompleto', 'incomplete', 'parcial', 'partial', 'total', 'total', 'entero',
+    'whole', 'fraction', 'fraccion', 'porcentaje', 'percentage', 'proporcion', 'proportion', 'ratio', 'relacion',
+    'relation', 'conexion', 'connection', 'vinculo', 'link', 'enlace', 'link', 'union', 'union', 'separacion',
+    'separation', 'division', 'division', 'multiplicacion', 'multiplication', 'adicion', 'addition', 'sustraccion',
+    'subtraction', 'suma', 'sum', 'resta', 'subtraction', 'producto', 'product', 'cociente', 'quotient', 'resultado',
+    'result', 'solucion', 'solution', 'respuesta', 'answer', 'pregunta', 'question', 'interrogante', 'interrogation',
+    'duda', 'doubt', 'incertidumbre', 'uncertainty', 'certeza', 'certainty', 'seguridad', 'security', 'confianza',
+    'confidence', 'fe', 'faith', 'creencia', 'belief', 'conviccion', 'conviction', 'opinion', 'opinion', 'punto',
+    'point', 'vista', 'view', 'perspectiva', 'perspective', 'angulo', 'angle', 'enfoque', 'focus', 'concentracion',
+    'concentration', 'atencion', 'attention', 'interes', 'interest', 'curiosidad', 'curiosity', 'fascinacion',
+    'fascination', 'atraccion', 'attraction', 'repulsion', 'repulsion', 'rechazo', 'rejection', 'aceptacion',
+    'acceptance', 'aprobacion', 'approval', 'desaprobacion', 'disapproval', 'apoyo', 'support', 'oposicion',
+    'opposition', 'respaldo', 'backing', 'sustento', 'sustenance', 'fundamento', 'foundation', 'base', 'base',
+    'cimientos', 'foundations', 'estructura', 'structure', 'organizacion', 'organization', 'sistema', 'system',
+    'metodo', 'method', 'tecnica', 'technique', 'estrategia', 'strategy', 'tactica', 'tactic', 'plan', 'plan',
+    'proyecto', 'project', 'programa', 'program', 'iniciativa', 'initiative', 'propuesta', 'proposal', 'sugerencia',
+    'suggestion', 'recomendacion', 'recommendation', 'consejo', 'advice', 'orientacion', 'guidance', 'direccion',
+    'direction', 'rumbo', 'course', 'trayectoria', 'trajectory', 'camino', 'path', 'ruta', 'route', 'sendero',
+    'trail', 'vereda', 'pathway', 'calle', 'street', 'avenida', 'avenue', 'boulevard', 'boulevard', 'carretera',
+    'highway', 'autopista', 'freeway', 'autovia', 'motorway', 'carretera', 'road', 'camino', 'way', 'ruta',
+    'route', 'itinerario', 'itinerary', 'viaje', 'trip', 'travesia', 'journey', 'expedicion', 'expedition',
+    'aventura', 'adventure', 'exploracion', 'exploration', 'descubrimiento', 'discovery', 'hallazgo', 'finding',
+    'encuentro', 'encounter', 'reunion', 'meeting', 'conferencia', 'conference', 'congreso', 'congress',
+    'simposio', 'symposium', 'seminario', 'seminar', 'taller', 'workshop', 'curso', 'course', 'clase', 'class',
+    'leccion', 'lesson', 'enseñanza', 'teaching', 'aprendizaje', 'learning', 'estudio', 'study', 'investigacion',
+    'research', 'analisis', 'analysis', 'examen', 'examination', 'evaluacion', 'evaluation', 'valoracion',
+    'assessment', 'calificacion', 'rating', 'puntuacion', 'scoring', 'medicion', 'measurement', 'cuantificacion',
+    'quantification', 'estadistica', 'statistics', 'datos', 'data', 'informacion', 'information', 'conocimiento',
+    'knowledge', 'sabiduria', 'wisdom', 'inteligencia', 'intelligence', 'sabiduria', 'wisdom', 'erudicion',
+    'erudition', 'cultura', 'culture', 'civilizacion', 'civilization', 'sociedad', 'society', 'comunidad',
+    'community', 'poblacion', 'population', 'gente', 'people', 'personas', 'persons', 'individuos', 'individuals',
+    'seres', 'beings', 'humanos', 'humans', 'humanidad', 'humanity', 'mankind', 'humanidad', 'humanity',
+    'raza', 'race', 'etnia', 'ethnicity', 'nacionalidad', 'nationality', 'ciudadania', 'citizenship', 'identidad',
+    'identity', 'personalidad', 'personality', 'caracter', 'character', 'temperamento', 'temperament', 'caracter',
+    'character', 'naturaleza', 'nature', 'esencia', 'essence', 'sustancia', 'substance', 'materia', 'matter',
+    'energia', 'energy', 'fuerza', 'force', 'poder', 'power', 'potencia', 'potency', 'capacidad', 'capacity',
+    'habilidad', 'ability', 'destreza', 'skill', 'talento', 'talent', 'genio', 'genius', 'inteligencia',
+    'intelligence', 'sabiduria', 'wisdom', 'conocimiento', 'knowledge', 'saber', 'knowing', 'entendimiento',
+    'understanding', 'comprension', 'comprehension', 'percepcion', 'perception', 'sensacion', 'sensation',
+    'sentimiento', 'feeling', 'emocion', 'emotion', 'pasion', 'passion', 'amor', 'love', 'odio', 'hate',
+    'ira', 'anger', 'rabia', 'rage', 'furia', 'fury', 'enojo', 'annoyance', 'molestia', 'bother', 'incomodidad',
+    'discomfort', 'dolor', 'pain', 'sufrimiento', 'suffering', 'agonia', 'agony', 'tormento', 'torment',
+    'tortura', 'torture', 'martirio', 'martyrdom', 'sacrificio', 'sacrifice', 'ofrenda', 'offering', 'donacion',
+    'donation', 'regalo', 'gift', 'presente', 'present', 'obsequio', 'present', 'sorpresa', 'surprise', 'sorpresa',
+    'surprise', 'asombro', 'amazement', 'maravilla', 'wonder', 'admiración', 'admiration', 'respeto', 'respect',
+    'honor', 'honor', 'dignidad', 'dignity', 'orgullo', 'pride', 'vanidad', 'vanity', 'arrogancia', 'arrogance',
+    'soberbia', 'pride', 'humildad', 'humility', 'modestia', 'modesty', 'sencillez', 'simplicity', 'naturalidad',
+    'naturalness', 'autenticidad', 'authenticity', 'sinceridad', 'sincerity', 'honestidad', 'honesty', 'veracidad',
+    'veracity', 'verdad', 'truth', 'realidad', 'reality', 'hecho', 'fact', 'evidencia', 'evidence', 'prueba',
+    'proof', 'testimonio', 'testimony', 'declaracion', 'statement', 'afirmacion', 'affirmation', 'negacion',
+    'negation', 'confirmacion', 'confirmation', 'verificacion', 'verification', 'validacion', 'validation',
+    'autenticacion', 'authentication', 'autorizacion', 'authorization', 'permiso', 'permission', 'licencia',
+    'license', 'patente', 'patent', 'copyright', 'derechos', 'rights', 'privilegios', 'privileges', 'beneficios',
+    'benefits', 'ventajas', 'advantages', 'desventajas', 'disadvantages', 'inconvenientes', 'inconveniences',
+    'problemas', 'problems', 'dificultades', 'difficulties', 'obstaculos', 'obstacles', 'barreras', 'barriers',
+    'limites', 'limits', 'restricciones', 'restrictions', 'condiciones', 'conditions', 'requisitos', 'requirements',
+    'necesidades', 'needs', 'demandas', 'demands', 'solicitudes', 'requests', 'peticiones', 'petitions',
+    'reclamos', 'claims', 'quejas', 'complaints', 'protestas', 'protests', 'manifestaciones', 'demonstrations',
+    'marchas', 'marches', 'paradas', 'strikes', 'huelgas', 'strikes', 'boicots', 'boycotts', 'sanciones',
+    'sanctions', 'penalizaciones', 'penalties', 'multas', 'fines', 'castigos', 'punishments', 'recompensas',
+    'rewards', 'premios', 'prizes', 'reconocimientos', 'recognitions', 'distinciones', 'distinctions', 'honores',
+    'honors', 'medallas', 'medals', 'trofeos', 'trophies', 'certificados', 'certificates', 'diplomas', 'diplomas',
+    'titulos', 'titles', 'grados', 'degrees', 'niveles', 'levels', 'categorias', 'categories', 'clases', 'classes',
+    'tipos', 'types', 'clases', 'classes', 'grupos', 'groups', 'conjuntos', 'sets', 'colecciones', 'collections',
+    'series', 'series', 'secuencias', 'sequences', 'orden', 'order', 'organizacion', 'organization', 'estructura',
+    'structure', 'arquitectura', 'architecture', 'diseño', 'design', 'planificacion', 'planning', 'programacion',
+    'programming', 'codificacion', 'coding', 'encriptacion', 'encryption', 'decodificacion', 'decoding',
+    'desencriptacion', 'decryption', 'compresion', 'compression', 'descompresion', 'decompression', 'archivado',
+    'archiving', 'almacenamiento', 'storage', 'memoria', 'memory', 'recuerdo', 'memory', 'memoria', 'memory',
+    'recuerdo', 'memory', 'memoria', 'memory', 'recuerdo', 'memory', 'memoria', 'memory', 'recuerdo', 'memory'
   ];
   
-  // AJUSTE TEMPORAL: Incluir TODAS las noticias para mostrar más contenido
+  // Filtrar solo medios tradicionales, excluir redes sociales
   const filteredArticles = articles.filter(article => {
     const sourceName = article.source?.name?.toLowerCase() || '';
     
-    // Incluir tanto medios tradicionales como redes sociales temporalmente
-    console.log(`  ✅ Incluido: ${article.title} | Fuente: ${article.source?.name}`);
+    // Excluir redes sociales explícitamente
+    const isExcludedSocial = excludedSources.some(excluded => sourceName.includes(excluded));
+    if (isExcludedSocial) {
+      console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
+      return false;
+    }
+    
+    // Incluir medios tradicionales reconocidos
+    const isTraditionalSource = allowedTraditionalSources.some(traditional => 
+      sourceName.includes(traditional) || traditional.includes(sourceName)
+    );
+    
+    if (isTraditionalSource) {
+      console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
+      return true;
+    }
+    
+    // Incluir fuentes no reconocidas (medios locales o especializados)
+    console.log(`  ✅ Incluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`);
     return true;
   });
   
   console.log('  Artículos después de filtrar redes sociales:', filteredArticles.length);
 
-  // Separar artículos con y sin socialEchoScore
-  const articlesWithSocialEcho = filteredArticles.filter(article => (article.socialEchoScore || 0) > 0);
-  const articlesWithoutSocialEcho = filteredArticles.filter(article => (article.socialEchoScore || 0) === 0);
+  // 1. Filtrar solo medios tradicionales para SocialEcho
+  const traditionalArticles = filteredArticles.filter(article => {
+    const sourceName = article.source?.name?.toLowerCase() || '';
+    return allowedTraditionalSources.some(traditional => 
+      sourceName.includes(traditional) || traditional.includes(sourceName)
+    );
+  });
+  
+  console.log('  📰 Medios tradicionales identificados:', traditionalArticles.length);
+  
+  // 2. Crear SocialEchoScore híbrido solo para medios tradicionales
+  const articlesWithHybridSocialEcho = traditionalArticles.map(article => {
+    const originalSocialEcho = article.socialEchoScore || 0;
+    const engagement = article.engagementScore || 0;
+    
+    // Si no hay SocialEchoScore pero hay engagement, usar engagement como SocialEcho
+    const hybridSocialEcho = originalSocialEcho > 0 ? originalSocialEcho : (engagement > 0 ? engagement * 0.5 : 0);
+    
+    return {
+      ...article,
+      hybridSocialEchoScore: hybridSocialEcho
+    };
+  });
+  
+  // Separar artículos con y sin SocialEcho híbrido (solo medios tradicionales)
+  const articlesWithSocialEcho = articlesWithHybridSocialEcho.filter(article => (article.hybridSocialEchoScore || 0) > 0);
+  const articlesWithoutSocialEcho = articlesWithHybridSocialEcho.filter(article => (article.hybridSocialEchoScore || 0) === 0);
   
   console.log('  Artículos con SocialEcho:', articlesWithSocialEcho.length);
   console.log('  Artículos sin SocialEcho:', articlesWithoutSocialEcho.length);
+  
+  // Log detallado de SocialEcho híbrido
+  console.log('  📊 ANÁLISIS SOCIAL ECHO HÍBRIDO:');
+  articlesWithHybridSocialEcho.slice(0, 10).forEach((article, index) => {
+    console.log(`    ${index + 1}. ${article.title} | SocialEcho original: ${article.socialEchoScore || 0} | Engagement: ${article.engagementScore || 0} | Híbrido: ${article.hybridSocialEchoScore || 0}`);
+  });
+  
+  // Log detallado de métricas de medios tradicionales
+  console.log('  📊 ANÁLISIS MÉTRICAS MEDIOS TRADICIONALES:');
+  articlesWithoutSocialEcho.slice(0, 10).forEach((article, index) => {
+    const reach = article.source?.metrics?.reach || 0;
+    const ave = article.source?.metrics?.ave || 0;
+    const views = article.metrics?.views || 0;
+    const score = (reach * 0.4) + (ave * 0.3) + (views * 0.3);
+    console.log(`    ${index + 1}. ${article.title} | Reach: ${reach} | AVE: ${ave} | Views: ${views} | Score: ${score.toFixed(2)}`);
+  });
 
   // Ordenar cada grupo por su métrica correspondiente
-  const sortedWithSocialEcho = sortPaisArticlesBySocialEcho(articlesWithSocialEcho);
+  const sortedWithSocialEcho = articlesWithSocialEcho.sort((a, b) => {
+    const socialEchoA = a.hybridSocialEchoScore || 0;
+    const socialEchoB = b.hybridSocialEchoScore || 0;
+    return socialEchoB - socialEchoA;
+  });
+  
+  // 3. Para artículos sin SocialEcho, usar métricas específicas de medios tradicionales
   const sortedWithoutSocialEcho = articlesWithoutSocialEcho.sort((a, b) => {
-    const engagementA = a.engagementScore || 0;
-    const engagementB = b.engagementScore || 0;
-    return engagementB - engagementA;
+    // Priorizar por métricas de medios tradicionales
+    const reachA = a.source?.metrics?.reach || 0;
+    const reachB = b.source?.metrics?.reach || 0;
+    
+    const aveA = a.source?.metrics?.ave || 0;
+    const aveB = b.source?.metrics?.ave || 0;
+    
+    const viewsA = a.metrics?.views || 0;
+    const viewsB = b.metrics?.views || 0;
+    
+    // Calcular score compuesto para medios tradicionales
+    const scoreA = (reachA * 0.4) + (aveA * 0.3) + (viewsA * 0.3);
+    const scoreB = (reachB * 0.4) + (aveB * 0.3) + (viewsB * 0.3);
+    
+    return scoreB - scoreA;
   });
 
   // Combinar: primero los que tienen socialEchoScore, luego los de engagement
@@ -774,15 +1135,17 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   // Filtrar artículos solo sociales
   const socialMediaArticles = articles.filter(isSocialArticle);
   
-  // Filtrar posts sociales con datos básicos (muy permisivo)
+  // Filtrar posts sociales con datos básicos (EXTREMADAMENTE permisivo)
   const completeSocialArticles = socialMediaArticles.filter(article => {
-    const hasValidTitle = article.title && article.title.trim().length > 1;
-    const hasValidDescription = article.description && article.description.trim().length > 1;
+    const hasValidTitle = article.title && article.title.trim().length > 0;
+    const hasValidDescription = article.description && article.description.trim().length > 0;
     const hasValidImage = article.urlToImage && article.urlToImage !== '/placeholder.svg';
-    const hasValidUrl = article.url && article.url.trim().length > 5;
+    const hasValidUrl = article.url && article.url.trim().length > 0;
+    const hasEngagement = (article.engagementScore || 0) > 0;
+    const hasSocialEcho = (article.socialEchoScore || 0) > 0;
     
-    // Ser muy permisivo: cualquier dato válido es suficiente
-    return hasValidTitle || hasValidDescription || hasValidImage || hasValidUrl;
+    // EXTREMADAMENTE permisivo: incluir cualquier artículo social
+    return hasValidTitle || hasValidDescription || hasValidImage || hasValidUrl || hasEngagement || hasSocialEcho || true;
   });
   
   // Debug: Log de detección de redes sociales
@@ -1562,7 +1925,7 @@ export default function Index() {
               <div className="news-grid-dashboard">
                 {(() => {
                   // Sección 3: Redes Sociales - Solo artículos de redes sociales del país
-                  const dynamicLimit = calculateDynamicLimit(paisArticles.length, 500);
+                  const dynamicLimit = calculateSocialMediaLimit(paisArticles.length, 500);
                   const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, dynamicLimit);
                   console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
                   articles.forEach((article, index) => {
