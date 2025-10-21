@@ -43,7 +43,24 @@ interface NewsResponse {
 function adaptResults(raw: any[]): MeltwaterArticle[] {
   console.log('🔧 adaptResults - Datos de entrada:', raw);
   
-  const adapted = raw.map((doc, index) => {
+  // FILTRAR POR TIPO DE CONTENIDO - Solo noticias reales
+  const filteredRaw = raw.filter(doc => {
+    const contentType = doc.content_type;
+    const isNews = contentType === 'news';
+    const isNotComment = contentType !== 'comment' && contentType !== 'reply';
+    const isNotSocial = contentType !== 'social post';
+    const isNotBlog = contentType !== 'blog';
+    
+    const shouldInclude = isNews || (isNotComment && isNotSocial && isNotBlog);
+    
+    console.log(`🔍 Filtro contenido: ${doc.content?.title || 'Sin título'} | Tipo: ${contentType} | Incluir: ${shouldInclude}`);
+    
+    return shouldInclude;
+  });
+  
+  console.log(`📊 Filtrado por tipo: ${raw.length} → ${filteredRaw.length} artículos`);
+  
+  const adapted = filteredRaw.map((doc, index) => {
     // Generar título basado en el tipo de contenido
     const isSocial = doc.content_type === "social post";
     const originalSocialTitle = isSocial 
@@ -166,19 +183,20 @@ function calculateContentScore(article: MeltwaterArticle, allArticles: Meltwater
   const views = article.metrics?.views || (engagement * 1.5); // Usar views reales si están disponibles
 
   // Calcular valores mínimos y máximos de todas las noticias para normalización
-  const allReach = allArticles.map(a => a.source?.metrics?.reach || 0).filter(r => r > 0);
-  const allEngagement = allArticles.map(a => a.engagementScore || 0).filter(e => e > 0);
-  const allAve = allArticles.map(a => a.source?.metrics?.ave || 0).filter(a => a > 0);
-  const allViews = allArticles.map(a => a.metrics?.views || (a.engagementScore || 0) * 1.5).filter(v => v > 0);
+  const allReach = allArticles.map(a => a.source?.metrics?.reach || 0);
+  const allEngagement = allArticles.map(a => a.engagementScore || 0);
+  const allAve = allArticles.map(a => a.source?.metrics?.ave || 0);
+  const allViews = allArticles.map(a => a.metrics?.views || (a.engagementScore || 0) * 1.5);
 
-  const minReach = Math.min(...allReach, 0);
-  const maxReach = Math.max(...allReach, 1);
-  const minEngagement = Math.min(...allEngagement, 0);
-  const maxEngagement = Math.max(...allEngagement, 1);
-  const minAve = Math.min(...allAve, 0);
-  const maxAve = Math.max(...allAve, 1);
-  const minViews = Math.min(...allViews, 0);
-  const maxViews = Math.max(...allViews, 1);
+  // Usar valores más inclusivos para evitar penalización
+  const minReach = Math.min(...allReach);
+  const maxReach = Math.max(...allReach, 1000); // Valor mínimo más alto
+  const minEngagement = Math.min(...allEngagement);
+  const maxEngagement = Math.max(...allEngagement, 100); // Valor mínimo más alto
+  const minAve = Math.min(...allAve);
+  const maxAve = Math.max(...allAve, 1000); // Valor mínimo más alto
+  const minViews = Math.min(...allViews);
+  const maxViews = Math.max(...allViews, 1000); // Valor mínimo más alto
 
   // Normalizar valores
   const reachNorm = normalizeValue(reach, minReach, maxReach);
@@ -203,15 +221,15 @@ function calculateContentScore(article: MeltwaterArticle, allArticles: Meltwater
   );
   
   // Bonus más inclusivo para fuentes de noticias tradicionales
-  const sourceBonus = isTraditionalSource ? 0.15 : 0.05; // Reducir bonus pero dar algo a todas las fuentes
+  const sourceBonus = isTraditionalSource ? 0.20 : 0.10; // Aumentar bonus para todas las fuentes
 
   // Pesos más balanceados para incluir más artículos
-  // Estrategia: 30% Visibilidad (Reach), 30% Engagement, 20% Impacto (AVE), 15% Views, 5% Bonus de fuente
-  const w1 = 0.30; // Reach - Visibilidad
-  const w2 = 0.30; // Engagement - Relevancia para usuario (aumentado)
+  // Estrategia: 25% Visibilidad (Reach), 25% Engagement, 20% Impacto (AVE), 15% Views, 15% Bonus de fuente
+  const w1 = 0.25; // Reach - Visibilidad (reducido)
+  const w2 = 0.25; // Engagement - Relevancia para usuario (reducido)
   const w3 = 0.20; // AVE - Impacto mediático
-  const w4 = 0.15; // Views - Consumo real (aumentado)
-  const w5 = 0.05; // Source Bonus - Fuentes tradicionales (reducido)
+  const w4 = 0.15; // Views - Consumo real
+  const w5 = 0.15; // Source Bonus - Fuentes tradicionales (aumentado)
 
   // Factor de frescura: artículos más recientes tienen bonus
   const articleDate = new Date(article.publishedAt);
@@ -264,10 +282,10 @@ function sortPaisArticlesBySocialEcho(articles: MeltwaterArticle[]): MeltwaterAr
       return 1;
     }
     
-    // Si ninguno tiene socialEchoScore, usar engagement como fallback
-    const engagementA = a.engagementScore || 0;
-    const engagementB = b.engagementScore || 0;
-    return engagementB - engagementA;
+    // Si ninguno tiene socialEchoScore, usar ContentScore como fallback (no engagement para evitar redes sociales)
+    const contentScoreA = calculateContentScore(a, articles);
+    const contentScoreB = calculateContentScore(b, articles);
+    return contentScoreB - contentScoreA;
   });
 
   return sortedArticles;
@@ -445,13 +463,13 @@ function markShown(shown: Set<string>, articles: MeltwaterArticle[]): void {
 // Función para calcular límite dinámico basado en artículos disponibles
 function calculateDynamicLimit(availableArticles: number, defaultLimit: number = 500): number {
   // Si hay pocos artículos, usar todos
-  if (availableArticles <= 50) return availableArticles;
+  if (availableArticles <= 20) return availableArticles;
   
   // Si hay artículos suficientes, usar el límite por defecto
   if (availableArticles >= defaultLimit) return defaultLimit;
   
-  // Si hay artículos intermedios, usar el 80% de los disponibles
-  return Math.floor(availableArticles * 0.8);
+  // Si hay artículos intermedios, usar el 95% de los disponibles (más permisivo)
+  return Math.floor(availableArticles * 0.95);
 }
 
 // Función para obtener artículos únicos ordenados por ContentScore
@@ -1328,7 +1346,7 @@ export default function Index() {
               </a>
             </div>
             
-            {/* Título centrado como antes */}
+            {/* Título centrado */}
             <h1 className="dashboard-title">
               NEWSROOM
             </h1>
@@ -1341,7 +1359,7 @@ export default function Index() {
 
       <main className="dashboard-container">
      
-        {/* TOP 10 Temas - Sector */}
+        {/* TOP 50 Temas - Sector */}
         {sectorArticles.length > 0 && (
           <div className="news-section">
             <div className="section-header-dashboard">
@@ -1543,10 +1561,9 @@ export default function Index() {
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
               <div className="news-grid-dashboard">
                 {(() => {
-                  // Sección 3: Redes Sociales - Solo artículos de redes sociales (combinar sector + país)
-                  const allArticles = [...sectorArticles, ...paisArticles];
-                  const dynamicLimit = calculateDynamicLimit(allArticles.length, 500);
-                  const articles = getUniqueSocialMediaArticles(allArticles, shownArticles, dynamicLimit);
+                  // Sección 3: Redes Sociales - Solo artículos de redes sociales del país
+                  const dynamicLimit = calculateDynamicLimit(paisArticles.length, 500);
+                  const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, dynamicLimit);
                   console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
                   articles.forEach((article, index) => {
                     console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);

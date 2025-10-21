@@ -105,7 +105,7 @@ async function getSearchResults(searchId) {
     
     allDocuments = [];
     const now = new Date();
-    const end = now.toISOString().slice(0, 19);
+    const end = now.toISOString();
     
 
     // Estrategia: 3 peticiones con offsets moderados para evitar rate limiting
@@ -128,7 +128,7 @@ async function getSearchResults(searchId) {
       console.log(`🔍 Petición ${i + 1}/${dateRanges.length}: ${range.name} (${range.days} días) - Offset: ${range.offset}`);
       
       try {
-        const startDate = new Date(now.getTime() - range.days * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
+        const startDate = new Date(now.getTime() - range.days * 24 * 60 * 60 * 1000).toISOString();
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
@@ -164,6 +164,54 @@ async function getSearchResults(searchId) {
           
           // Debug detallado de la respuesta de Meltwater
           console.log(`✅ Petición ${i + 1} exitosa: ${documents.length} artículos (${range.name}) - Total acumulado: ${allDocuments.length}`);
+          
+          // ANÁLISIS DETALLADO POR TIPO DE CONTENIDO (PRE-FILTRADO)
+          const contentTypes = {};
+          const socialTypes = {};
+          const blogTypes = {};
+          const commentTypes = {};
+          
+          documents.forEach(doc => {
+            // Contar por content_type
+            const contentType = doc.content_type || 'unknown';
+            contentTypes[contentType] = (contentTypes[contentType] || 0) + 1;
+            
+            // Contar posts sociales
+            if (doc.content_type === 'social post') {
+              const socialType = doc.source?.name || 'unknown_social';
+              socialTypes[socialType] = (socialTypes[socialType] || 0) + 1;
+            }
+            
+            // Contar blogs
+            if (doc.content_type === 'blog') {
+              const blogType = doc.source?.name || 'unknown_blog';
+              blogTypes[blogType] = (blogTypes[blogType] || 0) + 1;
+            }
+            
+            // Contar comentarios y respuestas
+            if (doc.content_type === 'comment' || doc.content_type === 'reply') {
+              const commentType = doc.content_type;
+              commentTypes[commentType] = (commentTypes[commentType] || 0) + 1;
+            }
+          });
+          
+          console.log(`📊 ANÁLISIS PRE-FILTRADO - Tipos de contenido devueltos por Meltwater:`);
+          console.log(`   📰 Noticias reales: ${contentTypes['news'] || 0}`);
+          console.log(`   💬 Comentarios: ${commentTypes['comment'] || 0}`);
+          console.log(`   🔄 Respuestas: ${commentTypes['reply'] || 0}`);
+          console.log(`   📱 Posts sociales: ${contentTypes['social post'] || 0}`);
+          console.log(`   📝 Blogs: ${contentTypes['blog'] || 0}`);
+          console.log(`   ❓ Otros tipos: ${Object.keys(contentTypes).filter(type => 
+            !['news', 'comment', 'reply', 'social post', 'blog'].includes(type)
+          ).map(type => `${type}: ${contentTypes[type]}`).join(', ') || 'Ninguno'}`);
+          
+          if (Object.keys(socialTypes).length > 0) {
+            console.log(`   📱 Detalle posts sociales:`, socialTypes);
+          }
+          if (Object.keys(blogTypes).length > 0) {
+            console.log(`   📝 Detalle blogs:`, blogTypes);
+          }
+          
           console.log(`🔍 DEBUG - Estructura de respuesta:`);
           console.log(`   - documents.length: ${documents.length}`);
           console.log(`   - result.total: ${data.result?.total || 'No disponible'}`);
@@ -171,7 +219,6 @@ async function getSearchResults(searchId) {
           console.log(`   - result.offset: ${data.result?.offset || 'No disponible'}`);
           console.log(`   - result.limit: ${data.result?.limit || 'No disponible'}`);
           console.log(`   - Parámetros enviados: limit=500, offset=${range.offset}`);
-          console.log(`   - Respuesta completa:`, JSON.stringify(data, null, 2));
           
 
           // Filtrar comentarios y respuestas para evitar duplicados

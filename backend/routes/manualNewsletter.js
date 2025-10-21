@@ -1,3 +1,4 @@
+
 // Router para envío manual de newsletters con autenticación requerida
 const express = require("express");
 const router = express.Router();
