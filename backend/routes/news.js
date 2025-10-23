@@ -105,7 +105,7 @@ async function getSearchResults(searchId) {
     
     allDocuments = [];
     const now = new Date();
-    const end = now.toISOString();
+    const end = now.toISOString().slice(0, 19);
     
 
     // Estrategia: 3 peticiones con offsets moderados para evitar rate limiting
@@ -128,7 +128,7 @@ async function getSearchResults(searchId) {
       console.log(`🔍 Petición ${i + 1}/${dateRanges.length}: ${range.name} (${range.days} días) - Offset: ${range.offset}`);
       
       try {
-        const startDate = new Date(now.getTime() - range.days * 24 * 60 * 60 * 1000).toISOString();
+        const startDate = new Date(now.getTime() - range.days * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
@@ -145,7 +145,6 @@ async function getSearchResults(searchId) {
             start: startDate,
             end: end,
             limit: 500, // Límite moderado para obtener más artículos
-            offset: range.offset, // Usar offset para paginación
             // Parámetros optimizados para evitar comentarios y duplicados
             language: "es", // Idioma español
             content_type: "news", // Solo noticias principales

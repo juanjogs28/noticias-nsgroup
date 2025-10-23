@@ -6,7 +6,7 @@ const cachedNewsSchema = new mongoose.Schema({
   searchId: {
     type: String,
     required: true, // ID único de la búsqueda
-    unique: true
+    index: true
   },
   category: {
     type: String,
@@ -41,7 +41,6 @@ const cachedNewsSchema = new mongoose.Schema({
 });
 
 // Índices para optimizar búsquedas rápidas
-cachedNewsSchema.index({ searchId: 1 }); // Índice por searchId
 cachedNewsSchema.index({ lastUpdated: 1 }); // Índice por fecha de actualización
 
 // Exportar el modelo para uso en otras partes de la aplicación
