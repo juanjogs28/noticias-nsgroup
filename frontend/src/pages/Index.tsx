@@ -649,10 +649,7 @@ function getUniqueTopArticles(articles: MeltwaterArticle[], shownArticles: Set<s
   
   console.log(`  📊 Resultado final: ${result.length} artículos`);
   
-  // Log de los primeros 100 artículos para debug
-  result.slice(0, 100).forEach((article, index) => {
-    console.log(`    ${index + 1}. ${article.title} | Fuente: ${article.source.name} | ContentScore: ${article.contentScore?.toFixed(3)}`);
-  });
+  // Log de artículos procesados (solo números)
 
   return assignContentScores(result);
 }
@@ -903,7 +900,6 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     // Excluir redes sociales explícitamente
     const isExcludedSocial = excludedSources.some(excluded => sourceName.includes(excluded));
     if (isExcludedSocial) {
-      console.log(`  ❌ Excluido (red social): ${article.title} | Fuente: ${article.source?.name}`);
       return false;
     }
     
@@ -913,12 +909,10 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     );
     
     if (isTraditionalSource) {
-      console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
       return true;
     }
     
     // Excluir fuentes no reconocidas (solo medios tradicionales)
-    console.log(`  ❌ Excluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`);
     return false;
   });
   
@@ -946,20 +940,10 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   console.log('  Artículos sin SocialEcho:', articlesWithoutSocialEcho.length);
   
   // Log detallado de SocialEcho híbrido
-  console.log('  📊 ANÁLISIS SOCIAL ECHO HÍBRIDO:');
-  articlesWithHybridSocialEcho.slice(0, 10).forEach((article, index) => {
-    console.log(`    ${index + 1}. ${article.title} | SocialEcho original: ${article.socialEchoScore || 0} | Engagement: ${article.engagementScore || 0} | Híbrido: ${article.hybridSocialEchoScore || 0}`);
-  });
+  console.log('  📊 ANÁLISIS SOCIAL ECHO HÍBRIDO:', articlesWithHybridSocialEcho.length, 'artículos');
   
   // Log detallado de métricas de medios tradicionales
-  console.log('  📊 ANÁLISIS MÉTRICAS MEDIOS TRADICIONALES:');
-  articlesWithoutSocialEcho.slice(0, 10).forEach((article, index) => {
-    const reach = article.source?.metrics?.reach || 0;
-    const ave = article.source?.metrics?.ave || 0;
-    const views = article.metrics?.views || 0;
-    const score = (reach * 0.4) + (ave * 0.3) + (views * 0.3);
-    console.log(`    ${index + 1}. ${article.title} | Reach: ${reach} | AVE: ${ave} | Views: ${views} | Score: ${score.toFixed(2)}`);
-  });
+  console.log('  📊 ANÁLISIS MÉTRICAS MEDIOS TRADICIONALES:', articlesWithoutSocialEcho.length, 'artículos');
 
   // Ordenar cada grupo por su métrica correspondiente
   const sortedWithSocialEcho = articlesWithSocialEcho.sort((a, b) => {
@@ -1066,9 +1050,6 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
 
   console.log('  🎯 RESULTADO FINAL getUniqueTopPaisArticles:', result.length);
   console.log('  🎯 META: 50 artículos, RESULTADO:', result.length);
-  result.forEach((article, index) => {
-    console.log(`    ${index + 1}. ${article.title} | Fuente: ${article.source.name} | SocialEcho: ${article.socialEchoScore} | Engagement: ${article.engagementScore}`);
-  });
 
   return assignContentScores(result);
 }
@@ -1120,13 +1101,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   console.log('🔍 DEBUG REDES SOCIALES:');
   console.log(`  Total artículos: ${articles.length}`);
   
-  // Debug detallado de cada artículo
-  articles.forEach((article, index) => {
-    const sourceName = article.source?.name?.toLowerCase() || '';
-    const url = article.url || '';
-    const isSocial = isSocialMediaArticle(article);
-    console.log(`  Artículo ${index + 1}: "${article.title}" | Fuente: "${article.source?.name}" | URL: "${url}" | Es social: ${isSocial}`);
-  });
+  // Debug detallado de cada artículo (solo números)
   
   const socialMediaArticles = articles.filter(isSocialMediaArticle);
   
@@ -1160,12 +1135,8 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     return !(hasValidTitle || hasValidDescription || hasValidImage || hasValidUrl);
   });
   
-  console.log(`  Artículos filtrados por datos incompletos: ${filteredOut.length}`);
   if (filteredOut.length > 0) {
-    console.log('  Ejemplos de artículos filtrados:');
-    filteredOut.slice(0, 100).forEach((article, index) => {
-      console.log(`    ${index + 1}. "${article.title}" | Desc: ${article.description?.length || 0} chars | Img: ${article.urlToImage ? 'Sí' : 'No'}`);
-    });
+    console.log(`  Artículos filtrados por datos incompletos: ${filteredOut.length}`);
   }
   
   // Debug: Verificar que NO hay medios tradicionales en la selección
@@ -1176,10 +1147,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   });
   
   if (traditionalInSocial.length > 0) {
-    console.log('  ⚠️  ADVERTENCIA: Se detectaron medios tradicionales en redes sociales:');
-    traditionalInSocial.forEach(a => {
-      console.log(`    - ${a.title} | Fuente: ${a.source.name}`);
-    });
+    console.log('  ⚠️  ADVERTENCIA: Se detectaron medios tradicionales en redes sociales:', traditionalInSocial.length);
   } else {
     console.log('  ✅ No se detectaron medios tradicionales en la selección de redes sociales');
   }
@@ -1247,9 +1215,6 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
 
   console.log('  🎯 RESULTADO FINAL getUniqueSocialMediaArticles:', result.length);
   console.log('  🎯 META: 50 artículos, RESULTADO:', result.length);
-  result.forEach((article, index) => {
-    console.log(`    ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);
-  });
 
   return assignContentScores(result);
 }
@@ -1751,9 +1716,6 @@ export default function Index() {
                 // Marcar como mostrados para evitar duplicados con las siguientes secciones
                 markShown(shownArticles, articles);
                 console.log('🔵 TOP 50 SECTOR - Artículos mostrados:', articles.length);
-                articles.forEach((article, index) => {
-                  console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | ContentScore: ${article.contentScore?.toFixed(3)} | Engagement: ${article.engagementScore}`);
-                });
                 return articles;
               })()} title="Noticias Sectoriales" />
             </div>
@@ -1828,9 +1790,6 @@ export default function Index() {
                 // Marcar como mostrados para evitar duplicados con la sección de redes
                 markShown(shownArticles, articles);
                 console.log('🟢 TOP 50 PAÍS - Artículos mostrados:', articles.length);
-                articles.forEach((article, index) => {
-                  console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | SocialEcho: ${article.socialEchoScore} | Engagement: ${article.engagementScore} | ContentScore: ${article.contentScore?.toFixed(3)}`);
-                });
                 return articles;
               })()} title="Noticias del País" />
             </div>
@@ -1925,9 +1884,6 @@ export default function Index() {
                   const dynamicLimit = calculateSocialMediaLimit(paisArticles.length, 500);
                   const articles = getUniqueSocialMediaArticles(allArticles, shownArticles, dynamicLimit);
                   console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
-                  articles.forEach((article, index) => {
-                    console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);
-                  });
                   return articles;
                 })().map((article, index) => (
                   <a
