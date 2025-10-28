@@ -653,7 +653,20 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   console.log('  Artículos ya mostrados:', shownArticles.size);
   
   // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
-  const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora'];
+  const excludedSources = [
+    'facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora',
+    'mastodon', 'bluesky', 'truth social', 'parler', 'gab', 'rumble', 'odysee', 'bitchute', 'dailymotion', 'vkontakte', 'vk', 'odnoklassniki', 'ok', 'weibo', 'wechat', 'qq', 'line', 'kakao', 'naver',
+    'mixi', 'ameba', 'hatena', 'note', 'qiita', 'zenn', 'dev.to', 'hashnode', 'substack', 'ghost', 'wordpress', 'blogger', 'livejournal', 'xanga', 'myspace', 'friendster', 'hi5', 'bebo', 'orkut',
+    'spotify', 'apple music', 'soundcloud', 'bandcamp', 'mixcloud', 'audiomack', 'reverbnation', 'last.fm', 'pandora', 'iheartradio', 'tunein', 'radio.com', 'radio.net', 'radio.garden',
+    'behance', 'dribbble', 'deviantart', 'artstation', '500px', 'unsplash', 'pexels', 'pixabay', 'shutterstock', 'getty', 'istock', 'hacker news', 'slashdot', 'digg', 'stumbleupon', 'delicious',
+    'signal', 'wickr', 'threema', 'element', 'matrix', 'riot', 'slack', 'teams', 'zoom', 'skype', 'hangouts', 'meet', 'duo', 'wix', 'squarespace', 'weebly', 'jekyll', 'hugo', 'gatsby', 'next.js', 'nuxt', 'svelte', 'vue', 'react', 'angular',
+    'etsy', 'ebay', 'amazon', 'mercado libre', 'mercadolibre', 'olx', 'gumtree', 'craigslist', 'marketplace', 'tinder', 'bumble', 'hinge', 'match', 'okcupid', 'plenty of fish', 'pof', 'zoosk', 'eharmony', 'elitesingles', 'silversingles', 'ourtime', 'seniorpeoplemeet',
+    'steam', 'epic games', 'origin', 'uplay', 'gog', 'itch.io', 'gamejolt', 'indiedb', 'roblox', 'minecraft', 'fortnite', 'pubg', 'apex legends', 'valorant', 'league of legends', 'dota', 'csgo', 'overwatch', 'world of warcraft', 'final fantasy', 'call of duty',
+    'coursera', 'udemy', 'edx', 'khan academy', 'skillshare', 'masterclass', 'linkedin learning', 'pluralsight', 'codecademy', 'freecodecamp', 'the odin project', 'scrimba', 'egghead', 'indeed', 'glassdoor', 'monster', 'careerbuilder', 'ziprecruiter', 'angel.co', 'crunchbase', 'pitchbook', 'cb insights', 'techcrunch', 'venturebeat', 'wired',
+    'kickstarter', 'indiegogo', 'gofundme', 'patreon', 'ko-fi', 'buymeacoffee', 'paypal', 'venmo', 'cashapp', 'zelle', 'apple pay', 'google pay', 'samsung pay', 'bitcoin', 'ethereum', 'crypto', 'cryptocurrency', 'blockchain', 'nft', 'nfts', 'opensea', 'foundation', 'superrare', 'rarible', 'nifty gateway', 'makersplace',
+    'strava', 'myfitnesspal', 'fitbit', 'apple watch', 'samsung health', 'google fit', 'nike run club', 'adidas running', 'under armour', 'garmin', 'polar', 'suunto', 'tripadvisor', 'booking', 'airbnb', 'vrbo', 'expedia', 'priceline', 'kayak', 'skyscanner', 'google flights', 'momondo', 'cheaptickets', 'hotels.com', 'marriott', 'hilton',
+    'yelp', 'zomato', 'swiggy', 'ubereats', 'doordash', 'grubhub', 'postmates', 'caviar', 'seamless', 'chownow', 'toast', 'square', 'clover', 'shopify', 'woocommerce'
+  ];
   
   // Fuentes de medios tradicionales permitidas - Lista híbrida MUY INCLUSIVA
   const allowedTraditionalSources = [
@@ -888,7 +901,13 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   const filteredArticles = articles.filter(article => {
     const sourceName = article.source?.name?.toLowerCase() || '';
     
-    // Excluir redes sociales explícitamente
+    // Excluir por content_type primero (más confiable)
+    const raw: any = article as any;
+    if (raw?.content_type === 'social post' || raw?.content_type === 'social') {
+      return false;
+    }
+    
+    // Excluir redes sociales explícitamente por nombre de fuente
     const isExcludedSocial = excludedSources.some(excluded => sourceName.includes(excluded));
     if (isExcludedSocial) {
       return false;
