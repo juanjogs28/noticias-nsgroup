@@ -145,9 +145,18 @@ async function getSearchResults(searchId, includeSocial = false) {
           
           // Análisis básico de tipos de contenido
           const newsCount = documents.filter(doc => doc.content_type === 'news').length;
-          const otherCount = documents.length - newsCount;
+          const socialCount = documents.filter(doc => doc.content_type === 'social post').length;
+          const otherCount = documents.length - newsCount - socialCount;
           
-          console.log(`📊 Contenido obtenido: ${newsCount} noticias, ${otherCount} otros tipos`);
+          console.log(`📊 Contenido obtenido: ${newsCount} noticias, ${socialCount} posts sociales, ${otherCount} otros tipos`);
+          
+          // Debug detallado de tipos de contenido
+          if (includeSocial) {
+            console.log(`🔍 DEBUG SOCIAL - Tipos de contenido devueltos:`);
+            documents.forEach((doc, index) => {
+              console.log(`  ${index + 1}. "${doc.content?.title || doc.title || 'Sin título'}" | Tipo: ${doc.content_type} | Fuente: ${doc.source?.name}`);
+            });
+          }
           
           console.log(`🔍 DEBUG - Estructura de respuesta:`);
           console.log(`   - documents.length: ${documents.length}`);

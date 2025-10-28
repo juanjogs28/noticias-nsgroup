@@ -1116,7 +1116,18 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     return (d || '').toLowerCase();
   };
 
-  // Usar la función global isSocialMediaArticle que es más estricta
+  // Debug: Log de detección de redes sociales
+  console.log('🔍 DEBUG REDES SOCIALES:');
+  console.log(`  Total artículos: ${articles.length}`);
+  
+  // Debug detallado de cada artículo
+  articles.forEach((article, index) => {
+    const sourceName = article.source?.name?.toLowerCase() || '';
+    const url = article.url || '';
+    const isSocial = isSocialMediaArticle(article);
+    console.log(`  Artículo ${index + 1}: "${article.title}" | Fuente: "${article.source?.name}" | URL: "${url}" | Es social: ${isSocial}`);
+  });
+  
   const socialMediaArticles = articles.filter(isSocialMediaArticle);
   
   // Filtrar posts sociales con datos básicos (EXTREMADAMENTE permisivo)
@@ -1132,9 +1143,6 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
     return hasValidTitle || hasValidDescription || hasValidImage || hasValidUrl || hasEngagement || hasSocialEcho || true;
   });
   
-  // Debug: Log de detección de redes sociales
-  console.log('🔍 DEBUG REDES SOCIALES:');
-  console.log(`  Total artículos: ${articles.length}`);
   console.log(`  Artículos sociales detectados: ${socialMediaArticles.length}`);
   console.log(`  Artículos sociales completos: ${completeSocialArticles.length}`);
   console.log('  Fuentes sociales detectadas:', [...new Set(socialMediaArticles.map(a => a.source.name))]);
