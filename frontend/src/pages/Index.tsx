@@ -40,16 +40,17 @@ interface NewsResponse {
   sector: any[];
 }
 
-function adaptResults(raw: any[]): MeltwaterArticle[] {
-  // FILTRAR POR TIPO DE CONTENIDO - Solo noticias reales
+function adaptResults(raw: any[], includeSocial: boolean = false): MeltwaterArticle[] {
+  // FILTRAR POR TIPO DE CONTENIDO - Incluir redes sociales si se solicita
   const filteredRaw = raw.filter(doc => {
     const contentType = doc.content_type;
     const isNews = contentType === 'news';
+    const isSocialPost = contentType === 'social post';
     const isNotComment = contentType !== 'comment' && contentType !== 'reply';
-    const isNotSocial = contentType !== 'social post';
     const isNotBlog = contentType !== 'blog';
     
-    const shouldInclude = isNews || (isNotComment && isNotSocial && isNotBlog);
+    // Si includeSocial es true, incluir posts sociales
+    const shouldInclude = isNews || (isNotComment && (includeSocial ? true : !isSocialPost) && isNotBlog);
     
     return shouldInclude;
   });
@@ -1407,8 +1408,8 @@ export default function Index() {
             console.log('📊 Total sector:', response.data.sector?.length || 0);
             console.log('📊 Total país:', response.data.pais?.length || 0);
             
-            const sectorData = adaptResults(response.data.sector);
-            const paisData = adaptResults(response.data.pais);
+            const sectorData = adaptResults(response.data.sector, true); // Incluir redes sociales
+            const paisData = adaptResults(response.data.pais, true); // Incluir redes sociales
             
             // Log de los datos después de adaptResults
             
@@ -1448,8 +1449,8 @@ export default function Index() {
             console.log('📊 Total sector:', response.data.sector?.length || 0);
             console.log('📊 Total país:', response.data.pais?.length || 0);
             
-            const sectorData = adaptResults(response.data.sector);
-            const paisData = adaptResults(response.data.pais);
+            const sectorData = adaptResults(response.data.sector, true); // Incluir redes sociales
+            const paisData = adaptResults(response.data.pais, true); // Incluir redes sociales
             
             // Log de los datos después de adaptResults
             
@@ -1485,8 +1486,8 @@ export default function Index() {
           console.log('📊 Total sector:', response.data.sector?.length || 0);
           console.log('📊 Total país:', response.data.pais?.length || 0);
           
-          const sectorData = adaptResults(response.data.sector);
-          const paisData = adaptResults(response.data.pais);
+          const sectorData = adaptResults(response.data.sector, true); // Incluir redes sociales
+          const paisData = adaptResults(response.data.pais, true); // Incluir redes sociales
           
           // Log de los datos después de adaptResults
           
