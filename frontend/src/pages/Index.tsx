@@ -909,7 +909,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     
     // Incluir medios tradicionales reconocidos
     const isTraditionalSource = allowedTraditionalSources.some(traditional => 
-      sourceName.includes(traditional) || traditional.includes(sourceName)
+      sourceName.includes(traditional)
     );
     
     if (isTraditionalSource) {
@@ -917,25 +917,15 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       return true;
     }
     
-    // Incluir fuentes no reconocidas (medios locales o especializados)
-    console.log(`  ✅ Incluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`);
-    return true;
+    // Excluir fuentes no reconocidas (solo medios tradicionales)
+    console.log(`  ❌ Excluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`);
+    return false;
   });
   
   console.log('  Artículos después de filtrar redes sociales:', filteredArticles.length);
-
-  // 1. Filtrar solo medios tradicionales para SocialEcho
-  const traditionalArticles = filteredArticles.filter(article => {
-    const sourceName = article.source?.name?.toLowerCase() || '';
-    return allowedTraditionalSources.some(traditional => 
-      sourceName.includes(traditional) || traditional.includes(sourceName)
-    );
-  });
   
-  console.log('  📰 Medios tradicionales identificados:', traditionalArticles.length);
-  
-  // 2. Crear SocialEchoScore híbrido solo para medios tradicionales
-  const articlesWithHybridSocialEcho = traditionalArticles.map(article => {
+  // Crear SocialEchoScore híbrido solo para medios tradicionales
+  const articlesWithHybridSocialEcho = filteredArticles.map(article => {
     const originalSocialEcho = article.socialEchoScore || 0;
     const engagement = article.engagementScore || 0;
     
