@@ -1416,6 +1416,8 @@ export default function Index() {
             setSectorArticles(sectorData);
             setPaisArticles(paisData);
             setAllArticles([...sectorData, ...paisData]); // Guardar artículos originales sin filtrar
+            console.log('🔍 DEBUG allArticles - Total artículos:', [...sectorData, ...paisData].length);
+            console.log('🔍 DEBUG allArticles - Posts sociales detectados:', [...sectorData, ...paisData].filter(a => a.content_type === 'social post').length);
 
             // Resetear artículos mostrados para nueva carga
             setShownArticles(new Set());
@@ -1457,6 +1459,8 @@ export default function Index() {
             setSectorArticles(sectorData);
             setPaisArticles(paisData);
             setAllArticles([...sectorData, ...paisData]); // Guardar artículos originales sin filtrar
+            console.log('🔍 DEBUG allArticles - Total artículos:', [...sectorData, ...paisData].length);
+            console.log('🔍 DEBUG allArticles - Posts sociales detectados:', [...sectorData, ...paisData].filter(a => a.content_type === 'social post').length);
 
             // Resetear artículos mostrados para nueva carga
             setShownArticles(new Set());
@@ -1853,6 +1857,8 @@ export default function Index() {
                 {(() => {
                   // Sección 3: Redes Sociales - Solo artículos de redes sociales del país
                   const dynamicLimit = calculateSocialMediaLimit(paisArticles.length, 500);
+                  console.log('🔍 DEBUG PANEL SOCIAL - allArticles.length:', allArticles.length);
+                  console.log('🔍 DEBUG PANEL SOCIAL - paisArticles.length:', paisArticles.length);
                   const articles = getUniqueSocialMediaArticles(allArticles, shownArticles, dynamicLimit);
                   console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
                   return articles;
