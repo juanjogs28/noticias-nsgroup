@@ -1117,13 +1117,7 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   };
 
   // Usar la función global isSocialMediaArticle que es más estricta
-  
-  const isSocialArticle = (article: MeltwaterArticle) => {
-    return isSocialMediaArticle(article);
-  };
-  
-  // Filtrar artículos solo sociales
-  const socialMediaArticles = articles.filter(isSocialArticle);
+  const socialMediaArticles = articles.filter(isSocialMediaArticle);
   
   // Filtrar posts sociales con datos básicos (EXTREMADAMENTE permisivo)
   const completeSocialArticles = socialMediaArticles.filter(article => {
@@ -1487,7 +1481,8 @@ export default function Index() {
         if (email) {
           const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), { 
             email,
-            limit: 500  // Solicitar 500 artículos para cada sección
+            limit: 500,  // Solicitar 500 artículos para cada sección
+            includeSocial: true  // Incluir redes sociales para el panel social
           });
           if (response.data.success) {
             // Log de la respuesta cruda de la API
@@ -1527,7 +1522,8 @@ export default function Index() {
 
         // Si no hay nada, cargar noticias por defecto
         const response = await postWithRetry(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
-          email: "default"
+          email: "default",
+          includeSocial: true  // Incluir redes sociales para el panel social
         });
         
         if (response.data.success) {

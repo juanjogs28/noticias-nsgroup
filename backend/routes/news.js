@@ -72,7 +72,7 @@ async function ensureConnection() {
 
 
 // Función principal para obtener resultados de búsqueda con estrategia de caché y fallback
-async function getSearchResults(searchId) {
+async function getSearchResults(searchId, includeSocial = false) {
   let allDocuments = [];
 
   try {
@@ -80,6 +80,7 @@ async function getSearchResults(searchId) {
     console.log(`🔍 Intentando Meltwater para searchId: ${searchId} - estrategia múltiple`);
     console.log(`🔍 DEBUG - MELTWATER_TOKEN configurado: ${MELTWATER_TOKEN ? 'Sí' : 'No'}`);
     console.log(`🔍 DEBUG - MELTWATER_API_URL: ${MELTWATER_API_URL}`);
+    console.log(`🔍 DEBUG - Include Social: ${includeSocial ? 'SÍ' : 'NO'}`);
     
     allDocuments = [];
     const now = new Date();
@@ -123,13 +124,13 @@ async function getSearchResults(searchId) {
             start: startDate,
             end: end,
             limit: 500, // Límite moderado para obtener más artículos
-            // Parámetros optimizados para obtener solo noticias
+            // Parámetros optimizados según el tipo de contenido solicitado
             language: "es",
-            content_type: "news",
+            content_type: includeSocial ? undefined : "news", // Si incluye sociales, no filtrar por content_type
             sort: "relevance",
-            include_social: false,
-            include_blog: false,
-            include_forum: false
+            include_social: includeSocial, // Permitir redes sociales cuando se solicite
+            include_blog: includeSocial, // Incluir blogs cuando se soliciten redes sociales
+            include_forum: includeSocial // Incluir foros cuando se soliciten redes sociales
           }),
         });
 
@@ -215,17 +216,17 @@ router.post("/personalized", async (req, res) => {
   try {
     await ensureConnection();
     
-    const { email, countryId, sectorId } = req.body;
+    const { email, countryId, sectorId, includeSocial } = req.body;
     
     // Caso 1: Si se proporcionan IDs directos, usarlos (prioridad más alta)
     if (countryId || sectorId) {
       console.log(`🔍 Buscando noticias con IDs directos: countryId=${countryId}, sectorId=${sectorId}`);
       
       const resultsPais = countryId
-        ? await getSearchResults(countryId)
+        ? await getSearchResults(countryId, includeSocial)
         : { result: { documents: [] } };
       const resultsSector = sectorId
-        ? await getSearchResults(sectorId)
+        ? await getSearchResults(sectorId, includeSocial)
         : { result: { documents: [] } };
 
       const paisDocs = resultsPais.result?.documents || [];
@@ -285,7 +286,7 @@ router.post("/personalized", async (req, res) => {
                                  search.name.toLowerCase().includes('country') ||
                                  search.countrySearchId;
           
-          const results = await getSearchResults(search.countrySearchId || search.sectorSearchId);
+          const results = await getSearchResults(search.countrySearchId || search.sectorSearchId, includeSocial);
           const docs = results.result?.documents || [];
           
           if (isCountrySearch) {
@@ -319,11 +320,11 @@ router.post("/personalized", async (req, res) => {
       console.log(`📰 Usando configuración por defecto del sistema: país=${defaultConfig.defaultCountrySearchId || 'ninguno'}, sector=${defaultConfig.defaultSectorSearchId || 'ninguno'}`);
       
       const resultsPais = defaultConfig.defaultCountrySearchId
-        ? await getSearchResults(defaultConfig.defaultCountrySearchId)
+        ? await getSearchResults(defaultConfig.defaultCountrySearchId, includeSocial)
         : { result: { documents: [] } };
       console.log(`🔍 DEBUG SECTOR - Llamando getSearchResults con ID: ${defaultConfig.defaultSectorSearchId}`);
       const resultsSector = defaultConfig.defaultSectorSearchId
-        ? await getSearchResults(defaultConfig.defaultSectorSearchId)
+        ? await getSearchResults(defaultConfig.defaultSectorSearchId, includeSocial)
         : { result: { documents: [] } };
 
       const paisDocs = resultsPais.result?.documents || [];
@@ -358,10 +359,10 @@ router.post("/personalized", async (req, res) => {
         console.log(`⚠️ No hay configuración por defecto, usando fallback: ${fallbackSubscriber.email}`);
         
         const resultsPais = fallbackSubscriber.countrySearchId
-          ? await getSearchResults(fallbackSubscriber.countrySearchId)
+          ? await getSearchResults(fallbackSubscriber.countrySearchId, includeSocial)
           : { result: { documents: [] } };
         const resultsSector = fallbackSubscriber.sectorSearchId
-          ? await getSearchResults(fallbackSubscriber.sectorSearchId)
+          ? await getSearchResults(fallbackSubscriber.sectorSearchId, includeSocial)
           : { result: { documents: [] } };
 
         return res.json({
