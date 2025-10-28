@@ -41,8 +41,6 @@ interface NewsResponse {
 }
 
 function adaptResults(raw: any[]): MeltwaterArticle[] {
-  console.log('🔧 adaptResults - Datos de entrada:', raw);
-  
   // FILTRAR POR TIPO DE CONTENIDO - Solo noticias reales
   const filteredRaw = raw.filter(doc => {
     const contentType = doc.content_type;
@@ -52,8 +50,6 @@ function adaptResults(raw: any[]): MeltwaterArticle[] {
     const isNotBlog = contentType !== 'blog';
     
     const shouldInclude = isNews || (isNotComment && isNotSocial && isNotBlog);
-    
-    console.log(`🔍 Filtro contenido: ${doc.content?.title || 'Sin título'} | Tipo: ${contentType} | Incluir: ${shouldInclude}`);
     
     return shouldInclude;
   });
@@ -171,16 +167,11 @@ function adaptResults(raw: any[]): MeltwaterArticle[] {
       } : undefined,
     };
     
-    // Log detallado de cada documento adaptado
-    console.log(`📄 Documento ${index + 1} adaptado:`, {
-      original: doc,
-      adapted: adaptedDoc
-    });
+    // Documento adaptado
     
     return adaptedDoc;
   });
   
-  console.log('🔧 adaptResults - Resultado final:', adapted);
   return adapted;
 }
 
