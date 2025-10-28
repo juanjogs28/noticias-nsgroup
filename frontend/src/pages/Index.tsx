@@ -1415,9 +1415,10 @@ export default function Index() {
             
             setSectorArticles(sectorData);
             setPaisArticles(paisData);
+            console.log('🔍 ANTES DE setAllArticles - sectorData.length:', sectorData.length, 'paisData.length:', paisData.length);
             setAllArticles([...sectorData, ...paisData]); // Guardar artículos originales sin filtrar
-            console.log('🔍 DEBUG allArticles - Total artículos:', [...sectorData, ...paisData].length);
-            console.log('🔍 DEBUG allArticles - Posts sociales detectados:', [...sectorData, ...paisData].filter(a => a.content_type === 'social post').length);
+            console.log('🔍 DESPUÉS DE setAllArticles - Total artículos:', [...sectorData, ...paisData].length);
+            console.log('🔍 DESPUÉS DE setAllArticles - Posts sociales detectados:', [...sectorData, ...paisData].filter(a => a.content_type === 'social post').length);
 
             // Resetear artículos mostrados para nueva carga
             setShownArticles(new Set());
@@ -1458,9 +1459,10 @@ export default function Index() {
             
             setSectorArticles(sectorData);
             setPaisArticles(paisData);
+            console.log('🔍 ANTES DE setAllArticles - sectorData.length:', sectorData.length, 'paisData.length:', paisData.length);
             setAllArticles([...sectorData, ...paisData]); // Guardar artículos originales sin filtrar
-            console.log('🔍 DEBUG allArticles - Total artículos:', [...sectorData, ...paisData].length);
-            console.log('🔍 DEBUG allArticles - Posts sociales detectados:', [...sectorData, ...paisData].filter(a => a.content_type === 'social post').length);
+            console.log('🔍 DESPUÉS DE setAllArticles - Total artículos:', [...sectorData, ...paisData].length);
+            console.log('🔍 DESPUÉS DE setAllArticles - Posts sociales detectados:', [...sectorData, ...paisData].filter(a => a.content_type === 'social post').length);
 
             // Resetear artículos mostrados para nueva carga
             setShownArticles(new Set());
