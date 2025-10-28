@@ -1020,13 +1020,13 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
       }
     }
 
-    // 2) Si aún faltan, usar TODOS los artículos por ContentScore (más permisivo)
+    // 2) Si aún faltan, usar artículos filtrados por ContentScore (más permisivo)
     let contentScoreCandidates: MeltwaterArticle[] = [];
     if (result.length < limit) {
-      contentScoreCandidates = articles
+      contentScoreCandidates = filteredArticles
         .sort((a, b) => {
-          const scoreA = calculateContentScore(a, articles);
-          const scoreB = calculateContentScore(b, articles);
+          const scoreA = calculateContentScore(a, filteredArticles);
+          const scoreB = calculateContentScore(b, filteredArticles);
           return scoreB - scoreA;
         });
 
@@ -1041,29 +1041,29 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     }
 
     // 3) Si aún faltan, permitir duplicados para llegar a 50
-    if (result.length < limit) {
-      for (const candidate of contentScoreCandidates) {
-        if (result.length >= limit) break;
-        const id = generateArticleId(candidate);
-        if (!selectedIds.has(id)) {
-          result.push(candidate);
-          selectedIds.add(id);
-        }
-      }
-    }
+    // if (result.length < limit) {
+    //   for (const candidate of contentScoreCandidates) {
+    //     if (result.length >= limit) break;
+    //     const id = generateArticleId(candidate);
+    //     if (!selectedIds.has(id)) {
+    //       result.push(candidate);
+    //       selectedIds.add(id);
+    //     }
+    //   }
+    // }
 
     // 4) Como último recurso, usar cualquier artículo disponible
-    if (result.length < limit) {
-      for (const candidate of articles) {
-        if (result.length >= limit) break;
-        const id = generateArticleId(candidate);
-        if (!selectedIds.has(id)) {
-          result.push(candidate);
-          selectedIds.add(id);
-        }
-      }
-    }
-  }
+  //   if (result.length < limit) {
+  //     for (const candidate of articles) {
+  //       if (result.length >= limit) break;
+  //       const id = generateArticleId(candidate);
+  //       if (!selectedIds.has(id)) {
+  //         result.push(candidate);
+  //         selectedIds.add(id);
+  //       }
+  //     }
+  //   }
+  // }
 
   console.log('  🎯 RESULTADO FINAL getUniqueTopPaisArticles:', result.length);
   console.log('  🎯 META: 50 artículos, RESULTADO:', result.length);
