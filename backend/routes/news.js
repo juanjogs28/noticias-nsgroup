@@ -73,33 +73,11 @@ async function ensureConnection() {
 
 // Función principal para obtener resultados de búsqueda con estrategia de caché y fallback
 async function getSearchResults(searchId) {
-  // CACHÉ DESHABILITADO TEMPORALMENTE - No importar CacheService
-  // const CacheService = require("../services/cacheService");
-  
-  // Declarar fuera del try para evitar referencia no definida en catch/fallback
   let allDocuments = [];
 
   try {
-    // CACHÉ DESHABILITADO TEMPORALMENTE - Forzar nuevas peticiones para límite de 800
-    console.log(`🔍 CACHÉ DESHABILITADO - Haciendo peticiones directas a Meltwater para searchId: ${searchId} - LÍMITE: 800 ARTÍCULOS`);
-    
-    // TODO: Rehabilitar caché cuando se estabilice el límite de 800
-    // const cachedArticles = await CacheService.getCachedArticles(searchId, 24);
-    // if (cachedArticles && cachedArticles.length > 0) {
-    //   const isFromMeltwater = cachedArticles.some(article => 
-    //     article.id && !article.id.startsWith('fallback_') && !article.id.startsWith('social_')
-    //   );
-    //   if (isFromMeltwater && cachedArticles.length >= 10) {
-    //     console.log(`📦 Usando cache REAL de Meltwater para searchId: ${searchId} (${cachedArticles.length} artículos)`);
-    //     return { result: { documents: cachedArticles } };
-    //   } else {
-    //     console.log(`⚠️  Cache insuficiente (${cachedArticles.length} < 10 artículos), forzando nuevas peticiones`);
-    //     await CacheService.clearCacheForSearchId(searchId);
-    //   }
-    // }
-
     // Hacer múltiples peticiones con diferentes rangos de fechas
-    console.log(`🔍 Intentando Meltwater para searchId: ${searchId} (sin cache) - estrategia múltiple`);
+    console.log(`🔍 Intentando Meltwater para searchId: ${searchId} - estrategia múltiple`);
     console.log(`🔍 DEBUG - MELTWATER_TOKEN configurado: ${MELTWATER_TOKEN ? 'Sí' : 'No'}`);
     console.log(`🔍 DEBUG - MELTWATER_API_URL: ${MELTWATER_API_URL}`);
     
@@ -108,11 +86,11 @@ async function getSearchResults(searchId) {
     const end = now.toISOString().slice(0, 19);
     
 
-    // Estrategia: 3 peticiones con offsets moderados para evitar rate limiting
+    // Estrategia: 3 peticiones con diferentes rangos de fechas
     const dateRanges = [
-      { name: "última semana", days: 7, offset: 0 },
-      { name: "último mes", days: 30, offset: 0 },
-      { name: "últimos 3 meses", days: 90, offset: 0 }
+      { name: "última semana", days: 7 },
+      { name: "último mes", days: 30 },
+      { name: "últimos 3 meses", days: 90 }
     ];
     
     for (let i = 0; i < dateRanges.length; i++) {
@@ -125,7 +103,7 @@ async function getSearchResults(searchId) {
         await new Promise(resolve => setTimeout(resolve, delay));
       }
       
-      console.log(`🔍 Petición ${i + 1}/${dateRanges.length}: ${range.name} (${range.days} días) - Offset: ${range.offset}`);
+      console.log(`🔍 Petición ${i + 1}/${dateRanges.length}: ${range.name} (${range.days} días)`);
       
       try {
         const startDate = new Date(now.getTime() - range.days * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
@@ -145,13 +123,13 @@ async function getSearchResults(searchId) {
             start: startDate,
             end: end,
             limit: 500, // Límite moderado para obtener más artículos
-            // Parámetros optimizados para evitar comentarios y duplicados
-            language: "es", // Idioma español
-            content_type: "news", // Solo noticias principales
-            sort: "relevance", // Ordenar por relevancia
-            include_social: false, // Excluir redes sociales para evitar comentarios
-            include_blog: false, // Excluir blogs para evitar comentarios
-            include_forum: false // Excluir foros para evitar comentarios
+            // Parámetros optimizados para obtener solo noticias
+            language: "es",
+            content_type: "news",
+            sort: "relevance",
+            include_social: false,
+            include_blog: false,
+            include_forum: false
           }),
         });
 
@@ -164,52 +142,11 @@ async function getSearchResults(searchId) {
           // Debug detallado de la respuesta de Meltwater
           console.log(`✅ Petición ${i + 1} exitosa: ${documents.length} artículos (${range.name}) - Total acumulado: ${allDocuments.length}`);
           
-          // ANÁLISIS DETALLADO POR TIPO DE CONTENIDO (PRE-FILTRADO)
-          const contentTypes = {};
-          const socialTypes = {};
-          const blogTypes = {};
-          const commentTypes = {};
+          // Análisis básico de tipos de contenido
+          const newsCount = documents.filter(doc => doc.content_type === 'news').length;
+          const otherCount = documents.length - newsCount;
           
-          documents.forEach(doc => {
-            // Contar por content_type
-            const contentType = doc.content_type || 'unknown';
-            contentTypes[contentType] = (contentTypes[contentType] || 0) + 1;
-            
-            // Contar posts sociales
-            if (doc.content_type === 'social post') {
-              const socialType = doc.source?.name || 'unknown_social';
-              socialTypes[socialType] = (socialTypes[socialType] || 0) + 1;
-            }
-            
-            // Contar blogs
-            if (doc.content_type === 'blog') {
-              const blogType = doc.source?.name || 'unknown_blog';
-              blogTypes[blogType] = (blogTypes[blogType] || 0) + 1;
-            }
-            
-            // Contar comentarios y respuestas
-            if (doc.content_type === 'comment' || doc.content_type === 'reply') {
-              const commentType = doc.content_type;
-              commentTypes[commentType] = (commentTypes[commentType] || 0) + 1;
-            }
-          });
-          
-          console.log(`📊 ANÁLISIS PRE-FILTRADO - Tipos de contenido devueltos por Meltwater:`);
-          console.log(`   📰 Noticias reales: ${contentTypes['news'] || 0}`);
-          console.log(`   💬 Comentarios: ${commentTypes['comment'] || 0}`);
-          console.log(`   🔄 Respuestas: ${commentTypes['reply'] || 0}`);
-          console.log(`   📱 Posts sociales: ${contentTypes['social post'] || 0}`);
-          console.log(`   📝 Blogs: ${contentTypes['blog'] || 0}`);
-          console.log(`   ❓ Otros tipos: ${Object.keys(contentTypes).filter(type => 
-            !['news', 'comment', 'reply', 'social post', 'blog'].includes(type)
-          ).map(type => `${type}: ${contentTypes[type]}`).join(', ') || 'Ninguno'}`);
-          
-          if (Object.keys(socialTypes).length > 0) {
-            console.log(`   📱 Detalle posts sociales:`, socialTypes);
-          }
-          if (Object.keys(blogTypes).length > 0) {
-            console.log(`   📝 Detalle blogs:`, blogTypes);
-          }
+          console.log(`📊 Contenido obtenido: ${newsCount} noticias, ${otherCount} otros tipos`);
           
           console.log(`🔍 DEBUG - Estructura de respuesta:`);
           console.log(`   - documents.length: ${documents.length}`);
@@ -220,23 +157,9 @@ async function getSearchResults(searchId) {
           console.log(`   - Parámetros enviados: limit=500, offset=${range.offset}`);
           
 
-          // Filtrar comentarios y respuestas para evitar duplicados
-          const filteredDocuments = documents.filter(doc => {
-            // Excluir comentarios, respuestas y posts sociales
-            const isComment = doc.content_type === 'comment' || 
-                             doc.content_type === 'reply' || 
-                             doc.content_type === 'social post';
-            const hasCommentKeywords = doc.title?.toLowerCase().includes('comentario') ||
-                                     doc.title?.toLowerCase().includes('respuesta') ||
-                                     doc.title?.toLowerCase().includes('reply');
-            
-            return !isComment && !hasCommentKeywords;
-          });
-          
-          console.log(`   - Artículos filtrados: ${filteredDocuments.length} de ${documents.length} (eliminados ${documents.length - filteredDocuments.length} comentarios)`);
-          
-          // Agregar documentos filtrados
-          allDocuments.push(...filteredDocuments);
+          // Los parámetros de la API ya filtran contenido no deseado
+          // Solo agregar documentos directamente
+          allDocuments.push(...documents);
           
           // Si ya tenemos suficientes artículos, no hacer más peticiones
       if (allDocuments.length >= 800) {
@@ -244,8 +167,7 @@ async function getSearchResults(searchId) {
         break;
       }
         } else {
-          // Logs reducidos para errores
-          console.log(`⚠️  Error ${res.status} en petición ${i + 1}`);
+          console.error(`⚠️  Error ${res.status} en petición ${i + 1}`);
           
           // Si es error 429, esperar más tiempo antes de continuar
           if (res.status === 429) {
@@ -257,11 +179,11 @@ async function getSearchResults(searchId) {
         }
       } catch (error) {
         clearTimeout(timeoutId);
-        console.log(`⚠️  Error en petición ${i + 1}: ${error.name}`);
+        console.error(`⚠️  Error en petición ${i + 1}: ${error.name}`);
         
         // Si es timeout, esperar más tiempo antes de continuar
         if (error.name === 'AbortError') {
-          console.log(`⏳ Timeout, esperando 5s...`);
+          console.error(`⏳ Timeout, esperando 5s...`);
           await new Promise(resolve => setTimeout(resolve, 5000));
         }
       }
@@ -269,15 +191,12 @@ async function getSearchResults(searchId) {
 
     if (allDocuments.length > 0) {
       console.log(`✅ Meltwater: ${allDocuments.length} artículos obtenidos`);
-      
-      // CACHÉ DESHABILITADO TEMPORALMENTE - No guardar en caché
-      // await CacheService.saveCachedArticles(searchId, allDocuments, true);
       return { result: { documents: allDocuments } };
     } else {
-      console.log(`⚠️  Todas las peticiones de Meltwater fallaron o devolvieron 0 artículos`);
+      console.error(`⚠️  Todas las peticiones de Meltwater fallaron o devolvieron 0 artículos`);
     }
   } catch (error) {
-    console.log(`⚠️  Error en Meltwater múltiple: ${error.message}`);
+    console.error(`⚠️  Error en Meltwater múltiple: ${error.message}`);
   }
 
     // Si no hay artículos de Meltwater, lanzar error
@@ -287,9 +206,6 @@ async function getSearchResults(searchId) {
     
     // Usar solo noticias reales de Meltwater
     console.log(`✅ Usando ${allDocuments.length} artículos reales de Meltwater`);
-    
-    // CACHÉ DESHABILITADO TEMPORALMENTE - No guardar en caché
-    // await CacheService.saveCachedArticles(searchId, allDocuments, true);
     
     return { result: { documents: allDocuments } };
 }
@@ -490,17 +406,12 @@ router.get("/clear-cache", async (req, res) => {
   try {
     await ensureConnection();
     
-    // CACHÉ DESHABILITADO TEMPORALMENTE - No limpiar caché
-    // const CacheService = require("../services/cacheService");
-    // const deletedCount = await CacheService.clearAllCache();
-    const deletedCount = 0; // Caché deshabilitado
-    
     console.log(`🧹 Cache deshabilitado - No hay caché que limpiar`);
     
     res.json({
       success: true,
       message: `Cache deshabilitado - No hay caché que limpiar`,
-      deletedCount: deletedCount,
+      deletedCount: 0,
       note: "Caché deshabilitado temporalmente - Peticiones directas a Meltwater"
     });
   } catch (error) {
