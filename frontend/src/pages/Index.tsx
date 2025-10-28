@@ -1376,6 +1376,7 @@ async function getCountryName(articles: MeltwaterArticle[] = []): Promise<string
 export default function Index() {
   const [paisArticles, setPaisArticles] = useState<MeltwaterArticle[]>([]);
   const [sectorArticles, setSectorArticles] = useState<MeltwaterArticle[]>([]);
+  const [allArticles, setAllArticles] = useState<MeltwaterArticle[]>([]); // Artículos originales sin filtrar
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [metrics, setMetrics] = useState({
@@ -1464,6 +1465,7 @@ export default function Index() {
             
             setSectorArticles(sectorData);
             setPaisArticles(paisData);
+            setAllArticles([...sectorData, ...paisData]); // Guardar artículos originales sin filtrar
 
             // Resetear artículos mostrados para nueva carga
             setShownArticles(new Set());
@@ -1510,6 +1512,7 @@ export default function Index() {
             
             setSectorArticles(sectorData);
             setPaisArticles(paisData);
+            setAllArticles([...sectorData, ...paisData]); // Guardar artículos originales sin filtrar
 
             // Resetear artículos mostrados para nueva carga
             setShownArticles(new Set());
@@ -1920,7 +1923,7 @@ export default function Index() {
                 {(() => {
                   // Sección 3: Redes Sociales - Solo artículos de redes sociales del país
                   const dynamicLimit = calculateSocialMediaLimit(paisArticles.length, 500);
-                  const articles = getUniqueSocialMediaArticles(paisArticles, shownArticles, dynamicLimit);
+                  const articles = getUniqueSocialMediaArticles(allArticles, shownArticles, dynamicLimit);
                   console.log('🔴 TOP 50 REDES SOCIALES - Artículos mostrados:', articles.length);
                   articles.forEach((article, index) => {
                     console.log(`  ${index + 1}. ${article.title} | Fuente: ${article.source.name} | Engagement: ${article.engagementScore} | SocialEcho: ${article.socialEchoScore}`);
