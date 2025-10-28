@@ -1405,10 +1405,7 @@ export default function Index() {
           });
 
           if (response.data.success) {
-            // Log de la respuesta cruda de la API
-            console.log('🔍 RESPUESTA CRUDA DE LA API (con parámetros URL):');
-            console.log('📊 Datos del sector (raw):', response.data.sector);
-            console.log('📊 Datos del país (raw):', response.data.pais);
+            // Log de la respuesta de la API
             console.log('📊 Total sector:', response.data.sector?.length || 0);
             console.log('📊 Total país:', response.data.pais?.length || 0);
             
@@ -1452,10 +1449,7 @@ export default function Index() {
             includeSocial: true  // Incluir redes sociales para el panel social
           });
           if (response.data.success) {
-            // Log de la respuesta cruda de la API
-            console.log('🔍 RESPUESTA CRUDA DE LA API (con email):');
-            console.log('📊 Datos del sector (raw):', response.data.sector);
-            console.log('📊 Datos del país (raw):', response.data.pais);
+            // Log de la respuesta de la API
             console.log('📊 Total sector:', response.data.sector?.length || 0);
             console.log('📊 Total país:', response.data.pais?.length || 0);
             
@@ -1495,10 +1489,7 @@ export default function Index() {
         });
         
         if (response.data.success) {
-          // Log de la respuesta cruda de la API
-          console.log('🔍 RESPUESTA CRUDA DE LA API (default):');
-          console.log('📊 Datos del sector (raw):', response.data.sector);
-          console.log('📊 Datos del país (raw):', response.data.pais);
+          // Log de la respuesta de la API
           console.log('📊 Total sector:', response.data.sector?.length || 0);
           console.log('📊 Total país:', response.data.pais?.length || 0);
           
@@ -1775,7 +1766,6 @@ export default function Index() {
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
               <NewsList articles={(() => {
                 console.log('🚀 INICIANDO getUniqueTopPaisArticles con:', paisArticles.length, 'artículos del país');
-                console.log('🚀 ARTÍCULOS DEL PAÍS DISPONIBLES:', paisArticles.map(a => `${a.title} | ${a.source.name}`));
                 // Sección 2: País - Mostrar artículos del país (medios tradicionales) ordenados por SocialEcho/ContentScore
                 const dynamicLimit = calculateDynamicLimit(paisArticles.length, 500);
                 const articles = getUniqueTopPaisArticles(paisArticles, shownArticles, dynamicLimit);
