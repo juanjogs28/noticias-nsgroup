@@ -668,6 +668,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     'yelp', 'zomato', 'swiggy', 'ubereats', 'doordash', 'grubhub', 'postmates', 'caviar', 'seamless', 'chownow', 'toast', 'square', 'clover', 'shopify', 'woocommerce'
   ];
   
+  
   // Fuentes de medios tradicionales permitidas - Lista híbrida MUY INCLUSIVA
   const allowedTraditionalSources = [
     // === PALABRAS GENÉRICAS DE MEDIOS TRADICIONALES ===
@@ -900,16 +901,19 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   // Filtrar solo medios tradicionales, excluir redes sociales
   const filteredArticles = articles.filter(article => {
     const sourceName = article.source?.name?.toLowerCase() || '';
+    const raw: any = article as any;
+    const contentType = raw?.content_type;
     
     // Excluir por content_type primero (más confiable)
-    const raw: any = article as any;
-    if (raw?.content_type === 'social post' || raw?.content_type === 'social') {
+    if (contentType === 'social post' || contentType === 'social') {
+      console.log(`  ❌ Excluido (content_type): ${article.title} | Tipo: ${contentType} | Fuente: ${article.source?.name}`);
       return false;
     }
     
     // Excluir redes sociales explícitamente por nombre de fuente
     const isExcludedSocial = excludedSources.some(excluded => sourceName.includes(excluded));
     if (isExcludedSocial) {
+      console.log(`  ❌ Excluido (fuente social): ${article.title} | Fuente: ${article.source?.name}`);
       return false;
     }
     
@@ -919,10 +923,12 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
     );
     
     if (isTraditionalSource) {
+      console.log(`  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`);
       return true;
     }
     
     // Excluir fuentes no reconocidas (solo medios tradicionales)
+    console.log(`  ❌ Excluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`);
     return false;
   });
   
