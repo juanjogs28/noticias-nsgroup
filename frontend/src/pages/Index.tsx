@@ -184,17 +184,63 @@ function normalizeValue(value: number, min: number, max: number): number {
 
 // Función para calcular el ContentScore compuesto
 function calculateContentScore(article: MeltwaterArticle, allArticles: MeltwaterArticle[]): number {
-  // Extraer métricas del artículo
+  // FILTRO: Excluir redes sociales del ContentScore
+  const sourceName = article.source?.name?.toLowerCase() || '';
+  const raw: any = article as any;
+  const contentType = raw?.content_type;
+  
+  // Excluir por content_type primero (más confiable)
+  if (contentType === 'social post' || contentType === 'social') {
+    return 0; // Score 0 para redes sociales
+  }
+  
+  // Excluir redes sociales por nombre de fuente
+  const excludedSocialSources = [
+    'facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora',
+    'mastodon', 'bluesky', 'truth social', 'parler', 'gab', 'rumble', 'odysee', 'bitchute', 'dailymotion', 'vkontakte', 'vk', 'odnoklassniki', 'ok', 'weibo', 'wechat', 'qq', 'line', 'kakao', 'naver',
+    'mixi', 'ameba', 'hatena', 'note', 'qiita', 'zenn', 'dev.to', 'hashnode', 'substack', 'ghost', 'wordpress', 'blogger', 'livejournal', 'xanga', 'myspace', 'friendster', 'hi5', 'bebo', 'orkut',
+    'spotify', 'apple music', 'soundcloud', 'bandcamp', 'mixcloud', 'audiomack', 'reverbnation', 'last.fm', 'pandora', 'iheartradio', 'tunein', 'radio.com', 'radio.net', 'radio.garden',
+    'behance', 'dribbble', 'deviantart', 'artstation', '500px', 'unsplash', 'pexels', 'pixabay', 'shutterstock', 'getty', 'istock', 'hacker news', 'slashdot', 'digg', 'stumbleupon', 'delicious',
+    'signal', 'wickr', 'threema', 'element', 'matrix', 'riot', 'slack', 'teams', 'zoom', 'skype', 'hangouts', 'meet', 'duo', 'wix', 'squarespace', 'weebly', 'jekyll', 'hugo', 'gatsby', 'next.js', 'nuxt', 'svelte', 'vue', 'react', 'angular',
+    'etsy', 'ebay', 'amazon', 'mercado libre', 'mercadolibre', 'olx', 'gumtree', 'craigslist', 'marketplace', 'tinder', 'bumble', 'hinge', 'match', 'okcupid', 'plenty of fish', 'pof', 'zoosk', 'eharmony', 'elitesingles', 'silversingles', 'ourtime', 'seniorpeoplemeet',
+    'steam', 'epic games', 'origin', 'uplay', 'gog', 'itch.io', 'gamejolt', 'indiedb', 'roblox', 'minecraft', 'fortnite', 'pubg', 'apex legends', 'valorant', 'league of legends', 'dota', 'csgo', 'overwatch', 'world of warcraft', 'final fantasy', 'call of duty',
+    'coursera', 'udemy', 'edx', 'khan academy', 'skillshare', 'masterclass', 'linkedin learning', 'pluralsight', 'codecademy', 'freecodecamp', 'the odin project', 'scrimba', 'egghead', 'indeed', 'glassdoor', 'monster', 'careerbuilder', 'ziprecruiter', 'angel.co', 'crunchbase', 'pitchbook', 'cb insights', 'techcrunch', 'venturebeat', 'wired',
+    'kickstarter', 'indiegogo', 'gofundme', 'patreon', 'ko-fi', 'buymeacoffee', 'paypal', 'venmo', 'cashapp', 'zelle', 'apple pay', 'google pay', 'samsung pay', 'bitcoin', 'ethereum', 'crypto', 'cryptocurrency', 'blockchain', 'nft', 'nfts', 'opensea', 'foundation', 'superrare', 'rarible', 'nifty gateway', 'makersplace',
+    'strava', 'myfitnesspal', 'fitbit', 'apple watch', 'samsung health', 'google fit', 'nike run club', 'adidas running', 'under armour', 'garmin', 'polar', 'suunto', 'tripadvisor', 'booking', 'airbnb', 'vrbo', 'expedia', 'priceline', 'kayak', 'skyscanner', 'google flights', 'momondo', 'cheaptickets', 'hotels.com', 'marriott', 'hilton',
+    'yelp', 'zomato', 'swiggy', 'ubereats', 'doordash', 'grubhub', 'postmates', 'caviar', 'seamless', 'chownow', 'toast', 'square', 'clover', 'shopify', 'woocommerce'
+  ];
+  
+  const isExcludedSocial = excludedSocialSources.some(excluded => sourceName.includes(excluded));
+  if (isExcludedSocial) {
+    return 0; // Score 0 para redes sociales
+  }
+  
+  // Extraer métricas del artículo (solo para medios tradicionales)
   const reach = article.source?.metrics?.reach || 0;
   const engagement = article.engagementScore || 0;
   const ave = article.source?.metrics?.ave || 0;
   const views = article.metrics?.views || (engagement * 1.5); // Usar views reales si están disponibles
 
-  // Calcular valores mínimos y máximos de todas las noticias para normalización
-  const allReach = allArticles.map(a => a.source?.metrics?.reach || 0);
-  const allEngagement = allArticles.map(a => a.engagementScore || 0);
-  const allAve = allArticles.map(a => a.source?.metrics?.ave || 0);
-  const allViews = allArticles.map(a => a.metrics?.views || (a.engagementScore || 0) * 1.5);
+  // Calcular valores mínimos y máximos SOLO de medios tradicionales para normalización
+  const traditionalArticles = allArticles.filter(a => {
+    const aSourceName = a.source?.name?.toLowerCase() || '';
+    const aRaw: any = a as any;
+    const aContentType = aRaw?.content_type;
+    
+    // Excluir por content_type
+    if (aContentType === 'social post' || aContentType === 'social') {
+      return false;
+    }
+    
+    // Excluir por nombre de fuente
+    const aIsExcludedSocial = excludedSocialSources.some(excluded => aSourceName.includes(excluded));
+    return !aIsExcludedSocial;
+  });
+  
+  const allReach = traditionalArticles.map(a => a.source?.metrics?.reach || 0);
+  const allEngagement = traditionalArticles.map(a => a.engagementScore || 0);
+  const allAve = traditionalArticles.map(a => a.source?.metrics?.ave || 0);
+  const allViews = traditionalArticles.map(a => a.metrics?.views || (a.engagementScore || 0) * 1.5);
 
   // Usar valores más inclusivos para evitar penalización
   const minReach = Math.min(...allReach);
