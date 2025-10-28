@@ -650,7 +650,6 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   console.log('🔍 DEBUG getUniqueTopPaisArticles - INICIANDO FUNCIÓN - VERSION FIXED');
   console.log('  Total artículos de entrada:', articles.length);
   console.log('  Artículos ya mostrados:', shownArticles.size);
-  console.log('  Artículos ya mostrados (lista):', Array.from(shownArticles));
   
   // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
   const excludedSources = ['facebook', 'twitter', 'x', 'reddit', 'twitch', 'youtube', 'instagram', 'tiktok', 'threads', 'linkedin', 'snapchat', 'pinterest', 'telegram', 'whatsapp', 'discord', 'vimeo', 'flickr', 'tumblr', 'medium', 'quora'];
@@ -1051,7 +1050,6 @@ function getUniqueSocialMediaArticles(articles: MeltwaterArticle[], shownArticle
   console.log('🔍 DEBUG getUniqueSocialMediaArticles - INICIANDO FUNCIÓN');
   console.log('  Total artículos de entrada:', articles.length);
   console.log('  Artículos ya mostrados:', shownArticles.size);
-  console.log('  Artículos ya mostrados (lista):', Array.from(shownArticles));
   
   // Dominios sociales reconocidos para URL
   const socialHosts = new Set([
@@ -1413,9 +1411,6 @@ export default function Index() {
             const paisData = adaptResults(response.data.pais);
             
             // Log de los datos después de adaptResults
-            console.log('🔄 DESPUÉS DE adaptResults:');
-            console.log('📊 Sector adaptado:', sectorData);
-            console.log('📊 País adaptado:', paisData);
             
             setSectorArticles(sectorData);
             setPaisArticles(paisData);
@@ -1457,9 +1452,6 @@ export default function Index() {
             const paisData = adaptResults(response.data.pais);
             
             // Log de los datos después de adaptResults
-            console.log('🔄 DESPUÉS DE adaptResults:');
-            console.log('📊 Sector adaptado:', sectorData);
-            console.log('📊 País adaptado:', paisData);
             
             setSectorArticles(sectorData);
             setPaisArticles(paisData);
@@ -1497,9 +1489,6 @@ export default function Index() {
           const paisData = adaptResults(response.data.pais);
           
           // Log de los datos después de adaptResults
-          console.log('🔄 DESPUÉS DE adaptResults:');
-          console.log('📊 Sector adaptado:', sectorData);
-          console.log('📊 País adaptado:', paisData);
           
           setSectorArticles(sectorData);
           setPaisArticles(paisData);
@@ -1621,8 +1610,8 @@ export default function Index() {
   // Log de fuentes disponibles
   const sectorSources = [...new Set(sectorArticles.map(a => a.source.name))];
   const paisSources = [...new Set(paisArticles.map(a => a.source.name))];
-  console.log('📰 FUENTES SECTOR:', sectorSources);
-  console.log('📰 FUENTES PAÍS:', paisSources);
+  console.log('📰 FUENTES SECTOR:', sectorSources.length);
+  console.log('📰 FUENTES PAÍS:', paisSources.length);
 
   return (
     <div className="min-h-screen tech-background network-pattern">
@@ -1689,7 +1678,6 @@ export default function Index() {
                 console.log('🔵 DEBUG SECTOR - Estado inicial:');
                 console.log(`  📊 sectorArticles disponibles: ${sectorArticles.length}`);
                 console.log(`  📊 shownArticles.size: ${shownArticles.size}`);
-                console.log(`  📊 shownArticles contenido:`, Array.from(shownArticles).slice(0, 100));
 
                 // Panel Sector: Incluir TODAS las noticias (ajuste temporal)
                 console.log(`  📊 sectorArticles totales: ${sectorArticles.length}`);
@@ -1819,7 +1807,7 @@ export default function Index() {
           console.log('🔍 DEBUG NUBE DE PALABRAS:');
           console.log(`  📊 Artículos del país: ${paisArticles.length}`);
           console.log(`  📊 Palabras extraídas: ${words.length}`);
-          console.log(`  📊 Primeras 100 palabras:`, words.slice(0, 100));
+          console.log(`  📊 Primeras 100 palabras:`, words.length);
           
           if (words.length === 0) {
             console.log('⚠️  No hay palabras para nube de palabras');
