@@ -945,6 +945,7 @@ function getUniqueTopPaisArticles(articles: MeltwaterArticle[], shownArticles: S
   // Log detallado de métricas de medios tradicionales
   console.log('  📊 ANÁLISIS MÉTRICAS MEDIOS TRADICIONALES:', articlesWithoutSocialEcho.length, 'artículos');
 
+
   // Ordenar cada grupo por su métrica correspondiente
   const sortedWithSocialEcho = articlesWithSocialEcho.sort((a, b) => {
     const socialEchoA = a.hybridSocialEchoScore || 0;
