@@ -2,8 +2,8 @@
 require("dotenv").config();
 const axios = require("axios");
 
-const BASE_URL = "https://noticias-nsgroup-production.up.railway.app";
-const ADMIN_PASSWORD = "AdminNSG-+";
+const BASE_URL = process.env.API_BASE_URL || "https://noticias-nsgroup-production.up.railway.app";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 
 async function diagnoseProduction() {
   console.log("🔍 DIAGNÓSTICO DE PRODUCCIÓN");

@@ -1,6 +1,4 @@
-const NEWS_API_KEY = "8PMcUPYZ1M954yDpIh6mI8CE61fqwG2LFulSbPGo" //'24897757f4fe4d9c8d1f49870158d6e2';
-const NEWS_API_BASE_URL = "https://api.meltwater.com/v2/search"//'https://newsapi.org/v2';
-const URUGUAY_API_URL =  "https://downloads.exports.meltwater.com/v3/recurring/14295972?data_key=85969f36-4eff-3098-810c-f0f975b65628"
+import { buildApiUrl, API_CONFIG } from '@/config/api';
 
 // Nueva interfaz para la estructura de datos de Meltwater
 export interface MeltwaterDocument {
@@ -141,42 +139,37 @@ export interface NewsResponse {
 }
 
 export const fetchTopHeadlines = async (country: string = 'us', pageSize: number = 500): Promise<NewsResponse> => {
-  const url = URUGUAY_API_URL;
-  
   try {
-    const response = await fetch(url);
-    
+    const response = await fetch(buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'default', includeSocial: false })
+    });
+
     if (!response.ok) {
       throw new Error(`Error fetching news: ${response.status} ${response.statusText}`);
     }
-    
-    const data: MeltwaterResponse = await response.json();
-    console.log('Meltwater response:', data);
-    
-    // Transformar los datos de Meltwater al formato esperado por el componente
-    const transformedArticles: NewsArticle[] = data.documents.map(doc => ({
-      title: doc.content.title || `Post de ${doc.source.name}` || 'Sin título',
-      description: doc.content.opening_text || `Contenido de ${doc.source.name}` || 'Sin descripción',
-      url: doc.url || doc.thread?.url || '#',
-      publishedAt: doc.published_date,
-      source: {
-        name: doc.source.name
-      },
-      urlToImage: doc.content.image || "/placeholder.svg"
-    }));
-    
-    // Crear un set temporal para tracking (ya que es una función estática)
-    const tempShownArticles = new Set<string>();
 
-    // Filtrar artículos únicos ordenados por ContentScore
-    const uniqueArticles = getUniqueTopArticles(transformedArticles, tempShownArticles, transformedArticles.length);
+    const data = await response.json();
+    const documents = [...(data.pais || []), ...(data.sector || [])];
+
+    const transformedArticles: NewsArticle[] = documents.map((doc: any) => ({
+      title: doc?.content?.title || doc?.title || 'Sin título',
+      description: doc?.content?.opening_text || 'Sin descripción',
+      url: doc?.url || doc?.thread?.url || '#',
+      publishedAt: doc?.published_date || new Date().toISOString(),
+      source: { name: doc?.source?.name || 'Desconocido' },
+      urlToImage: doc?.content?.image || '/placeholder.svg'
+    }));
+
+    const tempShownArticles = new Set<string>();
+    const uniqueArticles = getUniqueTopArticles(transformedArticles, tempShownArticles, Math.min(pageSize, transformedArticles.length));
 
     return {
-      status: data.request.status,
+      status: 'ok',
       totalResults: uniqueArticles.length,
       articles: uniqueArticles
     };
-    
   } catch (error) {
     console.error('Error fetching news:', error);
     throw error;
@@ -184,17 +177,8 @@ export const fetchTopHeadlines = async (country: string = 'us', pageSize: number
 };
 
 export const searchNews = async (query: string, pageSize: number = 500): Promise<NewsResponse> => {
-  // Real API call to NewsAPI
-  const url = `${NEWS_API_BASE_URL}/everything?q=${encodeURIComponent(query)}&pageSize=${pageSize}&sortBy=publishedAt&apiKey=${NEWS_API_KEY}`;
-  
-  const response = await fetch(url);
-  
-  if (!response.ok) {
-    throw new Error(`Error searching news: ${response.status} ${response.statusText}`);
-  }
-  
-  const data = await response.json();
-  return data;
+  // Por ahora usaremos el mismo origen seguro del backend
+  return fetchTopHeadlines('us', pageSize);
 };
 
 // Función para calcular ContentScore simple

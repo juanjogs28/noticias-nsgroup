@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const BASE_URL = process.env.API_BASE_URL || "http://localhost:3001";
-const ADMIN_PASSWORD = "AdminNSG-+";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
 
 async function testAuth() {
   console.log("🧪 Probando autenticación de admin...\n");
