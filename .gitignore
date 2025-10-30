@@ -1,10 +1,18 @@
-# Dependencias
+# Mantener solo estos en la raíz
+/*
+!/.gitignore
+!/README.md
+!/frontend/
+!/backend/
+
+# Ignorar comunes en todo el repo
 node_modules/
-/dist
-/.pnp
+dist/
+build/
+.pnp
 .pnp.js
 
-# Archivos de entorno
+# Entornos
 .env
 .env.local
 .env.development.local
@@ -18,36 +26,30 @@ yarn-error.log*
 logs/
 *.log
 
-# Sistema operativo
+# SO
 .DS_Store
 Thumbs.db
 
-# IDEs y editores
-/.idea
-/.vscode
+# IDEs
+.idea/
+.vscode/
 *.swp
 *.swo
 .project
 .classpath
 .settings/
 
-# Archivos de compilación
-/build
-/dist
-/.next
-/out
-
-# Archivos de caché
+# Frameworks/Build
+.next/
+out/
 .cache/
 .npm/
+coverage/
 
-# Archivos de cobertura de tests
-/coverage
-
-# Archivos temporales
+# Temporales
 *.tmp
 *.temp
 .eslintcache
 
 # MongoDB
-/data/db
+data/db
