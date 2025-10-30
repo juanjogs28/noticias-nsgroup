@@ -259,7 +259,6 @@ function calculateContentScore(article: MeltwaterArticle, allArticles: Meltwater
   const viewsNorm = normalizeValue(views, minViews, maxViews);
 
   // Bonus para fuentes de noticias tradicionales reconocidas
-  const sourceName = article.source?.name?.toLowerCase() || '';
   const traditionalNewsSources = [
     'bbc', 'cnn', 'reuters', 'ap', 'associated press', 'bloomberg', 'wall street journal', 'new york times',
     'washington post', 'guardian', 'telegraph', 'independent', 'times', 'financial times', 'economist',
