@@ -4239,10 +4239,12 @@ export default function Index() {
             console.log("📊 Total país:", response.data.pais?.length || 0);
             
             // ARRAY COMPLETO DE ARTÍCULOS DESDE LA API
-            console.log("\n📋 ARRAY COMPLETO DE ARTÍCULOS - SECTOR (desde API):");
-            console.log(JSON.stringify(response.data.sector || [], null, 2));
-            console.log("\n📋 ARRAY COMPLETO DE ARTÍCULOS - PAÍS (desde API):");
-            console.log(JSON.stringify(response.data.pais || [], null, 2));
+            const sectorArray = response.data.sector || [];
+            const paisArray = response.data.pais || [];
+            console.log(`\n📋 ARRAY COMPLETO DE ARTÍCULOS - SECTOR (desde API) [${sectorArray.length} elementos]:`);
+            console.log(JSON.stringify(sectorArray, null, 2));
+            console.log(`\n📋 ARRAY COMPLETO DE ARTÍCULOS - PAÍS (desde API) [${paisArray.length} elementos]:`);
+            console.log(JSON.stringify(paisArray, null, 2));
             
             const sectorData = adaptResults(response.data.sector, true); // Incluir redes sociales
             const paisData = adaptResults(response.data.pais, true); // Incluir redes sociales
@@ -4305,10 +4307,12 @@ export default function Index() {
             console.log("📊 Total país:", response.data.pais?.length || 0);
             
             // ARRAY COMPLETO DE ARTÍCULOS DESDE LA API
-            console.log("\n📋 ARRAY COMPLETO DE ARTÍCULOS - SECTOR (desde API):");
-            console.log(JSON.stringify(response.data.sector || [], null, 2));
-            console.log("\n📋 ARRAY COMPLETO DE ARTÍCULOS - PAÍS (desde API):");
-            console.log(JSON.stringify(response.data.pais || [], null, 2));
+            const sectorArray = response.data.sector || [];
+            const paisArray = response.data.pais || [];
+            console.log(`\n📋 ARRAY COMPLETO DE ARTÍCULOS - SECTOR (desde API) [${sectorArray.length} elementos]:`);
+            console.log(JSON.stringify(sectorArray, null, 2));
+            console.log(`\n📋 ARRAY COMPLETO DE ARTÍCULOS - PAÍS (desde API) [${paisArray.length} elementos]:`);
+            console.log(JSON.stringify(paisArray, null, 2));
             
             const sectorData = adaptResults(response.data.sector, true); // Incluir redes sociales
             const paisData = adaptResults(response.data.pais, true); // Incluir redes sociales
