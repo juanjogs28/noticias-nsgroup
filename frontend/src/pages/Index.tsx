@@ -1551,6 +1551,10 @@ function getUniqueTopArticles(
   console.log(`  📊 Artículos ya mostrados: ${shownArticles.size}`);
   console.log(`  📊 Límite solicitado: ${limit}`);
   
+  // Mostrar array completo de artículos de entrada
+  console.log(`\n📋 ARRAY COMPLETO DE ARTÍCULOS DE ENTRADA [${articles.length} elementos]:`);
+  console.log(JSON.stringify(articles, null, 2));
+  
   // Primero ordenar por ContentScore
   const sortedArticles = sortArticlesByContentScore(articles);
   console.log(
@@ -1606,6 +1610,10 @@ function getUniqueTopPaisArticles(
   );
   console.log("  Total artículos de entrada:", articles.length);
   console.log("  Artículos ya mostrados:", shownArticles.size);
+  
+  // Mostrar array completo de artículos de entrada
+  console.log(`\n📋 ARRAY COMPLETO DE ARTÍCULOS DE ENTRADA (PAÍS) [${articles.length} elementos]:`);
+  console.log(JSON.stringify(articles, null, 2));
   
   // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
   const excludedSources = [
@@ -3761,6 +3769,10 @@ function getUniqueSocialMediaArticles(
   console.log("🔍 DEBUG getUniqueSocialMediaArticles - INICIANDO FUNCIÓN");
   console.log("  Total artículos de entrada:", articles.length);
   console.log("  Artículos ya mostrados:", shownArticles.size);
+  
+  // Mostrar array completo de artículos de entrada
+  console.log(`\n📋 ARRAY COMPLETO DE ARTÍCULOS DE ENTRADA (REDES SOCIALES) [${articles.length} elementos]:`);
+  console.log(JSON.stringify(articles, null, 2));
   
   // Dominios sociales reconocidos para URL
   const socialHosts = new Set([
