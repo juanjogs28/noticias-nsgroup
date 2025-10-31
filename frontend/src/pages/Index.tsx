@@ -3577,23 +3577,13 @@ function getUniqueTopPaisArticles(
       return false;
     }
     
-    // Incluir medios tradicionales reconocidos
-    const isTraditionalSource = allowedTraditionalSources.some((traditional) =>
-      sourceName.includes(traditional)
-    );
-    
-    if (isTraditionalSource) {
-      console.log(
-        `  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`
-      );
-      return true;
-    }
-    
-    // Excluir fuentes no reconocidas (solo medios tradicionales)
+    // PERMITIR TODO LO DEMÁS (medios tradicionales)
+    // Esto incluye: DelSol, Gub.uy, CX36 Radio Centenario, Montevideo Portal, etc.
+    // Ya filtramos redes sociales arriba, así que cualquier otra fuente es bienvenida
     console.log(
-      `  ❌ Excluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`
+      `  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`
     );
-    return false;
+    return true;
   });
   
   console.log(

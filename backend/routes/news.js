@@ -71,13 +71,25 @@ async function ensureConnection() {
 }
 
 
-// Función principal para obtener resultados de búsqueda con estrategia de caché y fallback
+// Función para generar ID único de un documento
+function generateDocumentId(doc) {
+  // Usar ID si existe, sino URL, sino título+fuente+fecha
+  if (doc.id) return `id:${doc.id}`;
+  if (doc.url) return `url:${doc.url}`;
+  const title = doc.content?.title || doc.title || '';
+  const source = doc.source?.name || '';
+  const date = doc.published_date || '';
+  return `hash:${title}_${source}_${date}`;
+}
+
+// Función principal para obtener resultados de búsqueda - Asegura mínimo 50 artículos únicos con paginación
 async function getSearchResults(searchId, includeSocial = false) {
   let allDocuments = [];
+  const seenIds = new Set(); // Para evitar duplicados
+  const MIN_ARTICLES = 60; // Mínimo requerido de artículos únicos (aumentado para dar margen)
 
   try {
-    // Hacer múltiples peticiones con diferentes rangos de fechas
-    console.log(`🔍 Intentando Meltwater para searchId: ${searchId} - estrategia múltiple`);
+    console.log(`🔍 Intentando Meltwater para searchId: ${searchId} - Objetivo: mínimo ${MIN_ARTICLES} artículos únicos`);
     console.log(`🔍 DEBUG - MELTWATER_TOKEN configurado: ${MELTWATER_TOKEN ? 'Sí' : 'No'}`);
     console.log(`🔍 DEBUG - MELTWATER_API_URL: ${MELTWATER_API_URL}`);
     console.log(`🔍 DEBUG - Include Social: ${includeSocial ? 'SÍ' : 'NO'}`);
@@ -86,121 +98,172 @@ async function getSearchResults(searchId, includeSocial = false) {
     const now = new Date();
     const end = now.toISOString().slice(0, 19);
     
-
-    // Estrategia: 3 peticiones con diferentes rangos de fechas
-    const dateRanges = [
-      { name: "última semana", days: 7 },
-      { name: "último mes", days: 30 },
-      { name: "últimos 3 meses", days: 90 }
-    ];
+    // Estrategia optimizada: usar ventanas más grandes con paginación
+    const windowSize = 30; // 30 días por ventana (aumentado desde 7)
+    const totalDays = 150; // 5 meses en total
+    const numberOfWindows = 5; // 5 ventanas de 30 días
     
-    for (let i = 0; i < dateRanges.length; i++) {
-      const range = dateRanges[i];
-      
-      // Delay aumentado entre peticiones para evitar rate limiting
-      if (i > 0) {
-        const delay = 2000; // 2 segundos entre peticiones
-        console.log(`⏳ Esperando ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-      
-      console.log(`🔍 Petición ${i + 1}/${dateRanges.length}: ${range.name} (${range.days} días)`);
-      
-      try {
-        const startDate = new Date(now.getTime() - range.days * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
-        
-        const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
-          method: "POST",
-          headers: {
-            apikey: MELTWATER_TOKEN,
-            "Content-Type": "application/json",
-          },
-          signal: controller.signal,
-          body: JSON.stringify({
-            tz: "America/Montevideo",
-            start: startDate,
-            end: end,
-            limit: 500, // Límite moderado para obtener más artículos
-            // Parámetros optimizados según el tipo de contenido solicitado
-            language: "es",
-            content_type: includeSocial ? undefined : "news", // Si incluye sociales, no filtrar por content_type
-            sort: "relevance",
-            include_social: includeSocial, // Permitir redes sociales cuando se solicite
-            include_blog: includeSocial, // Incluir blogs cuando se soliciten redes sociales
-            include_forum: includeSocial // Incluir foros cuando se soliciten redes sociales
-          }),
-        });
-
-        clearTimeout(timeoutId);
-        
-        if (res.ok) {
-          const data = await res.json();
-          const documents = data.result?.documents || [];
-          
-          // Debug detallado de la respuesta de Meltwater
-          console.log(`✅ Petición ${i + 1} exitosa: ${documents.length} artículos (${range.name}) - Total acumulado: ${allDocuments.length}`);
-          
-          // Análisis básico de tipos de contenido
-          const newsCount = documents.filter(doc => doc.content_type === 'news').length;
-          const socialCount = documents.filter(doc => doc.content_type === 'social post').length;
-          const otherCount = documents.length - newsCount - socialCount;
-          
-          console.log(`📊 Contenido obtenido: ${newsCount} noticias, ${socialCount} posts sociales, ${otherCount} otros tipos`);
-          
-          // Debug detallado de tipos de contenido
-          if (includeSocial) {
-            console.log(`🔍 DEBUG SOCIAL - Tipos de contenido devueltos:`);
-            documents.forEach((doc, index) => {
-              console.log(`  ${index + 1}. "${doc.content?.title || doc.title || 'Sin título'}" | Tipo: ${doc.content_type} | Fuente: ${doc.source?.name}`);
-            });
-          }
-          
-          console.log(`🔍 DEBUG - Estructura de respuesta:`);
-          console.log(`   - documents.length: ${documents.length}`);
-          console.log(`   - result.total: ${data.result?.total || 'No disponible'}`);
-          console.log(`   - result.count: ${data.result?.count || 'No disponible'}`);
-          console.log(`   - result.offset: ${data.result?.offset || 'No disponible'}`);
-          console.log(`   - result.limit: ${data.result?.limit || 'No disponible'}`);
-          console.log(`   - Parámetros enviados: limit=500, offset=${range.offset}`);
-          
-
-          // Los parámetros de la API ya filtran contenido no deseado
-          // Solo agregar documentos directamente
-          allDocuments.push(...documents);
-          
-          // Si ya tenemos suficientes artículos, no hacer más peticiones
-      if (allDocuments.length >= 800) {
-        console.log(`🎯 Objetivo alcanzado (${allDocuments.length} artículos), deteniendo peticiones`);
+    const dateWindows = [];
+    for (let i = 0; i < numberOfWindows; i++) {
+      const daysEnd = windowSize * (i + 1);
+      const daysStart = windowSize * i;
+      dateWindows.push({
+        name: `ventana ${i + 1} (días ${daysStart}-${daysEnd})`,
+        startDays: daysStart,
+        endDays: daysEnd
+      });
+    }
+    
+    // Solo usar relevance
+    const sortBy = "relevance";
+    
+    console.log(`\n📅 Usando ${dateWindows.length} ventanas de tiempo de ${windowSize} días cada una con paginación`);
+    
+    for (const window of dateWindows) {
+      // Si ya tenemos suficientes artículos, no continuar
+      if (allDocuments.length >= MIN_ARTICLES) {
+        console.log(`🎯 Ya tenemos ${allDocuments.length} artículos, suficiente para continuar`);
         break;
       }
-        } else {
-          console.error(`⚠️  Error ${res.status} en petición ${i + 1}`);
-          
-          // Si es error 429, esperar más tiempo antes de continuar
-          if (res.status === 429) {
-            const retryAfter = res.headers.get('retry-after');
-            const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 5000;
-            console.log(`⏳ Esperando ${waitTime/1000}s...`);
-            await new Promise(resolve => setTimeout(resolve, waitTime));
-          }
-        }
-      } catch (error) {
-        clearTimeout(timeoutId);
-        console.error(`⚠️  Error en petición ${i + 1}: ${error.name}`);
+      
+      const startDate = new Date(now.getTime() - window.endDays * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
+      const endDate = new Date(now.getTime() - window.startDays * 24 * 60 * 60 * 1000).toISOString().slice(0, 19);
+      
+      console.log(`\n📅 Ventana: ${window.name} (${startDate} a ${endDate})`);
+      
+      // Paginación dentro de cada ventana
+      let offset = 0;
+      let windowHasMore = true;
+      const PAGE_SIZE = 50;
+      const MAX_PAGES_PER_WINDOW = 5; // Máximo 5 páginas por ventana (250 artículos)
+      let pageCount = 0;
+      
+      while (windowHasMore && allDocuments.length < MIN_ARTICLES && pageCount < MAX_PAGES_PER_WINDOW) {
+        pageCount++;
         
-        // Si es timeout, esperar más tiempo antes de continuar
-        if (error.name === 'AbortError') {
-          console.error(`⏳ Timeout, esperando 5s...`);
-          await new Promise(resolve => setTimeout(resolve, 5000));
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000);
+          
+          console.log(`   🔍 Petición página ${pageCount}: offset=${offset}, limit=${PAGE_SIZE}`);
+          
+          const res = await fetch(`${MELTWATER_API_URL}/v3/search/${searchId}`, {
+            method: "POST",
+            headers: {
+              apikey: MELTWATER_TOKEN,
+              "Content-Type": "application/json",
+            },
+            signal: controller.signal,
+            body: JSON.stringify({
+              tz: "America/Montevideo",
+              start: startDate,
+              end: endDate,
+              limit: PAGE_SIZE,
+              offset: offset,
+              language: "es",
+              content_type: includeSocial ? undefined : "news",
+              sort: sortBy,
+              include_social: includeSocial,
+              include_blog: includeSocial,
+              include_forum: includeSocial
+            }),
+          });
+
+          clearTimeout(timeoutId);
+          
+          if (res.ok) {
+            const data = await res.json();
+            const documents = data.result?.documents || [];
+            
+            if (documents.length === 0) {
+              console.log(`   ⚠️  Sin más resultados en esta ventana`);
+              windowHasMore = false;
+              break;
+            }
+            
+            // Si recibimos menos de PAGE_SIZE, no hay más en esta ventana
+            if (documents.length < PAGE_SIZE) {
+              console.log(`   ℹ️  Última página de esta ventana (${documents.length} artículos)`);
+              windowHasMore = false;
+            }
+            
+            // Filtrar duplicados usando ID mejorado
+            const newDocuments = documents.filter(doc => {
+              const docId = generateDocumentId(doc);
+              if (seenIds.has(docId)) {
+                return false;
+              }
+              seenIds.add(docId);
+              return true;
+            });
+            
+            allDocuments.push(...newDocuments);
+            
+            console.log(`   ✅ ${documents.length} recibidos, ${newDocuments.length} nuevos únicos, ${allDocuments.length} total acumulado`);
+            
+            // Si ya tenemos suficientes, detener
+            if (allDocuments.length >= MIN_ARTICLES) {
+              console.log(`   🎯 Objetivo alcanzado! ${allDocuments.length} artículos únicos obtenidos`);
+              break;
+            }
+            
+            // Incrementar offset para siguiente página
+            offset += PAGE_SIZE;
+            
+            // Delay entre peticiones (2 segundos para evitar rate limits)
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+          } else {
+            const errorText = await res.text().catch(() => 'No error text');
+            console.error(`   ⚠️  Error ${res.status}: ${errorText}`);
+            
+            if (res.status === 429) {
+              const retryAfter = res.headers.get('retry-after');
+              const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 5000;
+              console.log(`   ⏳ Rate limit, esperando ${waitTime/1000}s...`);
+              await new Promise(resolve => setTimeout(resolve, waitTime));
+            } else if (res.status >= 400 && res.status < 500) {
+              // Error del cliente, saltar esta página
+              console.log(`   🔄 Error del cliente, saltando página...`);
+              windowHasMore = false;
+              break;
+            } else {
+              // Error del servidor, esperar y continuar
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+          }
+        } catch (error) {
+          console.error(`   ⚠️  Error en petición: ${error.name} - ${error.message}`);
+          if (error.name === 'AbortError') {
+            console.log(`   ⏳ Timeout, esperando 5s...`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+          } else {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+          // No romper el loop, intentar siguiente página
         }
+      }
+      
+      // Si ya tenemos suficientes, no probar más ventanas
+      if (allDocuments.length >= MIN_ARTICLES) {
+        break;
+      }
+      
+      // Delay entre ventanas
+      if (allDocuments.length < MIN_ARTICLES) {
+        console.log(`   ⏳ Esperando 1s antes de siguiente ventana...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
 
     if (allDocuments.length > 0) {
-      console.log(`✅ Meltwater: ${allDocuments.length} artículos obtenidos`);
+      console.log(`\n✅ Meltwater: ${allDocuments.length} artículos únicos obtenidos`);
+      
+      // Si tenemos menos del mínimo, loguear advertencia pero devolver lo que tenemos
+      if (allDocuments.length < MIN_ARTICLES) {
+        console.warn(`⚠️  Advertencia: Solo se obtuvieron ${allDocuments.length} artículos, se solicitaban mínimo ${MIN_ARTICLES}`);
+      }
+      
       return { result: { documents: allDocuments } };
     } else {
       console.error(`⚠️  Todas las peticiones de Meltwater fallaron o devolvieron 0 artículos`);
@@ -209,14 +272,11 @@ async function getSearchResults(searchId, includeSocial = false) {
     console.error(`⚠️  Error en Meltwater múltiple: ${error.message}`);
   }
 
-    // Si no hay artículos de Meltwater, lanzar error
     if (allDocuments.length === 0) {
       throw new Error(`No se pudieron obtener noticias de Meltwater para searchId: ${searchId}. API no disponible o sin resultados.`);
     }
     
-    // Usar solo noticias reales de Meltwater
     console.log(`✅ Usando ${allDocuments.length} artículos reales de Meltwater`);
-    
     return { result: { documents: allDocuments } };
 }
 
