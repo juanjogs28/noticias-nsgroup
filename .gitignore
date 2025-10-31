@@ -4,6 +4,10 @@
 !/README.md
 !/frontend/
 !/backend/
+!/railway.json
+!/Dockerfile
+!/Procfile
+!/package.json
 
 # Ignorar comunes en todo el repo
 node_modules/
