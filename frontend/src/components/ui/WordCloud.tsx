@@ -102,7 +102,8 @@ export default function WordCloud({ words, maxWords = 30 }: Props) {
     if (!el) return;
     const update = () => setContainerSize({ width: el.clientWidth, height: el.clientHeight });
     update();
-    const ro = new (window as any).ResizeObserver?.(update);
+    const ResizeObserverCtor = (window as any).ResizeObserver;
+    const ro = ResizeObserverCtor ? new ResizeObserverCtor(update) : null;
     if (ro && el) ro.observe(el);
     return () => ro && ro.disconnect();
   }, []);
