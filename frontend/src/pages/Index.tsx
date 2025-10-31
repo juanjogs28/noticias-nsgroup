@@ -51,23 +51,23 @@ function adaptResults(
     const isSocialPost = contentType === "social post";
     const isNotComment = contentType !== "comment" && contentType !== "reply";
     const isNotBlog = contentType !== "blog";
-
+    
     // Si includeSocial es true, incluir posts sociales
     const shouldInclude =
       isNews ||
       (isNotComment && (includeSocial ? true : !isSocialPost) && isNotBlog);
-
+    
     return shouldInclude;
   });
-
+  
   console.log(
     `📊 Filtrado por tipo: ${raw.length} → ${filteredRaw.length} artículos`
   );
-
+  
   const adapted = filteredRaw.map((doc, index) => {
     // Generar título basado en el tipo de contenido
     const isSocial = doc.content_type === "social post";
-    const originalSocialTitle = isSocial
+    const originalSocialTitle = isSocial 
       ? doc.content?.title ||
         doc.content?.text ||
         doc.content?.message ||
@@ -149,7 +149,7 @@ function adaptResults(
         name: doc.source?.name || "Fuente desconocida",
         metrics: doc.source?.metrics
           ? {
-              reach: doc.source.metrics.reach || 0,
+          reach: doc.source.metrics.reach || 0,
               ave: doc.source.metrics.ave || 0,
             }
           : undefined,
@@ -158,34 +158,34 @@ function adaptResults(
         doc.metrics?.engagement?.total ??
         (doc.metrics?.engagement
           ? (doc.metrics.engagement.likes || 0) +
-            (doc.metrics.engagement.replies || 0) +
-            (doc.metrics.engagement.reposts || 0) +
-            (doc.metrics.engagement.shares || 0) +
-            (doc.metrics.engagement.comments || 0) +
-            (doc.metrics.engagement.quotes || 0) +
+          (doc.metrics.engagement.replies || 0) + 
+          (doc.metrics.engagement.reposts || 0) + 
+          (doc.metrics.engagement.shares || 0) + 
+          (doc.metrics.engagement.comments || 0) + 
+          (doc.metrics.engagement.quotes || 0) + 
             (doc.metrics.engagement.reactions || 0)
           : 0),
       socialEchoScore:
         doc.metrics?.social_echo?.total ??
         (doc.metrics?.social_echo
           ? (doc.metrics.social_echo.x || 0) +
-            (doc.metrics.social_echo.facebook || 0) +
-            (doc.metrics.social_echo.reddit || 0) +
-            (doc.metrics.social_echo.instagram || 0) +
-            (doc.metrics.social_echo.linkedin || 0) +
-            (doc.metrics.social_echo.tiktok || 0) +
-            (doc.metrics.social_echo.youtube || 0) +
-            (doc.metrics.social_echo.threads || 0) +
-            (doc.metrics.social_echo.snapchat || 0) +
-            (doc.metrics.social_echo.pinterest || 0) +
-            (doc.metrics.social_echo.telegram || 0) +
-            (doc.metrics.social_echo.whatsapp || 0) +
-            (doc.metrics.social_echo.discord || 0) +
-            (doc.metrics.social_echo.twitch || 0) +
-            (doc.metrics.social_echo.vimeo || 0) +
-            (doc.metrics.social_echo.flickr || 0) +
-            (doc.metrics.social_echo.tumblr || 0) +
-            (doc.metrics.social_echo.medium || 0) +
+          (doc.metrics.social_echo.facebook || 0) + 
+          (doc.metrics.social_echo.reddit || 0) + 
+          (doc.metrics.social_echo.instagram || 0) + 
+          (doc.metrics.social_echo.linkedin || 0) + 
+          (doc.metrics.social_echo.tiktok || 0) + 
+          (doc.metrics.social_echo.youtube || 0) + 
+          (doc.metrics.social_echo.threads || 0) + 
+          (doc.metrics.social_echo.snapchat || 0) + 
+          (doc.metrics.social_echo.pinterest || 0) + 
+          (doc.metrics.social_echo.telegram || 0) + 
+          (doc.metrics.social_echo.whatsapp || 0) + 
+          (doc.metrics.social_echo.discord || 0) + 
+          (doc.metrics.social_echo.twitch || 0) + 
+          (doc.metrics.social_echo.vimeo || 0) + 
+          (doc.metrics.social_echo.flickr || 0) + 
+          (doc.metrics.social_echo.tumblr || 0) + 
+          (doc.metrics.social_echo.medium || 0) + 
             (doc.metrics.social_echo.quora || 0)
           : 0),
       location: doc.location
@@ -205,12 +205,12 @@ function adaptResults(
           }
         : undefined,
     };
-
+    
     // Documento adaptado
-
+    
     return adaptedDoc;
   });
-
+  
   return adapted;
 }
 
@@ -357,7 +357,7 @@ function calculateContentScore(article: MeltwaterArticle, allArticles: Meltwater
   const isTraditionalSource = traditionalNewsSources.some(
     (source) => sourceName.includes(source) || source.includes(sourceName)
   );
-
+  
   // Bonus más inclusivo para fuentes de noticias tradicionales
   const sourceBonus = isTraditionalSource ? 0.2 : 0.1; // Aumentar bonus para todas las fuentes
 
@@ -374,12 +374,12 @@ function calculateContentScore(article: MeltwaterArticle, allArticles: Meltwater
   const now = new Date();
   const hoursDiff = (now.getTime() - articleDate.getTime()) / (1000 * 60 * 60);
   const freshnessBonus = Math.max(0, 0.1 * (1 - hoursDiff / 168)); // Bonus decreciente en 7 días
-
+  
   // Factor de completitud: artículos con más datos tienen bonus
   const completenessBonus =
     0.05 *
     ((article.title && article.title.length > 10 ? 1 : 0) +
-      (article.description && article.description.length > 20 ? 1 : 0) +
+    (article.description && article.description.length > 20 ? 1 : 0) +
       (article.urlToImage && article.urlToImage !== "/placeholder.svg"
         ? 1
         : 0) +
@@ -419,12 +419,12 @@ function sortPaisArticlesBySocialEcho(
     // Priorizar socialEchoScore si está disponible
     const socialEchoA = a.socialEchoScore || 0;
     const socialEchoB = b.socialEchoScore || 0;
-
+    
     // Si ambos tienen socialEchoScore, ordenar por ese valor
     if (socialEchoA > 0 && socialEchoB > 0) {
       return socialEchoB - socialEchoA;
     }
-
+    
     // Si solo uno tiene socialEchoScore, priorizarlo
     if (socialEchoA > 0 && socialEchoB === 0) {
       return -1;
@@ -432,7 +432,7 @@ function sortPaisArticlesBySocialEcho(
     if (socialEchoA === 0 && socialEchoB > 0) {
       return 1;
     }
-
+    
     // Si ninguno tiene socialEchoScore, usar ContentScore como fallback (no engagement para evitar redes sociales)
     const contentScoreA = calculateContentScore(a, articles);
     const contentScoreB = calculateContentScore(b, articles);
@@ -717,7 +717,7 @@ function canonicalizeUrl(rawUrl: string | undefined): string {
 function isSocialMediaArticle(article: MeltwaterArticle): boolean {
   const sourceName = article.source?.name?.toLowerCase() || "";
   const url = article.url || "";
-
+  
   // PRIMERO: Detectar redes sociales de forma MÁS AGRESIVA E INCLUSIVA
   const socialKeywords = [
     // Redes sociales principales
@@ -749,7 +749,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "post",
     "share",
     "like",
-
+    
     // Redes sociales adicionales
     "mastodon",
     "bluesky",
@@ -795,7 +795,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "g+",
     "plus.google",
     "plus.google.com",
-
+    
     // Plataformas de video
     "dailymotion",
     "vimeo",
@@ -813,7 +813,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "webcast",
     "podcast",
     "radio",
-
+    
     // Plataformas de audio
     "spotify",
     "apple music",
@@ -829,7 +829,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "radio.com",
     "radio.net",
     "radio.garden",
-
+    
     // Plataformas de imágenes
     "flickr",
     "instagram",
@@ -845,7 +845,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "shutterstock",
     "getty",
     "istock",
-
+    
     // Plataformas de noticias sociales
     "reddit",
     "hacker news",
@@ -862,7 +862,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "bookmark",
     "tag",
     "hashtag",
-
+    
     // Plataformas de mensajería
     "telegram",
     "whatsapp",
@@ -880,7 +880,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "hangouts",
     "meet",
     "duo",
-
+    
     // Plataformas de foros
     "forum",
     "forums",
@@ -898,7 +898,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "rooms",
     "channel",
     "channels",
-
+    
     // Plataformas de blogs
     "blog",
     "blogs",
@@ -917,7 +917,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "vue",
     "react",
     "angular",
-
+    
     // Plataformas de e-commerce social
     "etsy",
     "ebay",
@@ -932,7 +932,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "shop",
     "store",
     "storefront",
-
+    
     // Plataformas de citas
     "tinder",
     "bumble",
@@ -947,7 +947,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "silversingles",
     "ourtime",
     "seniorpeoplemeet",
-
+    
     // Plataformas de gaming
     "steam",
     "epic games",
@@ -970,7 +970,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "world of warcraft",
     "final fantasy",
     "call of duty",
-
+    
     // Plataformas de educación
     "coursera",
     "udemy",
@@ -985,7 +985,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "the odin project",
     "scrimba",
     "egghead",
-
+    
     // Plataformas de trabajo
     "linkedin",
     "indeed",
@@ -1000,7 +1000,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "techcrunch",
     "venturebeat",
     "wired",
-
+    
     // Plataformas de crowdfunding
     "kickstarter",
     "indiegogo",
@@ -1015,7 +1015,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "apple pay",
     "google pay",
     "samsung pay",
-
+    
     // Plataformas de criptomonedas
     "bitcoin",
     "ethereum",
@@ -1030,7 +1030,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "rarible",
     "nifty gateway",
     "makersplace",
-
+    
     // Plataformas de fitness
     "strava",
     "myfitnesspal",
@@ -1044,7 +1044,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "garmin",
     "polar",
     "suunto",
-
+    
     // Plataformas de viajes
     "tripadvisor",
     "booking",
@@ -1060,7 +1060,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "hotels.com",
     "marriott",
     "hilton",
-
+    
     // Plataformas de comida
     "yelp",
     "zomato",
@@ -1077,7 +1077,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "clover",
     "shopify",
     "woocommerce",
-
+    
     // Palabras genéricas de redes sociales
     "social",
     "social media",
@@ -1271,12 +1271,12 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
     "bonus points",
     "bonus points",
   ];
-
+  
   // Detectar por nombre de fuente
   if (socialKeywords.some((keyword) => sourceName.includes(keyword))) {
     return true;
   }
-
+  
   // Detectar por URL (MUCHO MÁS INCLUSIVO)
   if (
     /facebook\.com|instagram\.com|twitter\.com|x\.com|reddit\.com|youtube\.com|youtu\.be|tiktok\.com|threads\.net|linkedin\.com|snapchat\.com|pinterest\.com|telegram\.org|whatsapp\.com|discord\.com|twitch\.tv|vimeo\.com|flickr\.com|tumblr\.com|medium\.com|quora\.com|mastodon\.|bluesky\.|truth\.social|parler\.|gab\.|rumble\.|odysee\.|bitchute\.|dailymotion\.|vkontakte\.|vk\.|odnoklassniki\.|ok\.|weibo\.|wechat\.|qq\.|line\.|kakao\.|naver\.|mixi\.|ameba\.|hatena\.|note\.|qiita\.|zenn\.|dev\.to|hashnode\.|substack\.|ghost\.|wordpress\.|blogger\.|livejournal\.|xanga\.|myspace\.|friendster\.|hi5\.|bebo\.|orkut\.|plus\.google|spotify\.|apple\.music|soundcloud\.|bandcamp\.|mixcloud\.|audiomack\.|reverbnation\.|last\.fm|pandora\.|iheartradio\.|tunein\.|radio\.com|radio\.net|radio\.garden|behance\.|dribbble\.|deviantart\.|artstation\.|500px\.|unsplash\.|pexels\.|pixabay\.|shutterstock\.|getty\.|istock\.|hacker\.news|news\.ycombinator|slashdot\.|digg\.|stumbleupon\.|delicious\.|signal\.|wickr\.|threema\.|element\.|matrix\.|riot\.|slack\.|teams\.|zoom\.|skype\.|hangouts\.|meet\.|duo\.|wix\.|squarespace\.|weebly\.|jekyll\.|hugo\.|gatsby\.|next\.js|nuxt\.|svelte\.|vue\.|react\.|angular\.|etsy\.|ebay\.|amazon\.|mercado\.libre|mercadolibre\.|olx\.|gumtree\.|craigslist\.|marketplace\.|tinder\.|bumble\.|hinge\.|match\.|okcupid\.|plenty\.of\.fish|pof\.|zoosk\.|eharmony\.|elitesingles\.|silversingles\.|ourtime\.|seniorpeoplemeet\.|steam\.|epic\.games|origin\.|uplay\.|gog\.|itch\.io|gamejolt\.|indiedb\.|roblox\.|minecraft\.|fortnite\.|pubg\.|apex\.legends|valorant\.|league\.of\.legends|dota\.|csgo\.|overwatch\.|world\.of\.warcraft|final\.fantasy|call\.of\.duty|coursera\.|udemy\.|edx\.|khan\.academy|skillshare\.|masterclass\.|linkedin\.learning|pluralsight\.|codecademy\.|freecodecamp\.|the\.odin\.project|scrimba\.|egghead\.|indeed\.|glassdoor\.|monster\.|careerbuilder\.|ziprecruiter\.|angel\.co|crunchbase\.|pitchbook\.|cb\.insights|techcrunch\.|venturebeat\.|wired\.|kickstarter\.|indiegogo\.|gofundme\.|patreon\.|ko-fi\.|buymeacoffee\.|paypal\.|venmo\.|cashapp\.|zelle\.|apple\.pay|google\.pay|samsung\.pay|bitcoin\.|ethereum\.|crypto\.|cryptocurrency\.|blockchain\.|nft\.|nfts\.|opensea\.|foundation\.|superrare\.|rarible\.|nifty\.gateway|makersplace\.|strava\.|myfitnesspal\.|fitbit\.|apple\.watch|samsung\.health|google\.fit|nike\.run\.club|adidas\.running|under\.armour|garmin\.|polar\.|suunto\.|tripadvisor\.|booking\.|airbnb\.|vrbo\.|expedia\.|priceline\.|kayak\.|skyscanner\.|google\.flights|momondo\.|cheaptickets\.|hotels\.com|marriott\.|hilton\.|yelp\.|zomato\.|swiggy\.|ubereats\.|doordash\.|grubhub\.|postmates\.|caviar\.|seamless\.|chownow\.|toast\.|square\.|clover\.|shopify\.|woocommerce\./i.test(
@@ -1285,7 +1285,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
   ) {
     return true;
   }
-
+  
   // Detectar por tipo de contenido
   const raw: any = article as any;
   if (
@@ -1296,7 +1296,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
   ) {
     return true;
   }
-
+  
   // Detectar por campos de contenido social
   const hasSocialFields =
     raw?.content?.text ||
@@ -1315,7 +1315,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
   if (hasSocialFields && hasSocialMetrics) {
     return true;
   }
-
+  
   // SEGUNDO: Excluir medios tradicionales explícitamente
   const traditionalKeywords = [
     "diario",
@@ -1451,7 +1451,7 @@ function isSocialMediaArticle(article: MeltwaterArticle): boolean {
   ) {
     return false; // Excluir medios tradicionales
   }
-
+  
   // Si no cumple ninguna condición de red social, NO es red social
   return false;
 }
@@ -1481,7 +1481,7 @@ function filterUniqueArticles(
   for (const article of articles) {
     const articleId = generateArticleId(article);
     const canonicalUrlKey = canonicalizeUrl(article.url);
-
+    
     // SOLO verificar por ID (muy permisivo)
     const seenById =
       shownArticles.has(`id:${articleId}`) ||
@@ -1517,10 +1517,10 @@ function calculateDynamicLimit(
 ): number {
   // Si hay pocos artículos, usar todos
   if (availableArticles <= 20) return availableArticles;
-
+  
   // Si hay artículos suficientes, usar el límite por defecto
   if (availableArticles >= defaultLimit) return defaultLimit;
-
+  
   // Si hay artículos intermedios, usar el 98% de los disponibles (MUY permisivo)
   return Math.floor(availableArticles * 0.98);
 }
@@ -1532,10 +1532,10 @@ function calculateSocialMediaLimit(
 ): number {
   // Para redes sociales, ser MUCHO más permisivo
   if (availableArticles <= 10) return availableArticles;
-
+  
   // Si hay artículos suficientes, usar el límite por defecto
   if (availableArticles >= defaultLimit) return defaultLimit;
-
+  
   // Si hay artículos intermedios, usar el 99% de los disponibles (EXTREMADAMENTE permisivo)
   return Math.floor(availableArticles * 0.99);
 }
@@ -1550,7 +1550,7 @@ function getUniqueTopArticles(
   console.log(`  📊 Total artículos de entrada: ${articles.length}`);
   console.log(`  📊 Artículos ya mostrados: ${shownArticles.size}`);
   console.log(`  📊 Límite solicitado: ${limit}`);
-
+  
   // Primero ordenar por ContentScore
   const sortedArticles = sortArticlesByContentScore(articles);
   console.log(
@@ -1566,17 +1566,17 @@ function getUniqueTopArticles(
   // Tomar el límite solicitado
   let result = uniqueArticles.slice(0, limit);
   console.log(`  📊 Resultado inicial: ${result.length} artículos`);
-
+  
   // Rellenar hasta el límite si es necesario (solo con artículos reales)
   if (result.length < limit) {
     const selectedIds = new Set(result.map((a) => generateArticleId(a)));
-
+    
     // Intentar con más artículos ordenados por ContentScore
     const contentScoreCandidates = articles.sort((a, b) => {
-      const scoreA = calculateContentScore(a, articles);
-      const scoreB = calculateContentScore(b, articles);
-      return scoreB - scoreA;
-    });
+        const scoreA = calculateContentScore(a, articles);
+        const scoreB = calculateContentScore(b, articles);
+        return scoreB - scoreA;
+      });
 
     for (const candidate of contentScoreCandidates) {
       if (result.length >= limit) break;
@@ -1587,9 +1587,9 @@ function getUniqueTopArticles(
       }
     }
   }
-
+  
   console.log(`  📊 Resultado final: ${result.length} artículos`);
-
+  
   // Log de artículos procesados (solo números)
 
   return assignContentScores(result);
@@ -1606,7 +1606,7 @@ function getUniqueTopPaisArticles(
   );
   console.log("  Total artículos de entrada:", articles.length);
   console.log("  Artículos ya mostrados:", shownArticles.size);
-
+  
   // Fuentes de redes sociales a excluir (solo medios tradicionales para la sección país)
   const excludedSources = [
     "facebook",
@@ -1858,7 +1858,7 @@ function getUniqueTopPaisArticles(
     "shopify",
     "woocommerce",
   ];
-
+  
   // Fuentes de medios tradicionales permitidas - Lista híbrida MUY INCLUSIVA
   const allowedTraditionalSources = [
     // === PALABRAS GENÉRICAS DE MEDIOS TRADICIONALES ===
@@ -1916,7 +1916,7 @@ function getUniqueTopPaisArticles(
     "redaccion",
     "equipo",
     "staff",
-
+    
     // === MEDIOS ARGENTINOS (EXPANDIDO) ===
     "clarin",
     "lanacion",
@@ -1982,7 +1982,7 @@ function getUniqueTopPaisArticles(
     "necochea",
     "pinamar",
     "villa carlos paz",
-
+    
     // === MEDIOS URUGUAYOS (EXPANDIDO) ===
     "elpais",
     "ovacion",
@@ -2017,7 +2017,7 @@ function getUniqueTopPaisArticles(
     "busqueda",
     "republica",
     "ultimas noticias",
-
+    
     // === MEDIOS BRASILEÑOS (EXPANDIDO) ===
     "globo",
     "folha",
@@ -2061,7 +2061,7 @@ function getUniqueTopPaisArticles(
     "informacao",
     "atualidade",
     "atualidade",
-
+    
     // === MEDIOS CHILENOS (EXPANDIDO) ===
     "emol",
     "latercera",
@@ -2088,7 +2088,7 @@ function getUniqueTopPaisArticles(
     "mega",
     "chilevision",
     "tvn",
-
+    
     // === MEDIOS COLOMBIANOS (EXPANDIDO) ===
     "eltiempo",
     "semana",
@@ -2117,7 +2117,7 @@ function getUniqueTopPaisArticles(
     "ibague",
     "pasto",
     "villavicencio",
-
+    
     // === MEDIOS MEXICANOS (EXPANDIDO) ===
     "reforma",
     "jornada",
@@ -2152,7 +2152,7 @@ function getUniqueTopPaisArticles(
     "merida",
     "mexicali",
     "aguascalientes",
-
+    
     // === MEDIOS ESPAÑOLES (EXPANDIDO) ===
     "elpais",
     "elmundo",
@@ -2196,7 +2196,7 @@ function getUniqueTopPaisArticles(
     "las palmas",
     "granada",
     "alicante",
-
+    
     // === MEDIOS INTERNACIONALES PRINCIPALES ===
     "bbc",
     "cnn",
@@ -2270,7 +2270,7 @@ function getUniqueTopPaisArticles(
     "arizona central",
     "miami herald",
     "orlando sentinel",
-
+    
     // === MEDIOS FRANCESES (EXPANDIDO) ===
     "lemonde",
     "lefigaro",
@@ -2309,7 +2309,7 @@ function getUniqueTopPaisArticles(
     "rennes",
     "reims",
     "le havre",
-
+    
     // === MEDIOS ALEMANES (EXPANDIDO) ===
     "spiegel",
     "zeit",
@@ -2347,7 +2347,7 @@ function getUniqueTopPaisArticles(
     "leipzig",
     "bremen",
     "dresden",
-
+    
     // === MEDIOS ITALIANOS (EXPANDIDO) ===
     "corriere",
     "repubblica",
@@ -2376,7 +2376,7 @@ function getUniqueTopPaisArticles(
     "bolonia",
     "florencia",
     "venecia",
-
+    
     // === MEDIOS BRITÁNICOS (EXPANDIDO) ===
     "guardian",
     "telegraph",
@@ -2411,7 +2411,7 @@ function getUniqueTopPaisArticles(
     "sheffield",
     "bristol",
     "newcastle",
-
+    
     // === MEDIOS CANADIENSES (EXPANDIDO) ===
     "globeandmail",
     "nationalpost",
@@ -2440,7 +2440,7 @@ function getUniqueTopPaisArticles(
     "hamilton",
     "kitchener",
     "london",
-
+    
     // === MEDIOS AUSTRALIANOS (EXPANDIDO) ===
     "sydney",
     "herald",
@@ -2477,7 +2477,7 @@ function getUniqueTopPaisArticles(
     "canberra",
     "townsville",
     "cairns",
-
+    
     // === MEDIOS ASIÁTICOS (EXPANDIDO) ===
     "asahi",
     "yomiuri",
@@ -2517,7 +2517,7 @@ function getUniqueTopPaisArticles(
     "seul",
     "pekin",
     "shanghai",
-
+    
     // === MEDIOS RUSOS Y ÁRABES (EXPANDIDO) ===
     "rt",
     "sputnik",
@@ -2545,7 +2545,7 @@ function getUniqueTopPaisArticles(
     "nizhny novgorod",
     "chelyabinsk",
     "omsk",
-
+    
     // === MEDIOS LATINOAMERICANOS ADICIONALES ===
     "ecuador",
     "peru",
@@ -2572,7 +2572,7 @@ function getUniqueTopPaisArticles(
     "guyana",
     "suriname",
     "french guiana",
-
+    
     // === MEDIOS EUROPEOS ADICIONALES ===
     "portugal",
     "espana",
@@ -2610,7 +2610,7 @@ function getUniqueTopPaisArticles(
     "andorra",
     "san marino",
     "vaticano",
-
+    
     // === MEDIOS AFRICANOS ===
     "sudafrica",
     "egipto",
@@ -2632,7 +2632,7 @@ function getUniqueTopPaisArticles(
     "namibia",
     "lesotho",
     "swazilandia",
-
+    
     // === MEDIOS OCEÁNICOS ===
     "nueva zelanda",
     "fiji",
@@ -2652,7 +2652,7 @@ function getUniqueTopPaisArticles(
     "oceania",
     "pacifico",
     "oceano",
-
+    
     // === MEDIOS ESPECIALIZADOS ===
     "deportes",
     "sports",
@@ -3543,13 +3543,13 @@ function getUniqueTopPaisArticles(
     "recuerdo",
     "memory",
   ];
-
+  
   // Filtrar solo medios tradicionales, excluir redes sociales
   const filteredArticles = articles.filter((article) => {
     const sourceName = article.source?.name?.toLowerCase() || "";
     const raw: any = article as any;
     const contentType = raw?.content_type;
-
+    
     // Excluir por content_type primero (más confiable)
     if (contentType === "social post" || contentType === "social") {
       console.log(
@@ -3557,7 +3557,7 @@ function getUniqueTopPaisArticles(
       );
       return false;
     }
-
+    
     // Excluir redes sociales explícitamente por nombre de fuente
     const isExcludedSocial = excludedSources.some((excluded) =>
       sourceName.includes(excluded)
@@ -3568,36 +3568,36 @@ function getUniqueTopPaisArticles(
       );
       return false;
     }
-
+    
     // Incluir medios tradicionales reconocidos
     const isTraditionalSource = allowedTraditionalSources.some((traditional) =>
       sourceName.includes(traditional)
     );
-
+    
     if (isTraditionalSource) {
       console.log(
         `  ✅ Incluido (medio tradicional): ${article.title} | Fuente: ${article.source?.name}`
       );
       return true;
     }
-
+    
     // Excluir fuentes no reconocidas (solo medios tradicionales)
     console.log(
       `  ❌ Excluido (fuente no reconocida): ${article.title} | Fuente: ${article.source?.name}`
     );
     return false;
   });
-
+  
   console.log(
     "  Artículos después de filtrar redes sociales:",
     filteredArticles.length
   );
-
+  
   // Crear SocialEchoScore híbrido solo para medios tradicionales
   const articlesWithHybridSocialEcho = filteredArticles.map((article) => {
     const originalSocialEcho = article.socialEchoScore || 0;
     const engagement = article.engagementScore || 0;
-
+    
     // Si no hay SocialEchoScore pero hay engagement, usar engagement como SocialEcho
     const hybridSocialEcho =
       originalSocialEcho > 0
@@ -3605,13 +3605,13 @@ function getUniqueTopPaisArticles(
         : engagement > 0
         ? engagement * 0.5
         : 0;
-
+    
     return {
       ...article,
       hybridSocialEchoScore: hybridSocialEcho,
     };
   });
-
+  
   // Separar artículos con y sin SocialEcho híbrido (solo medios tradicionales)
   const articlesWithSocialEcho = articlesWithHybridSocialEcho.filter(
     (article) => (article.hybridSocialEchoScore || 0) > 0
@@ -3622,14 +3622,14 @@ function getUniqueTopPaisArticles(
 
   console.log("  Artículos con SocialEcho:", articlesWithSocialEcho.length);
   console.log("  Artículos sin SocialEcho:", articlesWithoutSocialEcho.length);
-
+  
   // Log detallado de SocialEcho híbrido
   console.log(
     "  📊 ANÁLISIS SOCIAL ECHO HÍBRIDO:",
     articlesWithHybridSocialEcho.length,
     "artículos"
   );
-
+  
   // Log detallado de métricas de medios tradicionales
   console.log(
     "  📊 ANÁLISIS MÉTRICAS MEDIOS TRADICIONALES:",
@@ -3643,23 +3643,23 @@ function getUniqueTopPaisArticles(
     const socialEchoB = b.hybridSocialEchoScore || 0;
     return socialEchoB - socialEchoA;
   });
-
+  
   // 3. Para artículos sin SocialEcho, usar métricas específicas de medios tradicionales
   const sortedWithoutSocialEcho = articlesWithoutSocialEcho.sort((a, b) => {
     // Priorizar por métricas de medios tradicionales
     const reachA = a.source?.metrics?.reach || 0;
     const reachB = b.source?.metrics?.reach || 0;
-
+    
     const aveA = a.source?.metrics?.ave || 0;
     const aveB = b.source?.metrics?.ave || 0;
-
+    
     const viewsA = a.metrics?.views || 0;
     const viewsB = b.metrics?.views || 0;
-
+    
     // Calcular score compuesto para medios tradicionales
     const scoreA = reachA * 0.4 + aveA * 0.3 + viewsA * 0.3;
     const scoreB = reachB * 0.4 + aveB * 0.3 + viewsB * 0.3;
-
+    
     return scoreB - scoreA;
   });
 
@@ -3668,12 +3668,12 @@ function getUniqueTopPaisArticles(
     ...sortedWithSocialEcho,
     ...sortedWithoutSocialEcho,
   ];
-
+  
   console.log("  Artículos combinados:", combinedArticles.length);
 
   // Filtrar duplicados
   const uniqueArticles = filterUniqueArticles(combinedArticles, shownArticles);
-
+  
   console.log(
     "  Artículos únicos después de filtrar duplicados:",
     uniqueArticles.length
@@ -3681,7 +3681,7 @@ function getUniqueTopPaisArticles(
 
   // Tomar el límite solicitado
   let result = uniqueArticles.slice(0, limit);
-
+  
   console.log("  Resultado final antes de rellenar:", result.length);
 
   // Rellenar hasta 50 artículos: ser más permisivo para conseguir más artículos
@@ -3706,10 +3706,10 @@ function getUniqueTopPaisArticles(
     let contentScoreCandidates: MeltwaterArticle[] = [];
     if (result.length < limit) {
       contentScoreCandidates = filteredArticles.sort((a, b) => {
-        const scoreA = calculateContentScore(a, filteredArticles);
-        const scoreB = calculateContentScore(b, filteredArticles);
-        return scoreB - scoreA;
-      });
+          const scoreA = calculateContentScore(a, filteredArticles);
+          const scoreB = calculateContentScore(b, filteredArticles);
+          return scoreB - scoreA;
+        });
 
       for (const candidate of contentScoreCandidates) {
         if (result.length >= limit) break;
@@ -3734,16 +3734,16 @@ function getUniqueTopPaisArticles(
     // }
 
     // 4) Como último recurso, usar cualquier artículo disponible
-    //   if (result.length < limit) {
-    //     for (const candidate of articles) {
-    //       if (result.length >= limit) break;
-    //       const id = generateArticleId(candidate);
-    //       if (!selectedIds.has(id)) {
-    //         result.push(candidate);
-    //         selectedIds.add(id);
-    //       }
-    //     }
-    //   }
+  //   if (result.length < limit) {
+  //     for (const candidate of articles) {
+  //       if (result.length >= limit) break;
+  //       const id = generateArticleId(candidate);
+  //       if (!selectedIds.has(id)) {
+  //         result.push(candidate);
+  //         selectedIds.add(id);
+  //       }
+  //     }
+  //   }
   }
 
   console.log("  🎯 RESULTADO FINAL getUniqueTopPaisArticles:", result.length);
@@ -3761,7 +3761,7 @@ function getUniqueSocialMediaArticles(
   console.log("🔍 DEBUG getUniqueSocialMediaArticles - INICIANDO FUNCIÓN");
   console.log("  Total artículos de entrada:", articles.length);
   console.log("  Artículos ya mostrados:", shownArticles.size);
-
+  
   // Dominios sociales reconocidos para URL
   const socialHosts = new Set([
     "twitter.com",
@@ -3828,11 +3828,11 @@ function getUniqueSocialMediaArticles(
   // Debug: Log de detección de redes sociales
   console.log("🔍 DEBUG REDES SOCIALES:");
   console.log(`  Total artículos: ${articles.length}`);
-
+  
   // Debug detallado de cada artículo (solo números)
-
+  
   const socialMediaArticles = articles.filter(isSocialMediaArticle);
-
+  
   // Filtrar posts sociales con datos básicos (EXTREMADAMENTE permisivo)
   const completeSocialArticles = socialMediaArticles.filter((article) => {
     const hasValidTitle = article.title && article.title.trim().length > 0;
@@ -3843,7 +3843,7 @@ function getUniqueSocialMediaArticles(
     const hasValidUrl = article.url && article.url.trim().length > 0;
     const hasEngagement = (article.engagementScore || 0) > 0;
     const hasSocialEcho = (article.socialEchoScore || 0) > 0;
-
+    
     // EXTREMADAMENTE permisivo: incluir cualquier artículo social
     return (
       hasValidTitle ||
@@ -3855,7 +3855,7 @@ function getUniqueSocialMediaArticles(
       true
     );
   });
-
+  
   console.log(`  Artículos sociales detectados: ${socialMediaArticles.length}`);
   console.log(
     `  Artículos sociales completos: ${completeSocialArticles.length}`
@@ -3867,7 +3867,7 @@ function getUniqueSocialMediaArticles(
     "  URLs de redes sociales:",
     socialMediaArticles.slice(0, 100).map((a) => a.url)
   );
-
+  
   // Debug: Analizar por qué se filtran artículos
   const filteredOut = socialMediaArticles.filter((article) => {
     const hasValidTitle =
@@ -3880,7 +3880,7 @@ function getUniqueSocialMediaArticles(
     const hasValidImage =
       article.urlToImage && article.urlToImage !== "/placeholder.svg";
     const hasValidUrl = article.url && article.url.trim().length > 5;
-
+    
     return !(
       hasValidTitle ||
       hasValidDescription ||
@@ -3888,13 +3888,13 @@ function getUniqueSocialMediaArticles(
       hasValidUrl
     );
   });
-
+  
   if (filteredOut.length > 0) {
     console.log(
       `  Artículos filtrados por datos incompletos: ${filteredOut.length}`
     );
   }
-
+  
   // Debug: Verificar que NO hay medios tradicionales en la selección
   const traditionalInSocial = socialMediaArticles.filter((a) => {
     const sourceName = a.source?.name?.toLowerCase() || "";
@@ -3920,7 +3920,7 @@ function getUniqueSocialMediaArticles(
       sourceName.includes(traditional)
     );
   });
-
+  
   if (traditionalInSocial.length > 0) {
     console.log(
       "  ⚠️  ADVERTENCIA: Se detectaron medios tradicionales en redes sociales:",
@@ -3968,7 +3968,7 @@ function getUniqueSocialMediaArticles(
       const allSocialCandidates = [...socialMediaArticles].sort(
         (a, b) => (b.engagementScore || 0) - (a.engagementScore || 0)
       );
-
+      
       for (const candidate of allSocialCandidates) {
         if (result.length >= limit) break;
         const id = generateArticleId(candidate);
@@ -3984,7 +3984,7 @@ function getUniqueSocialMediaArticles(
       const allSocialCandidates = [...socialMediaArticles].sort(
         (a, b) => (b.engagementScore || 0) - (a.engagementScore || 0)
       );
-
+      
       for (const candidate of allSocialCandidates) {
         if (result.length >= limit) break;
         const id = generateArticleId(candidate);
@@ -4032,13 +4032,13 @@ function calculateRelevantMetrics(articles: MeltwaterArticle[]) {
   // 4. SENTIMIENTO PROMEDIO - Análisis de opinión pública
   const sentimentData = articles.reduce(
     (acc, article) => {
-      const sentiment = article.enrichments?.sentiment;
-      if (sentiment) {
-        acc.count++;
+    const sentiment = article.enrichments?.sentiment;
+    if (sentiment) {
+      acc.count++;
         acc.score +=
           sentiment === "positive" ? 1 : sentiment === "negative" ? -1 : 0;
-      }
-      return acc;
+    }
+    return acc;
     },
     { count: 0, score: 0 }
   );
@@ -4170,16 +4170,16 @@ export default function Index() {
         let countryId = urlParams.get("countryId");
         let sectorId = urlParams.get("sectorId");
         let searchName = urlParams.get("searchName");
-
+        
         // Si no hay parámetros en query, verificar si es una URL limpia
         if (!countryId && !sectorId) {
           const pathname = window.location.pathname;
-
+          
           // Si hay un pathname personalizado (ej: /busqueda-personalizada-imm)
           if (pathname && pathname !== "/" && pathname !== "/index.html") {
             // Extraer nombre de búsqueda del pathname
             const cleanPath = pathname.replace(/^\//, "").replace(/\/$/, "");
-
+            
             // Si es una búsqueda personalizada, extraer el nombre
             if (cleanPath.startsWith("busqueda-personalizada-")) {
               const searchNameFromPath = cleanPath.replace(
@@ -4190,7 +4190,7 @@ export default function Index() {
                 .replace(/-/g, " ")
                 .replace(/\b\w/g, (l) => l.toUpperCase());
               setSearchName(searchName);
-
+              
               // Obtener IDs técnicos desde el backend
               try {
                 const searchResponse = await axios.get(
@@ -4227,8 +4227,8 @@ export default function Index() {
           const response = await postWithRetry(
             buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED),
             {
-              countryId,
-              sectorId,
+            countryId,
+            sectorId,
               limit: 500, // Solicitar 500 artículos para cada sección
             }
           );
@@ -4237,12 +4237,18 @@ export default function Index() {
             // Log de la respuesta de la API
             console.log("📊 Total sector:", response.data.sector?.length || 0);
             console.log("📊 Total país:", response.data.pais?.length || 0);
-
+            
+            // ARRAY COMPLETO DE ARTÍCULOS DESDE LA API
+            console.log("\n📋 ARRAY COMPLETO DE ARTÍCULOS - SECTOR (desde API):");
+            console.log(JSON.stringify(response.data.sector || [], null, 2));
+            console.log("\n📋 ARRAY COMPLETO DE ARTÍCULOS - PAÍS (desde API):");
+            console.log(JSON.stringify(response.data.pais || [], null, 2));
+            
             const sectorData = adaptResults(response.data.sector, true); // Incluir redes sociales
             const paisData = adaptResults(response.data.pais, true); // Incluir redes sociales
-
+            
             // Log de los datos después de adaptResults
-
+            
             setSectorArticles(sectorData);
             setPaisArticles(paisData);
             console.log(
@@ -4283,12 +4289,12 @@ export default function Index() {
         // Si hay email en URL o localStorage, usarlo
         if (emailParam) localStorage.setItem("userEmail", emailParam);
         const email = emailParam || localStorage.getItem("userEmail");
-
+        
         if (email) {
           const response = await postWithRetry(
             buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED),
             {
-              email,
+            email,
               limit: 500, // Solicitar 500 artículos para cada sección
               includeSocial: true, // Incluir redes sociales para el panel social
             }
@@ -4297,12 +4303,18 @@ export default function Index() {
             // Log de la respuesta de la API
             console.log("📊 Total sector:", response.data.sector?.length || 0);
             console.log("📊 Total país:", response.data.pais?.length || 0);
-
+            
+            // ARRAY COMPLETO DE ARTÍCULOS DESDE LA API
+            console.log("\n📋 ARRAY COMPLETO DE ARTÍCULOS - SECTOR (desde API):");
+            console.log(JSON.stringify(response.data.sector || [], null, 2));
+            console.log("\n📋 ARRAY COMPLETO DE ARTÍCULOS - PAÍS (desde API):");
+            console.log(JSON.stringify(response.data.pais || [], null, 2));
+            
             const sectorData = adaptResults(response.data.sector, true); // Incluir redes sociales
             const paisData = adaptResults(response.data.pais, true); // Incluir redes sociales
-
+            
             // Log de los datos después de adaptResults
-
+            
             setSectorArticles(sectorData);
             setPaisArticles(paisData);
             console.log(
@@ -4344,21 +4356,27 @@ export default function Index() {
         const response = await postWithRetry(
           buildApiUrl(API_CONFIG.ENDPOINTS.NEWS_PERSONALIZED),
           {
-            email: "default",
+          email: "default",
             includeSocial: true, // Incluir redes sociales para el panel social
           }
         );
-
+        
         if (response.data.success) {
           // Log de la respuesta de la API
           console.log("📊 Total sector:", response.data.sector?.length || 0);
           console.log("📊 Total país:", response.data.pais?.length || 0);
-
+          
+          // ARRAY COMPLETO DE ARTÍCULOS DESDE LA API
+          console.log("\n📋 ARRAY COMPLETO DE ARTÍCULOS - SECTOR (desde API):");
+          console.log(JSON.stringify(response.data.sector || [], null, 2));
+          console.log("\n📋 ARRAY COMPLETO DE ARTÍCULOS - PAÍS (desde API):");
+          console.log(JSON.stringify(response.data.pais || [], null, 2));
+          
           const sectorData = adaptResults(response.data.sector, true); // Incluir redes sociales
           const paisData = adaptResults(response.data.pais, true); // Incluir redes sociales
-
+          
           // Log de los datos después de adaptResults
-
+          
           setSectorArticles(sectorData);
           setPaisArticles(paisData);
 
@@ -4410,14 +4428,14 @@ export default function Index() {
 
         <main className="dashboard-container">
           {/* Skeleton para Sector */}
-          <SectionSkeleton
+          <SectionSkeleton 
             title="Noticias del Sector"
             showDescription={true}
             articleCount={10}
           />
 
           {/* Skeleton para País */}
-          <SectionSkeleton
+          <SectionSkeleton 
             title="Noticias del País"
             showDescription={true}
             articleCount={10}
@@ -4452,7 +4470,7 @@ export default function Index() {
           <p className="text-gray-300 mb-6">
             Intenta recargar la página o verifica tu conexión a internet
           </p>
-          <button
+          <button 
             onClick={() => window.location.reload()}
             className="btn-primary"
           >
@@ -4462,7 +4480,7 @@ export default function Index() {
       </div>
     );
   }
-
+    
   if (!paisArticles.length && !sectorArticles.length)
     return (
       <div className="min-h-screen tech-background network-pattern flex items-center justify-center">
@@ -4498,14 +4516,14 @@ export default function Index() {
   const paisEcoSocial = paisArticles.filter(
     (a) => a.socialEchoScore !== undefined
   );
-
+  
   // Logs generales de datos disponibles
   console.log("📊 DATOS DISPONIBLES:");
   console.log(`  Sector: ${sectorArticles.length} artículos`);
   console.log(`  País: ${paisArticles.length} artículos`);
   console.log(`  País con Engagement: ${paisEngagement.length} artículos`);
   console.log(`  País con SocialEcho: ${paisEcoSocial.length} artículos`);
-
+  
   // Log de fuentes disponibles
   const sectorSources = [...new Set(sectorArticles.map((a) => a.source.name))];
   const paisSources = [...new Set(paisArticles.map((a) => a.source.name))];
@@ -4529,8 +4547,8 @@ export default function Index() {
           <div className="relative">
             {/* Botón de admin en posición absoluta */}
             <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
-              <a
-                href="/admin"
+              <a 
+                href="/admin" 
                 className="admin-button"
                 title="Panel de Administración"
               >
@@ -4556,7 +4574,7 @@ export default function Index() {
                 <span className="hidden sm:inline">Admin</span>
               </a>
             </div>
-
+            
             {/* Título centrado */}
             <h1 className="dashboard-title">NEWSROOM</h1>
             <p className="dashboard-subtitle">
@@ -4601,14 +4619,14 @@ export default function Index() {
             <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-yellow-400 scrollbar-track-transparent">
               <NewsList
                 articles={(() => {
-                  // Sección 1: Sector (ContentScore)
+                // Sección 1: Sector (ContentScore)
                   console.log("🔵 DEBUG SECTOR - Estado inicial:");
                   console.log(
                     `  📊 sectorArticles disponibles: ${sectorArticles.length}`
                   );
-                  console.log(`  📊 shownArticles.size: ${shownArticles.size}`);
+                console.log(`  📊 shownArticles.size: ${shownArticles.size}`);
 
-                  // Panel Sector: Incluir TODAS las noticias (ajuste temporal)
+                // Panel Sector: Incluir TODAS las noticias (ajuste temporal)
                   console.log(
                     `  📊 sectorArticles totales: ${sectorArticles.length}`
                   );
@@ -4622,13 +4640,13 @@ export default function Index() {
                     shownArticles,
                     dynamicLimit
                   );
-                  // Marcar como mostrados para evitar duplicados con las siguientes secciones
-                  markShown(shownArticles, articles);
+                // Marcar como mostrados para evitar duplicados con las siguientes secciones
+                markShown(shownArticles, articles);
                   console.log(
                     "🔵 TOP 50 SECTOR - Artículos mostrados:",
                     articles.length
                   );
-                  return articles;
+                return articles;
                 })()}
                 title="Noticias Sectoriales"
               />
@@ -4639,37 +4657,37 @@ export default function Index() {
         {/* Nube de Palabras - Sector */}
         {sectorArticles.length > 0 &&
           (() => {
-            const freqMap = new Map<string, number>();
-            const addWords = (words?: string[]) => {
-              if (!words) return;
-              for (const w of words) {
-                if (!w) continue;
-                const key = w.toLowerCase();
-                freqMap.set(key, (freqMap.get(key) || 0) + 1);
-              }
-            };
-            // tomar keyphrases del sector, con fallback a títulos y descripciones
+          const freqMap = new Map<string, number>();
+          const addWords = (words?: string[]) => {
+            if (!words) return;
+            for (const w of words) {
+              if (!w) continue;
+              const key = w.toLowerCase();
+              freqMap.set(key, (freqMap.get(key) || 0) + 1);
+            }
+          };
+          // tomar keyphrases del sector, con fallback a títulos y descripciones
             sectorArticles.forEach((a) => {
               if (
                 a.enrichments?.keyphrases &&
                 a.enrichments.keyphrases.length > 0
               ) {
-                addWords(a.enrichments.keyphrases);
-              } else {
-                // Extraer palabras del título y descripción como fallback
+              addWords(a.enrichments.keyphrases);
+            } else {
+              // Extraer palabras del título y descripción como fallback
                 const titleWords = extractWordsFromText(a.title || "");
                 const descWords = extractWordsFromText(a.description || "");
-                addWords([...titleWords, ...descWords]);
-              }
-            });
+              addWords([...titleWords, ...descWords]);
+            }
+          });
             const words: WordFrequency[] = Array.from(freqMap.entries()).map(
               ([word, count]) => ({ word, count })
             );
-            if (words.length === 0) return null;
-            return (
-              <div className="news-section">
-                <div className="section-header-dashboard">
-                  <div className="section-icon-dashboard">
+          if (words.length === 0) return null;
+          return (
+            <div className="news-section">
+              <div className="section-header-dashboard">
+                <div className="section-icon-dashboard">
                     <svg
                       className="w-6 h-6 text-white"
                       fill="none"
@@ -4682,9 +4700,9 @@ export default function Index() {
                         strokeWidth={2}
                         d="M3 5h18M3 12h18M3 19h18"
                       />
-                    </svg>
-                  </div>
-                  <div>
+                  </svg>
+                </div>
+                <div>
                     <h2 className="section-title-dashboard">
                       Nube de Palabras - Sector
                     </h2>
@@ -4692,12 +4710,12 @@ export default function Index() {
                       Palabras clave más mencionadas en noticias sectoriales;
                       mayor tamaño indica mayor relevancia
                     </p>
-                  </div>
                 </div>
-                <WordCloud words={words} maxWords={40} />
               </div>
-            );
-          })()}
+              <WordCloud words={words} maxWords={40} />
+            </div>
+          );
+        })()}
 
         {/* TOP 50 Contenido - País */}
         {paisArticles.length > 0 && (
@@ -4737,7 +4755,7 @@ export default function Index() {
                     paisArticles.length,
                     "artículos del país"
                   );
-                  // Sección 2: País - Mostrar artículos del país (medios tradicionales) ordenados por SocialEcho/ContentScore
+                // Sección 2: País - Mostrar artículos del país (medios tradicionales) ordenados por SocialEcho/ContentScore
                   const dynamicLimit = calculateDynamicLimit(
                     paisArticles.length,
                     500
@@ -4747,40 +4765,40 @@ export default function Index() {
                     shownArticles,
                     dynamicLimit
                   );
-                  // Marcar como mostrados para evitar duplicados con la sección de redes
-                  markShown(shownArticles, articles);
+                // Marcar como mostrados para evitar duplicados con la sección de redes
+                markShown(shownArticles, articles);
                   console.log(
                     "🟢 TOP 50 PAÍS - Artículos mostrados:",
                     articles.length
                   );
-                  return articles;
+                return articles;
                 })()}
                 title="Noticias del País"
               />
             </div>
-          </div>
-        )}
+            </div>
+          )}
 
         {/* Nube de Palabras - País */}
         {paisArticles.length > 0 &&
           (() => {
-            const freqMap = new Map<string, number>();
-            const addWords = (words?: string[]) => {
-              if (!words) return;
-              for (const w of words) {
-                if (!w) continue;
-                const key = w.toLowerCase();
-                freqMap.set(key, (freqMap.get(key) || 0) + 1);
-              }
-            };
-
-            // Extraer palabras de títulos y contenido si no hay keyphrases
-            const extractWordsFromText = (text: string) => {
-              if (!text) return [];
-              return text
-                .toLowerCase()
+          const freqMap = new Map<string, number>();
+          const addWords = (words?: string[]) => {
+            if (!words) return;
+            for (const w of words) {
+              if (!w) continue;
+              const key = w.toLowerCase();
+              freqMap.set(key, (freqMap.get(key) || 0) + 1);
+            }
+          };
+          
+          // Extraer palabras de títulos y contenido si no hay keyphrases
+          const extractWordsFromText = (text: string) => {
+            if (!text) return [];
+            return text
+              .toLowerCase()
                 .replace(/[^\w\s]/g, " ")
-                .split(/\s+/)
+              .split(/\s+/)
                 .filter(
                   (word) =>
                     word.length > 3 &&
@@ -4994,42 +5012,42 @@ export default function Index() {
                       "retornar",
                     ].includes(word)
                 )
-                .slice(0, 60); // Limitar a 60 palabras por artículo
-            };
-
-            // Intentar usar keyphrases primero, luego extraer de títulos y descripciones
+              .slice(0, 60); // Limitar a 60 palabras por artículo
+          };
+          
+          // Intentar usar keyphrases primero, luego extraer de títulos y descripciones
             paisArticles.forEach((a) => {
               if (
                 a.enrichments?.keyphrases &&
                 a.enrichments.keyphrases.length > 0
               ) {
-                addWords(a.enrichments.keyphrases);
-              } else {
-                // Extraer palabras del título y descripción
+              addWords(a.enrichments.keyphrases);
+            } else {
+              // Extraer palabras del título y descripción
                 const titleWords = extractWordsFromText(a.title || "");
                 const descWords = extractWordsFromText(a.description || "");
-                addWords([...titleWords, ...descWords]);
-              }
-            });
-
+              addWords([...titleWords, ...descWords]);
+            }
+          });
+          
             const words: WordFrequency[] = Array.from(freqMap.entries()).map(
               ([word, count]) => ({ word, count })
             );
-
-            // Debug para nubes de palabras
+          
+          // Debug para nubes de palabras
             console.log("🔍 DEBUG NUBE DE PALABRAS:");
-            console.log(`  📊 Artículos del país: ${paisArticles.length}`);
-            console.log(`  📊 Palabras extraídas: ${words.length}`);
-            console.log(`  📊 Primeras 100 palabras:`, words.length);
-
-            if (words.length === 0) {
+          console.log(`  📊 Artículos del país: ${paisArticles.length}`);
+          console.log(`  📊 Palabras extraídas: ${words.length}`);
+          console.log(`  📊 Primeras 100 palabras:`, words.length);
+          
+          if (words.length === 0) {
               console.log("⚠️  No hay palabras para nube de palabras");
-              return null;
-            }
-            return (
-              <div className="news-section">
-                <div className="section-header-dashboard">
-                  <div className="section-icon-dashboard">
+            return null;
+          }
+          return (
+            <div className="news-section">
+              <div className="section-header-dashboard">
+                <div className="section-icon-dashboard">
                     <svg
                       className="w-6 h-6 text-white"
                       fill="none"
@@ -5042,9 +5060,9 @@ export default function Index() {
                         strokeWidth={2}
                         d="M3 5h18M3 12h18M3 19h18"
                       />
-                    </svg>
-                  </div>
-                  <div>
+                  </svg>
+                </div>
+                <div>
                     <h2 className="section-title-dashboard">
                       Nube de Palabras - País
                     </h2>
@@ -5052,12 +5070,12 @@ export default function Index() {
                       Palabras clave más mencionadas en noticias del país; mayor
                       tamaño indica mayor relevancia
                     </p>
-                  </div>
                 </div>
-                <WordCloud words={words} maxWords={40} />
               </div>
-            );
-          })()}
+              <WordCloud words={words} maxWords={40} />
+            </div>
+          );
+        })()}
 
         {/* Contenido Más Relevante */}
         {paisArticles.length > 0 && (
